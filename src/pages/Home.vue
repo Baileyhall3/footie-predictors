@@ -49,7 +49,7 @@ import Predictions from "./Predictions.vue";
 import { getUserGroups } from "../api/groups";
 import { getUserPredictions } from "../api/predictions";
 import { getLeaderboardPosition } from "../api/leaderboard";
-import { getGameweeks } from '../api/gameweeks';
+import { getGameweeks } from '../api/gameWeeks';
 
 const userGroups = ref([]);
 const userPredictions = ref([]);
