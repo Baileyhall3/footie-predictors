@@ -2,20 +2,21 @@
   <div className="min-h-screen bg-gray-100">
     <Header
       :navItems="navItems"
-      headerTitle="FOOTIE PREDICTORS"
+      headerTitle="Footie Predictors"
     />
+    <!-- Background Blur -->
+    <div v-if="mobileNavControls.isOpen" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md z-40" @click="mobileNavControls.close"></div>
+
     <transition name="fade">
       <router-view v-if="isVisible" />
     </transition>
-    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import Header from "./components/Header.vue";
-import Footer from './components/Footer.vue';
-import { GlobeAltIcon, ShoppingCartIcon } from "@heroicons/vue/24/outline";
+import mobileNavControls from './shared';
 
 const isVisible = ref(false);
 
@@ -25,42 +26,20 @@ onMounted(() => {
 
 const navItems = [
   {
-    name: "Home",
-    href: "/",
+    name: "Groups",
+    href: "/groups",
   },
   {
     name: "Predictions",
     href: "/predictions",
   },
   {
-    name: "Leagues",
-    href: "/leagues",
-    children: [
-      {
-        name: "Premier League",
-        href: "/leagues/premier-league",
-        description: "English Premier League predictions",
-        icon: GlobeAltIcon,
-      },
-      {
-        name: "Champions League",
-        href: "/leagues/champions-league",
-        description: "UEFA Champions League predictions",
-        icon: ShoppingCartIcon,
-      },
-    ],
+    name: "Leaderboards",
+    href: "/leaderboards",
   },
   {
-    name: "Statistics",
-    href: "/statistics",
-  },
-  {
-    name: "About",
-    href: "/about",
-  },
-  {
-    name: "Contact",
-    href: "/contact",
+    name: "Profile",
+    href: "/profile",
   },
 ];
 </script>

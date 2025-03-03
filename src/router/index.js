@@ -1,11 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../pages/Home.vue';
-import About from '../pages/About.vue';
-import Contact from '../pages/Contact.vue';
-
-import Shirts from '../pages/categories/Shirts.vue';
-import Sweats from '../pages/categories/Sweats.vue';
-import Accessories from '../pages/categories/Accessories.vue';
+import CreateGroup from '../pages/CreateGroup.vue';
+import Groups from '../pages/Groups.vue';
+import Group from '../pages/Group.vue';
+import Predictions from '../pages/Predictions.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -15,47 +13,41 @@ const router = createRouter({
       name: 'Home',
       component: Home,
       meta: {
-        title: 'Irrelevant Clothing'
+        title: 'Footie Predictors'
       }
     },
     {
-      path: '/about',
-      name: 'About',
-      component: About,
+      path: '/groups',
+      name: 'Groups',
+      component: Groups,
       meta: {
-        title: 'About Us - Freelance Web Pro'
+        title: 'Groups - Footie Predictors'
       }
     },
     {
-      path: '/shirts',
-      name: 'T-Shirts',
-      component: Shirts,
+      path: '/group',
+      name: 'Group',
+      component: Group,
       meta: {
-        title: 'T-Shirts - Irrelevant Clothing'
+        title: 'Group - Footie Predictors'
       }
     },
     {
-      path: '/sweats',
-      component: Sweats,
+      path: '/predictions',
+      name: 'Predictions',
+      component: Predictions,
       meta: {
-        title: 'Sweatshirts - Irrelevant Clothing'
+        title: 'Predictions - Footie Predictors'
       }
     },
     {
-      path: '/accessories',
-      component: Accessories,
+      path: '/create-group',
+      name: 'Create Group',
+      component: CreateGroup,
       meta: {
-        title: 'Accessories - Irrelevant Clothing'
+        title: 'Create Group - Footie Predictors'
       }
     },
-    {
-      path: '/contact',
-      name: 'Contact',
-      component: Contact,
-      meta: {
-        title: 'Contact Us - Freelance Web Pro'
-      }
-    }
   ],
   scrollBehavior(to, from, savedPosition) {
     return { top: 0, behavior: 'smooth' }; // Scrolls to top with smooth animation
