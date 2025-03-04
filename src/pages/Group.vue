@@ -4,6 +4,7 @@
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <h2 class="text-2xl font-bold mb-2">{{ group.name }}</h2>
         <p class="text-gray-500 mb-4">{{ group.description }}</p>
+        <p class="text-sm text-gray-600">Admin: {{ groupAdmin }}</p>
         <p class="text-sm text-gray-600">Established: {{ formattedDate(group.created_at) }}</p>
   
         <!-- Admin Controls (only visible to the admin) -->
@@ -69,6 +70,7 @@
   const gameweeks = ref([]);
   const leaderboard = ref([]);
   const isAdmin = ref(false);
+  const groupAdmin = ref('');
   
   // Fetch the group, gameweeks, leaderboard data
   onMounted(() => {
@@ -88,11 +90,13 @@
       description: "A group for gambling addicts to get their weekly fix.",
       created_at: "2024-01-15",
       members: [
-        { id: 1, username: "Craig Nicholson" },
+        { id: 1, username: "Craig Nicholson", admin: true },
         { id: 2, username: "Bailey Hall" },
       ],
     };    
-  
+
+    const memberAdmin = group.value.members.filter(x => x.admin == true);
+    groupAdmin.value = memberAdmin[0].username;  
   };
   
   const fetchGameweeks = (groupId) => {

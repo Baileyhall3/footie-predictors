@@ -16,6 +16,7 @@
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
+    "@supabase/supabase-js": "^2.49.1",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vueuse/head": "^2.0.0",
     "retro-grid": "^1.2.3",

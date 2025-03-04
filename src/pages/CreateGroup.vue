@@ -29,6 +29,10 @@
                     <label class="block font-medium">Exact Score Points</label>
                     <input v-model.number="groupData.exact_score_pts" type="number" min="0" class="w-full border p-2 rounded-md" />
                 </div>
+                <div>
+                    <label class="block font-medium">Incorrect Result Points</label>
+                    <input v-model.number="groupData.incorrect_points" type="number" class="w-full border p-2 rounded-md" />
+                </div>
             </div>
 
             <!-- Privacy Setting -->
@@ -71,6 +75,7 @@ const groupData = ref({
     scoring_system: 'classic', // Default scoring system
     correct_result_pts: 1, // Default points
     exact_score_pts: 3, // Default points
+    incorrect_points: 0, // Default points
     privacy: 'public', // Default privacy
     max_members: 100, // Default max members
     description: ''
