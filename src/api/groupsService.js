@@ -29,41 +29,43 @@ export const groupsService = {
    * @param {string} adminId - User ID of the group admin
    * @returns {Promise<{data: Object, error: Object}>}
    */
-  async createGroup(name, adminId) {
+  async createGroup(groupData, adminId) {
     try {
-      // Create the group
       const { data: group, error } = await supabaseDb.create('groups', {
-        name,
-        admin_id: adminId
-      })
-
-      if (error) throw error
-
-      // Add the creator as a member and admin
+        name: groupData.name,
+        admin_id: adminId,
+        description: groupData.description,
+      });
+  
+      if (error) throw error;
+  
+      // Add creator as a group admin
       const { error: memberError } = await supabaseDb.create('group_members', {
         group_id: group.id,
         user_id: adminId,
         is_admin: true
-      })
-
-      if (memberError) throw memberError
-
-      // Create default group settings
+      });
+  
+      if (memberError) throw memberError;
+  
+      // Store group settings
       const { error: settingsError } = await supabaseDb.create('group_settings', {
         group_id: group.id,
-        exact_score_points: 3,
-        correct_result_points: 1,
-        incorrect_points: 0
-      })
-
-      if (settingsError) throw settingsError
-
-      return { data: group, error: null }
+        exact_score_points: groupData.exact_score_pts,
+        correct_result_points: groupData.correct_result_pts,
+        incorrect_points: groupData.incorrect_points,
+        is_public: groupData.is_public,
+        max_members: groupData.max_members,
+      });
+  
+      if (settingsError) throw settingsError;
+  
+      return { data: group, error: null };
     } catch (error) {
-      console.error('Error creating group:', error)
-      return { data: null, error }
+      console.error('Error creating group:', error);
+      return { data: null, error };
     }
-  },
+  },  
 
   /**
    * Update a group
