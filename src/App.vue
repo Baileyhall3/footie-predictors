@@ -87,10 +87,10 @@ const navItems = [
     name: "Profile",
     href: "/profile",
   },
-  {
-    name: "Auth Test",
-    href: "/auth-test",
-  },
+  // {
+  //   name: "Auth Test",
+  //   href: "/auth-test",
+  // },
 ];
 </script>
 

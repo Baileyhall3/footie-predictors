@@ -16,14 +16,44 @@
     </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
+<script setup>
+import { ref, onMounted, computed } from "vue";
 import GroupCard from "../components/GroupCard.vue";
-import { getUserGroups } from "../api/groups";
+import { userStore } from "../store/userStore";
+import { groupsStore } from "../store/groupsStore";
 
+// State
+const isLoading = ref(true);
+const error = ref(null);
 const userGroups = ref([]);
 
-onMounted(() => {
-  userGroups.value = getUserGroups();
+// Fetch all user data
+const fetchUserData = async () => {
+  try {
+    isLoading.value = true;
+    error.value = null;
+    
+    // Only fetch data if user is authenticated
+    if (userStore.isAuthenticated) {
+      // Fetch user's groups
+      const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
+      if (groupsError) throw new Error('Failed to load your groups');
+      userGroups.value = groups || [];
+    }
+  } catch (err) {
+    console.error('Error fetching user data:', err);
+    error.value = err.message || 'An error occurred while loading your data';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Fetch data when component is mounted
+onMounted(async () => {
+  if (userStore.isAuthenticated) {
+    await fetchUserData();
+  } else {
+    isLoading.value = false;
+  }
 });
 </script>

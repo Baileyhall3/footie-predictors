@@ -5,7 +5,7 @@
       <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
         <h1 class="text-3xl font-bold">My Profile</h1>
         <p v-if="userStore.user" class="mt-2 text-green-100">
-          {{ userStore.user.email }}
+          {{ userStore.userProfile.username }}
         </p>
       </div>
 
@@ -86,7 +86,6 @@ export default {
         router.push('/login')
       }
     }
-
     return {
       userStore,
       handleLogout

@@ -51,14 +51,14 @@ const router = createRouter({
       }
     },
     {
-      path: '/group',
+      path: '/group/:id',
       name: 'Group',
       component: Group,
       meta: {
         title: 'Group - Footie Predictors',
         requiresAuth: true
       }
-    },
+    },    
     {
       path: '/predictions',
       name: 'Predictions',

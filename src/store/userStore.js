@@ -255,9 +255,9 @@ export const userStore = {
 
   async getUserGroups() {
     try {
-      if (!state.user) throw new Error('User not authenticated')
-      
-      // Get groups where user is a member
+      if (!state.user) throw new Error('User not authenticated');
+  
+      // Get groups where user is a member along with member count
       const { data, error } = await supabaseDb.customQuery((supabase) => 
         supabase
           .from('group_members')
@@ -268,29 +268,31 @@ export const userStore = {
             groups (
               id,
               name,
-              created_at
+              created_at,
+              group_members(count) 
             )
           `)
           .eq('user_id', state.user.id)
-      )
-      
-      if (error) throw error
-      
-      // Transform the data to a more usable format
+      );
+  
+      if (error) throw error;
+  
+      // Transform the data to include member count
       const groups = data.map(membership => ({
         ...membership.groups,
         is_admin: membership.is_admin,
         joined_at: membership.joined_at,
-        membership_id: membership.id
-      }))
-      
-      return { data: groups, error: null }
+        membership_id: membership.id,
+        member_count: membership.groups.group_members[0]?.count || 0 // Get count from the relation
+      }));
+  
+      return { data: groups, error: null };
     } catch (error) {
-      console.error('Error fetching user groups:', error)
-      return { data: null, error }
+      console.error('Error fetching user groups:', error);
+      return { data: null, error };
     }
   },
-
+  
   clearError() {
     state.error = null
   }
