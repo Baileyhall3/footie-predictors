@@ -5,6 +5,7 @@ import { userStore } from './userStore'
 // Create a reactive state object
 const state = reactive({
   groups: [],
+  publicGroups: [],
   currentGroup: null,
   groupMembers: [],
   groupSettings: null,
@@ -17,6 +18,9 @@ export const groupsStore = {
   // Getters
   get groups() {
     return state.groups
+  },
+  get publicGroups() {
+    return state.publicGroups
   },
   get currentGroup() {
     return state.currentGroup
@@ -41,7 +45,6 @@ export const groupsStore = {
       state.error = null
 
       const { data, error } = await userStore.getUserGroups()
-
       if (error) throw error
 
       state.groups = data || []
@@ -53,6 +56,24 @@ export const groupsStore = {
       state.loading = false
     }
   },
+
+  async fetchPublicGroups() {
+    try {
+      state.loading = true;
+      state.error = null;
+  
+      const { data, error } = await userStore.getPublicGroupsNotJoined();
+      if (error) throw error;
+  
+      state.publicGroups = data || [];
+      return { data, error: null };
+    } catch (error) {
+      state.error = error.message;
+      return { data: null, error };
+    } finally {
+      state.loading = false;
+    }
+  },  
 
   async fetchGroupById(groupId) {
     try {
@@ -83,25 +104,6 @@ export const groupsStore = {
       if (error) throw error
 
       state.groupMembers = data || []
-      return { data, error: null }
-    } catch (error) {
-      state.error = error.message
-      return { data: null, error }
-    } finally {
-      state.loading = false
-    }
-  },
-
-  async fetchGroupSettings(groupId) {
-    try {
-      state.loading = true
-      state.error = null
-
-      const { data, error } = await groupsService.getGroupSettings(groupId)
-
-      if (error) throw error
-
-      state.groupSettings = data
       return { data, error: null }
     } catch (error) {
       state.error = error.message

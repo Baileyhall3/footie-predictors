@@ -35,6 +35,11 @@ export const groupsService = {
         name: groupData.name,
         admin_id: adminId,
         description: groupData.description,
+        exact_score_points: groupData.exact_score_pts,
+        correct_result_points: groupData.correct_result_pts,
+        incorrect_points: groupData.incorrect_points,
+        is_public: groupData.is_public,
+        max_members: groupData.max_members,
       });
   
       if (error) throw error;
@@ -47,18 +52,6 @@ export const groupsService = {
       });
   
       if (memberError) throw memberError;
-  
-      // Store group settings
-      const { error: settingsError } = await supabaseDb.create('group_settings', {
-        group_id: group.id,
-        exact_score_points: groupData.exact_score_pts,
-        correct_result_points: groupData.correct_result_pts,
-        incorrect_points: groupData.incorrect_points,
-        is_public: groupData.is_public,
-        max_members: groupData.max_members,
-      });
-  
-      if (settingsError) throw settingsError;
   
       return { data: group, error: null };
     } catch (error) {
@@ -161,53 +154,4 @@ export const groupsService = {
   async updateMemberRole(membershipId, isAdmin) {
     return supabaseDb.update('group_members', membershipId, { is_admin: isAdmin })
   },
-
-  /**
-   * Get group settings
-   * @param {string} groupId - Group ID
-   * @returns {Promise<{data: Object, error: Object}>}
-   */
-  async getGroupSettings(groupId) {
-    try {
-      const { data, error } = await supabaseDb.customQuery((supabase) =>
-        supabase
-          .from('group_settings')
-          .select('*')
-          .eq('group_id', groupId)
-          .single()
-      )
-
-      if (error) throw error
-
-      return { data, error: null }
-    } catch (error) {
-      console.error('Error fetching group settings:', error)
-      return { data: null, error }
-    }
-  },
-
-  /**
-   * Update group settings
-   * @param {string} groupId - Group ID
-   * @param {Object} settings - Updated settings
-   * @returns {Promise<{data: Object, error: Object}>}
-   */
-  async updateGroupSettings(groupId, settings) {
-    try {
-      const { data, error } = await supabaseDb.customQuery((supabase) =>
-        supabase
-          .from('group_settings')
-          .update(settings)
-          .eq('group_id', groupId)
-          .select()
-      )
-
-      if (error) throw error
-
-      return { data: data[0], error: null }
-    } catch (error) {
-      console.error('Error updating group settings:', error)
-      return { data: null, error }
-    }
-  }
 }

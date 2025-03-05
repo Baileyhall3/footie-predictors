@@ -117,7 +117,7 @@ const createGroup = async () => {
     }
 
     // Redirect to the newly created group's page
-    router.push(`/groups/${newGroup.id}`);
+    router.push(`/group/${newGroup.id}`);
   } catch (error: any) {
     errorMessage.value = error.message || 'Failed to create group.';
   } finally {

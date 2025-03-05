@@ -9,8 +9,20 @@
                     </button>
                 </router-link>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-if="userGroups.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <GroupCard v-for="group in userGroups" :key="group.id" :group="group" />
+            </div>
+            <div v-else class="bg-white rounded-lg shadow p-6 text-center">
+              <p class="text-gray-500">You are not a member of any groups.</p>
+            </div>
+        </div>
+
+        <div class="mb-6" v-if="publicGroups.length > 0">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Public Groups</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <GroupCard v-for="group in publicGroups" :key="group.id" :group="group" />
             </div>
         </div>
     </div>
@@ -26,6 +38,7 @@ import { groupsStore } from "../store/groupsStore";
 const isLoading = ref(true);
 const error = ref(null);
 const userGroups = ref([]);
+const publicGroups = ref([]);
 
 // Fetch all user data
 const fetchUserData = async () => {
@@ -39,6 +52,11 @@ const fetchUserData = async () => {
       const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
       if (groupsError) throw new Error('Failed to load your groups');
       userGroups.value = groups || [];
+
+      const { data: fetchedPublicGroups, error: publicGroupsError } = await groupsStore.fetchPublicGroups();
+      if (publicGroupsError) throw new Error('Failed to load public groups');
+      publicGroups.value = fetchedPublicGroups || [];
+      debugger
     }
   } catch (err) {
     console.error('Error fetching user data:', err);

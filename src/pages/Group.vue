@@ -1,15 +1,10 @@
 <template>
   <div class="container mx-auto px-6 py-8">
     <!-- Loading State -->
-    <div v-if="loading" class="flex justify-center items-center py-12">
-      <svg class="animate-spin h-10 w-10 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
+    <LoadingScreen v-if="loading" />
 
     <!-- Error State -->
-    <div v-else-if="error" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
+    <div v-if="error" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
       <p class="font-medium">Error loading group data</p>
       <p class="text-sm">{{ error }}</p>
       <button @click="fetchAllData" class="mt-2 text-sm text-red-700 underline">Try again</button>
@@ -22,13 +17,15 @@
         <h2 class="text-2xl font-bold mb-2">{{ group.name }}</h2>
         <p class="text-gray-500 mb-4">{{ group.description || 'No description available' }}</p>
         <p class="text-sm text-gray-600">Admin: {{ adminName }}</p>
-        <p class="text-sm text-gray-600">Established: {{ formattedDate(group.created_at) }}</p>
+        <p class="text-sm text-gray-600">Established: {{ DateUtils.toLongDate(group.created_at) }}</p>
     
         <!-- Admin Controls (only visible to the admin) -->
         <div v-if="isAdmin" class="mt-4 flex flex-wrap gap-2">
-          <button @click="editGroup" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-            Edit Group
-          </button>
+          <router-link :to="`/group/${group.id}/update-group`">
+            <button @click="editGroup" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+              Edit Group
+            </button>
+          </router-link>
           <button @click="showAddMemberModal = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
             Add Member
           </button>
@@ -37,9 +34,6 @@
               Add Gameweek
             </button>
           </router-link>
-          <button @click="confirmDeleteGroup" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
-            Delete Group
-          </button>
         </div>
       </div>
     
@@ -62,7 +56,7 @@
                 Gameweek {{ gameweek.week_number }}
               </router-link>
               <div class="text-sm text-gray-500">
-                Deadline: {{ formattedDate(gameweek.deadline) }}
+                Deadline: {{ DateUtils.toFullDateTime(gameweek.deadline) }}
               </div>
             </div>
             
@@ -166,8 +160,6 @@
     <!-- Add Gameweek Modal (hidden by default) -->
     <!-- You can implement this modal later -->
 
-    <!-- Delete Confirmation Modal (hidden by default) -->
-    <!-- You can implement this modal later -->
   </div>
 </template>
 
@@ -179,6 +171,9 @@ import { groupsStore } from "../store/groupsStore";
 import { leaderboardStore } from "../store/leaderboardStore";
 import { userStore } from "../store/userStore";
 import { gameweeksService } from "../api/gameweeksService";
+import { userIsAdmin } from "../utils/checkPermissions";
+import LoadingScreen from "../components/LoadingScreen.vue";
+import DateUtils from "../utils/dateUtils";
 
 const route = useRoute();
 const router = useRouter();
@@ -192,14 +187,9 @@ const members = ref([]);
 const gameweeks = ref([]);
 const leaderboard = ref([]);
 const showAddMemberModal = ref(false);
-const showDeleteConfirmation = ref(false);
 
 // Computed properties
-const isAdmin = computed(() => {
-  return members.value.some(member => 
-    member.id === userStore.user?.id && member.is_admin
-  );
-});
+const isAdmin = ref(false);
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
@@ -228,6 +218,8 @@ const fetchAllData = async () => {
     const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(groupId.value);
     if (membersError) throw new Error('Failed to load group members');
     members.value = membersData || [];
+
+    isAdmin.value = userIsAdmin(members.value);
     
     // Fetch gameweeks
     const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getGameweeks(groupId.value);
@@ -247,39 +239,9 @@ const fetchAllData = async () => {
   }
 };
 
-// Format the creation date
-const formattedDate = (date) => {
-  if (!date) return 'Unknown';
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(date).toLocaleDateString(undefined, options);
-};
-
-// Add date utils class
-
 // Admin functions
 const editGroup = () => {
   router.push(`/edit-group/${groupId.value}`);
-};
-
-const confirmDeleteGroup = () => {
-  showDeleteConfirmation.value = true;
-};
-
-const deleteGroup = async () => {
-  try {
-    loading.value = true;
-    const { success, error: deleteError } = await groupsStore.deleteGroup(groupId.value);
-    
-    if (deleteError) throw new Error('Failed to delete group');
-    
-    // Redirect to groups page
-    router.push('/groups');
-  } catch (err) {
-    error.value = err.message || 'An error occurred while deleting the group';
-  } finally {
-    loading.value = false;
-    showDeleteConfirmation.value = false;
-  }
 };
 
 const toggleAdminRole = async (member) => {

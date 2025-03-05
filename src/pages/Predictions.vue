@@ -19,14 +19,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import PredictionCard from "../components/PredictionCard.vue";
-import { getUserGroups } from "../api/groups";
-import { getUserPredictions } from "../api/predictions";
 
 const userGroups = ref([]);
 const userPredictions = ref([]);
 
 onMounted(() => {
-  userGroups.value = getUserGroups();
-  userPredictions.value = getUserPredictions();
+//   userGroups.value = getUserGroups();
+//   userPredictions.value = getUserPredictions();
 });
 </script>

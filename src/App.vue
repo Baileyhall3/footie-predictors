@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100">
     <!-- Loading Screen -->
-    <LoadingScreen v-if="isLoading" message="Loading your account..." />
+    <LoadingScreen v-if="isLoading"/>
     
     <!-- Main App Content -->
     <template v-else>

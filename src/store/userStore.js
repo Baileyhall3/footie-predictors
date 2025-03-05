@@ -292,6 +292,51 @@ export const userStore = {
       return { data: null, error };
     }
   },
+
+  /**
+   * Get all public groups that the user is NOT a member of
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getPublicGroupsNotJoined() {
+    try {
+      if (!state.user) throw new Error("User not authenticated");
+  
+      // Fetch the groups the user is already a member of
+      const { data: userGroups, error: userGroupsError } = await supabase
+        .from("group_members")
+        .select("group_id")
+        .eq("user_id", state.user.id);
+  
+      if (userGroupsError) throw userGroupsError;
+  
+      // Extract group_ids that the user is already a member of
+      const joinedGroupIds = userGroups.map((group) => group.group_id);
+  
+      // Fetch public groups where the user is NOT a member, and include member count
+      const { data, error } = await supabaseDb.getAll("groups", {
+        filters: {
+          is_public: true, // Public groups only
+        },
+        excludeIds: joinedGroupIds, // Exclude groups the user is a member of
+        orderBy: "created_at",
+        ascending: false,
+        columns: `id, name, created_at, group_members(count)`, // Include group members count
+      });
+  
+      if (error) throw error;
+  
+      // Transform the data to include member count for each group
+      const groups = data.map(group => ({
+        ...group,
+        member_count: group.group_members?.[0]?.count || 0, // Get count from the relation
+      }));
+  
+      return { data: groups, error: null };
+    } catch (error) {
+      console.error("Error fetching public groups:", error);
+      return { data: null, error };
+    }
+  },
   
   clearError() {
     state.error = null

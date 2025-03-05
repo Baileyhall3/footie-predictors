@@ -17,42 +17,42 @@
   
       <!-- League & Match Selection -->
        <div>
-            <template v-if="!setManually">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Select League</label>
-                    <select v-model="selectedLeague" @change="fetchMatches" class="mt-1 p-2 w-full border rounded-md">
-                    <option v-for="league in leagues" :key="league.id" :value="league.id">
-                        {{ league.name }}
-                    </option>
-                    </select>
-                </div>
-            
-                <div class="mb-4" v-if="selectedLeague">
-                    <label class="block text-sm font-medium text-gray-700">Select Match</label>
-                    <select v-model="selectedMatch" class="mt-1 p-2 w-full border rounded-md">
-                        <option v-for="match in matches" :key="match.id" :value="match">
-                            {{ match.home_team }} vs {{ match.away_team }} - {{ match.match_time }}
-                        </option>
-                    </select>
-                    </div>
-            </template>
-            <template v-else>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Home Team</label>
-                    <input type="text" v-model="selectedMatch.home_team" class="mt-1 p-2 w-full border rounded-md">
-                </div>
-                    
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Away Team</label>
-                    <input type="text" v-model="selectedMatch.away_team" class="mt-1 p-2 w-full border rounded-md">
-                </div>
-                    
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Match Time</label>
-                    <input type="datetime-local" v-model="selectedMatch.match_time" class="mt-1 p-2 w-full border rounded-md">
-                </div>                
-            </template>
-            <button @click="addMatch" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
+          <template v-if="!setManually">
+              <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700">Select League</label>
+                  <select v-model="selectedLeague" @change="fetchMatches" class="mt-1 p-2 w-full border rounded-md">
+                  <option v-for="league in leagues" :key="league.id" :value="league.id">
+                      {{ league.name }}
+                  </option>
+                  </select>
+              </div>
+          
+              <div class="mb-4" v-if="selectedLeague">
+                  <label class="block text-sm font-medium text-gray-700">Select Match</label>
+                  <select v-model="selectedMatch" class="mt-1 p-2 w-full border rounded-md">
+                      <option v-for="match in matches" :key="match.id" :value="match">
+                          {{ match.home_team }} vs {{ match.away_team }} - {{ match.match_time }}
+                      </option>
+                  </select>
+                  </div>
+          </template>
+          <template v-else>
+              <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700">Home Team</label>
+                  <input type="text" v-model="selectedMatch.home_team" class="mt-1 p-2 w-full border rounded-md">
+              </div>
+                  
+              <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700">Away Team</label>
+                  <input type="text" v-model="selectedMatch.away_team" class="mt-1 p-2 w-full border rounded-md">
+              </div>
+                  
+              <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700">Match Time</label>
+                  <input type="datetime-local" v-model="selectedMatch.match_time" class="mt-1 p-2 w-full border rounded-md">
+              </div>                
+          </template>
+          <button @click="addMatch" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
         </div>
   
       <!-- Added Matches List -->

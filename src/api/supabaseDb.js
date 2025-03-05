@@ -20,12 +20,13 @@ export const supabaseDb = {
   async getAll(table, options = {}) {
     try {
       const {
-        columns = '*',
+        columns = "*",
         filters = {},
-        orderBy = 'created_at',
+        excludeIds = [],
+        orderBy = "created_at",
         ascending = false,
         limit = 1000,
-        offset = 0
+        offset = 0,
       } = options
 
       let query = supabase
@@ -40,10 +41,14 @@ export const supabaseDb = {
         if (value !== undefined && value !== null) {
           query = query.eq(column, value)
         }
-      })
+      });
+
+      // Exclude certain IDs
+      if (excludeIds.length > 0) {
+        query = query.not("id", "in", `(${excludeIds.join(",")})`);
+      }
 
       const { data, error } = await query
-
       if (error) throw error
 
       return { data, error: null }
