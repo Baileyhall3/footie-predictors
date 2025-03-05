@@ -32,9 +32,11 @@
           <button @click="showAddMemberModal = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
             Add Member
           </button>
-          <button @click="showAddGameweekModal = true" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
-            Add Gameweek
-          </button>
+          <router-link :to="`/group/${group.id}/create-gameweek`">
+            <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+              Add Gameweek
+            </button>
+          </router-link>
           <button @click="confirmDeleteGroup" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
             Delete Group
           </button>
@@ -197,7 +199,7 @@ const showDeleteConfirmation = ref(false);
 // Computed properties
 const isAdmin = computed(() => {
   return members.value.some(member => 
-    member.user_id === userStore.user?.id && member.is_admin
+    member.id === userStore.user?.id && member.is_admin
   );
 });
 
@@ -253,6 +255,8 @@ const formattedDate = (date) => {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(date).toLocaleDateString(undefined, options);
 };
+
+// Add date utils class
 
 // Admin functions
 const editGroup = () => {

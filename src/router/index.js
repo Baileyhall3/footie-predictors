@@ -3,6 +3,7 @@ import Home from '../pages/Home.vue';
 import CreateGroup from '../pages/CreateGroup.vue';
 import Groups from '../pages/Groups.vue';
 import Group from '../pages/Group.vue';
+import CreateGameweek from '../pages/CreateGameweek.vue';
 import Predictions from '../pages/Predictions.vue';
 import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
@@ -56,6 +57,15 @@ const router = createRouter({
       component: Group,
       meta: {
         title: 'Group - Footie Predictors',
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/group/:id/create-gameweek',
+      name: 'CreateGameweek',
+      component: CreateGameweek,
+      meta: {
+        title: 'Create Gameweek - Footie Predictors',
         requiresAuth: true
       }
     },    
