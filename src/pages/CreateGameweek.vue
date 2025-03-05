@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 max-w-2xl mx-auto">
+    <div class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto mt-6">
       <h2 class="text-2xl font-semibold mb-4">New Gameweek for {{ group?.name }}</h2>
       <p class="text-lg">Gameweek {{ weekNumber }}</p>
   
@@ -56,8 +56,8 @@
         </div>
   
       <!-- Added Matches List -->
-      <ul class="mb-4">
-        <li v-for="(match, index) in selectedMatches" :key="index" class="flex justify-between bg-gray-100 p-2 rounded-md">
+      <ul class="mb-4 mt-4">
+        <li v-for="(match, index) in selectedMatches" :key="index" class="flex justify-between bg-gray-100 p-2 rounded-md mt-2">
           {{ match.home_team }} vs {{ match.away_team }} - {{ match.match_time }}
           <button @click="removeMatch(index)" class="text-red-500">Remove</button>
         </li>
@@ -91,9 +91,6 @@ const selectedMatch = ref({
     match_time: null
 });
 const selectedMatches = ref([]);
-const manualHomeTeam = ref('');
-const manualAwayTeam = ref('');
-const manualMatchTime = ref('');
 const setManually = ref(false);
   
   onMounted(async () => {

@@ -49,7 +49,6 @@
           <h3 class="text-xl font-semibold">Gameweeks</h3>
           <button 
             v-if="isAdmin" 
-            @click="showAddGameweekModal = true"
             class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
           >
             + Add Gameweek
@@ -193,7 +192,6 @@ const members = ref([]);
 const gameweeks = ref([]);
 const leaderboard = ref([]);
 const showAddMemberModal = ref(false);
-const showAddGameweekModal = ref(false);
 const showDeleteConfirmation = ref(false);
 
 // Computed properties
