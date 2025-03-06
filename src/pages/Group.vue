@@ -41,12 +41,14 @@
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">Gameweeks</h3>
-          <button 
-            v-if="isAdmin" 
-            class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-          >
-            + Add Gameweek
-          </button>
+          <router-link :to="`/group/${group.id}/create-gameweek`">
+            <button 
+              v-if="isAdmin" 
+              class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+            >
+              + Add Gameweek
+            </button>
+          </router-link>
         </div>
         
         <div v-if="gameweeks.length">

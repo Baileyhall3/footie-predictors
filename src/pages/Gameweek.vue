@@ -2,12 +2,12 @@
     <div class="container mx-auto px-6 py-8">
       <div v-if="!notInGroup" class="mb-1 ms-1">
         <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 hover:underline font-medium">
-          Back to group
+          ← Back to group
         </router-link>
       </div>
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <h2 class="text-2xl font-semibold mb-4">Gameweek {{ gameweek?.week_number }}</h2>
-        <p class="text-lg">Deadline: {{ formatDate(gameweek?.deadline) }}</p>
+        <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
     
         <!-- Not in group message -->
         <div v-if="notInGroup" class="bg-red-100 p-4 rounded-md text-red-600">
@@ -18,18 +18,18 @@
         </div>
     
         <!-- Edit Mode Toggle (Admins Only) -->
-        <div v-if="isAdmin" class="my-4">
-          <button @click="toggleEditMode" class="px-4 py-2 bg-green-600 text-white rounded-md">
-            {{ editMode ? 'Exit Edit Mode' : 'Edit Gameweek' }}
-          </button>
-        </div>
-        <!-- Share Gameweek -->
-        <button @click="copyGameweekLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
-          <div class="justify-between items-center flex">
-            Share Gameweek
-            <ShareIcon class="text-white size-4 ms-2" />
-          </div>
-        </button>
+         <div class="justify-between mt-3" v-if="isAdmin">
+             <button @click="toggleEditMode" class="px-4 py-2 bg-green-600 text-white rounded-md">
+               {{ editMode ? 'Exit Edit Mode' : 'Edit Gameweek' }}
+             </button>
+           <!-- Share Gameweek -->
+           <button @click="copyGameweekLink" class="px-4 py-2 ms-3 bg-blue-500 text-white rounded-md">
+             <div class="justify-between items-center flex">
+               Share Gameweek
+               <ShareIcon class="text-white size-4 ms-2" />
+             </div>
+           </button>
+         </div>
       </div>
       
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
@@ -75,7 +75,9 @@
         <div v-if="!editMode">
           <h3 class="text-xl font-semibold">Your Predictions</h3>
           <div v-for="match in matches" :key="match.id" class="flex justify-between items-center bg-gray-100 p-2 rounded-md my-2">
-            <span>{{ match.home_team }} vs {{ match.away_team }}</span>
+            <span>
+              <span class="font-semibold">{{ match.home_team }}</span> vs <span class="font-semibold">{{ match.away_team }}</span>
+            </span>
             <div>
               <input type="number" v-model="predictions[match.id].home_score" class="w-12 border rounded-md p-1 text-center" />
               -
@@ -96,8 +98,7 @@ import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin } from "../utils/checkPermissions";
 import { ShareIcon } from "@heroicons/vue/24/solid";
-import { BackwardIcon } from "@heroicons/vue/24/outline";
-
+import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 
 const route = useRoute();
@@ -126,41 +127,61 @@ const groupedMatches = computed(() => {
     return acc;
   }, {});
 });
-
   
 onMounted(async () => {
   await fetchGameweek();
 });
   
-  async function fetchGameweek() {
-    gameweekId.value = route.params.id || route.query.id;
+async function fetchGameweek() {
+  gameweekId.value = route.params.id || route.query.id;
 
-    const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
-    if (error) return console.error(error);
-    gameweek.value = data;
+  const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
+  if (error) return console.error(error);
+  gameweek.value = data;
 
-    const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(data.group_id);
-    if (membersError) throw new Error('Failed to load group members');
-    members.value = membersData || [];
+  const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(data.group_id);
+  if (membersError) throw new Error('Failed to load group members');
+  members.value = membersData || [];
 
-    isAdmin.value = userIsAdmin(members.value)
-  
-    // Check if user is in the group
-    const isMember = members.value.some(member => member.id === userStore.user?.id);
-    if (!isMember) {
-      notInGroup.value = true;
-      return;
-    }
-  
-    const { data: matchData } = await gameweeksService.getMatches(gameweekId.value);
-    matches.value = matchData;
-  
-    // Initialize predictions
-    predictions.value = matchData.reduce((acc, match) => {
-      acc[match.id] = { home_score: '', away_score: '' };
-      return acc;
-    }, {});
+  isAdmin.value = userIsAdmin(members.value);
+
+  // Check if user is in the group
+  const isMember = members.value.some(member => member.id === userStore.user?.id);
+  if (!isMember) {
+    notInGroup.value = true;
+    return;
   }
+
+  // Fetch both matches and predictions
+  const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
+    gameweeksService.getMatches(gameweekId.value),
+    predictionsService.getUserGameweekPredictions(userStore.user?.id, gameweekId.value)
+  ]);
+
+  // Map predictions by match_id for quick lookup
+  const predictionsMap = predictionsData.reduce((acc, prediction) => {
+    acc[prediction.match_id] = prediction;
+    return acc;
+  }, {});
+
+  // Merge predictions into matches
+  matches.value = matchData.map(match => ({
+    ...match,
+    predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
+    predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
+    prediction_id: predictionsMap[match.id]?.id || null
+  }));
+
+  // Initialize predictions object for v-model binding
+  predictions.value = matches.value.reduce((acc, match) => {
+    acc[match.id] = {
+      home_score: match.predicted_home_score,
+      away_score: match.predicted_away_score
+    };
+    return acc;
+  }, {});
+}
+
   
   function toggleEditMode() {
     editMode.value = !editMode.value;
@@ -195,9 +216,20 @@ onMounted(async () => {
   }
   
   async function submitPredictions() {
-    console.log('Predictions:', predictions.value);
-    alert('Predictions submitted!');
+    console.log(predictions.value);
+
+    for (const [matchId, prediction] of Object.entries(predictions.value)) {
+      await predictionsService.savePrediction(
+        userStore.user?.id, 
+        matchId, 
+        prediction.home_score,
+        prediction.away_score 
+      );
+    }
+
+    alert('Your predictions have been saved!');
   }
+
   
   function copyGameweekLink() {
     const url = window.location.href;
@@ -208,9 +240,6 @@ onMounted(async () => {
   function redirectToGroup() {
     router.push(`/group/${gameweek.value.group_id}`);
   }
-  
-  function formatDate(date) {
-    return new Date(date).toLocaleString();
-  }
+
   </script>
   
