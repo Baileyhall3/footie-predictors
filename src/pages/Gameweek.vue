@@ -6,7 +6,15 @@
         </router-link>
       </div>
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <h2 class="text-2xl font-semibold mb-4">Gameweek {{ gameweek?.week_number }}</h2>
+        <div class="flex items-center gap-2 mb-4">
+          <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
+          <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
+            Active
+          </div>
+          <div v-if="gameweek?.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
+            Locked
+          </div>
+        </div>
         <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
     
         <!-- Not in group message -->
@@ -18,17 +26,23 @@
         </div>
     
         <!-- Edit Mode Toggle (Admins Only) -->
-         <div class="justify-between mt-3" v-if="isAdmin">
-             <button @click="toggleEditMode" class="px-4 py-2 bg-green-600 text-white rounded-md">
-               {{ editMode ? 'Exit Edit Mode' : 'Edit Gameweek' }}
-             </button>
+         <div class="flex flex-wrap gap-2 mt-3" v-if="isAdmin">
+            <button @click="toggleEditMode" class="px-4 py-2 bg-green-600 text-white rounded-md">
+              {{ editMode ? 'Exit Edit Mode' : 'Edit Gameweek' }}
+            </button>
            <!-- Share Gameweek -->
-           <button @click="copyGameweekLink" class="px-4 py-2 ms-3 bg-blue-500 text-white rounded-md">
+           <button @click="copyGameweekLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
              <div class="justify-between items-center flex">
                Share Gameweek
                <ShareIcon class="text-white size-4 ms-2" />
              </div>
            </button>
+           <button @click="changeActiveStatus" class="px-4 py-2 bg-purple-600 text-white rounded-md">
+              {{ gameweek?.is_active ? 'Make gameweek inactive' : 'Make gameweek active' }}
+            </button>
+            <button @click="changeGameWeekLockedStatus" class="px-4 py-2 bg-red-600 text-white rounded-md">
+              {{ gameweek?.is_locked ? 'Unlock gameweek' : 'Lock gameweek' }}
+            </button>
          </div>
       </div>
       
@@ -70,9 +84,9 @@
         </div>
       </div>
       
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <!-- Predictions -->
-        <div v-if="!editMode">
+    <!-- Predictions -->
+      <div v-if="!editMode" class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <div>
           <h3 class="text-xl font-semibold">Your Predictions</h3>
           <div v-for="match in matches" :key="match.id" class="flex justify-between items-center bg-gray-100 p-2 rounded-md my-2">
             <span>
@@ -183,9 +197,20 @@ async function fetchGameweek() {
 }
 
   
-  function toggleEditMode() {
-    editMode.value = !editMode.value;
-  }
+function toggleEditMode() {
+  editMode.value = !editMode.value;
+}
+
+async function changeGameWeekLockedStatus() {
+  const { data, error } = await gameweeksService.updateGameweek(gameweek.value.id, {
+      is_locked: !gameweek.value.is_locked
+    });
+  
+    if (!error) {
+      alert('Gameweek locked status changed');
+      window.location.reload();
+    }
+}
   
   async function addMatch() {
     if (!newMatch.value.home_team || !newMatch.value.away_team || !newMatch.value.match_time) {

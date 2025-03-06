@@ -77,7 +77,7 @@ export const predictionsStore = {
 
       if (!userStore.user) throw new Error('User not authenticated')
 
-      const { data, error } = await predictionsService.getUserGameweekPredictions(userStore.user.id, gameweekId)
+      const { data, error } = await predictionsService.getUserPredictionsMatchesView(userStore.user.id, gameweekId)
 
       if (error) throw error
 

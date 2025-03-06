@@ -63,6 +63,13 @@
             </div>
             
             <div class="flex items-center gap-2">
+              <div v-if="gameweek.is_active" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
+                Active
+              </div>
+              <div v-if="gameweek.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
+                Locked
+              </div>
+
               <router-link 
                 :to="`/predictions?gameweek=${gameweek.id}`" 
                 class="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full hover:bg-green-200 transition"
@@ -80,6 +87,43 @@
           </div>
         </div>
         <p v-else class="text-gray-500 py-2">No gameweeks yet.</p>
+      </div>
+
+      <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">Your Predictions</h3>
+          <router-link 
+            :to="`/leaderboards?group=${groupId}`" 
+            v-if="gameweekIsLocked"
+            class="text-sm text-blue-600 hover:underline"
+          >
+            View All Predictions →
+          </router-link>
+        </div>
+
+        <div v-if="predictions?.length">
+            <div v-for="prediction in predictions" :key="prediction?.match_id" class="flex items-center justify-center border-b py-2">
+                <!-- Match Info -->
+                <div class="flex items-center justify-center w-full max-w-lg">
+                    <!-- Home Team and Score -->
+                    <div class="flex items-center space-x-2 w-1/3 justify-end">
+                        <span class="font-medium">{{ prediction.home_team }}</span>
+                        <span class="text-lg font-bold">{{ prediction.predicted_home_score }}</span>
+                    </div>
+
+                    <!-- Vertical Line (centered) -->
+                    <div class="border-l border-gray-300 h-8 mx-4"></div>
+
+                    <!-- Away Team and Score -->
+                    <div class="flex items-center space-x-2 w-1/3 justify-start">
+                        <span class="text-lg font-bold">{{ prediction.predicted_away_score }}</span>
+                        <span class="font-medium">{{ prediction.away_team }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p v-else class="text-gray-500 text-sm">No predictions made for this gameweek yet.</p>
       </div>
     
       <!-- Members Section -->
@@ -176,6 +220,7 @@ import { gameweeksService } from "../api/gameweeksService";
 import { userIsAdmin } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
+import { predictionsStore } from '../store/predictionsStore';
 
 const route = useRoute();
 const router = useRouter();
@@ -189,6 +234,8 @@ const members = ref([]);
 const gameweeks = ref([]);
 const leaderboard = ref([]);
 const showAddMemberModal = ref(false);
+const predictions = ref([]);
+const gameweekIsLocked = ref(false)
 
 // Computed properties
 const isAdmin = ref(false);
@@ -227,6 +274,16 @@ const fetchAllData = async () => {
     const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getGameweeks(groupId.value);
     if (gameweeksError) throw new Error('Failed to load gameweeks');
     gameweeks.value = gameweeksData || [];
+
+    
+    // Ftech user predictions for active gameweek
+    const activeGameweek = gameweeksData.filter(x => x.is_active);
+
+    const { data: predictionsData, error: predictionsError } = await predictionsStore.fetchUserPredictions(activeGameweek[0].id);
+    if (predictionsError) throw new Error('Failed to load predictions');
+    predictions.value = predictionsData || [];
+
+    gameweekIsLocked.value = activeGameweek[0].is_locked;
     
     // Fetch leaderboard
     const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value);

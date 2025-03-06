@@ -9,11 +9,17 @@
         <input type="datetime-local" v-model="deadline" class="mt-1 p-2 w-full border rounded-md">
       </div>
 
-        <!-- Set Manually Checkbox -->
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="setManually" v-model="setManually" class="mr-2">
-            <label for="setManually" class="text-sm font-medium text-gray-700">Set Manually</label>
-        </div>
+      <!-- Active Gameweek Checkbox -->
+      <div class="mb-4 flex items-center">
+          <input type="checkbox" id="setActive" v-model="setActive" class="mr-2">
+          <label for="setActive" class="text-sm font-medium text-gray-700">Set Active</label>
+      </div>
+
+      <!-- Set Manually Checkbox -->
+      <div class="mb-4 flex items-center">
+          <input type="checkbox" id="setManually" v-model="setManually" class="mr-2">
+          <label for="setManually" class="text-sm font-medium text-gray-700">Set Manually</label>
+      </div>
   
       <!-- League & Match Selection -->
        <div>
@@ -92,6 +98,7 @@ const selectedMatch = ref({
 });
 const selectedMatches = ref([]);
 const setManually = ref(false);
+const setActive = ref(true);
   
   onMounted(async () => {
     const { data: groupData } = await groupsStore.fetchGroupById(groupId);
@@ -142,7 +149,8 @@ const addMatch = () => {
     const { data: newGameweek } = await gameweeksService.createGameweek({
       group_id: groupId,
       week_number: weekNumber.value,
-      deadline: deadline.value
+      deadline: deadline.value,
+      is_active: setActive.value
     });
   
     if (!newGameweek) return;
