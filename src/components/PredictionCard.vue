@@ -1,15 +1,15 @@
 <template>
     <div class="bg-white shadow-lg rounded-xl p-4 mb-4">
         <div class="flex justify-between items-center mb-2">
-            <h2 class="text-lg font-bold">Gameweek {{ gameweek.number }}</h2>
+            <h2 class="text-lg font-bold">Gameweek {{ gameweek?.number }}</h2>
             <!-- Status (Pending / Locked) -->
-            <span :class="statusClass(gameweek.status)" class="text-sm font-medium px-2 py-1 rounded">
-                {{ gameweek.status }}
+            <span :class="statusClass" class="text-sm font-medium px-2 py-1 rounded">
+                {{ gameweek?.is_locked ? 'Locked' : 'Pending' }}
             </span>
         </div>
 
-        <div v-if="predictions.length">
-            <div v-for="prediction in predictions" :key="prediction.match_id" class="flex items-center justify-center border-b py-2">
+        <div v-if="predictions?.length">
+            <div v-for="prediction in predictions" :key="prediction?.match_id" class="flex items-center justify-center border-b py-2">
                 <!-- Match Info -->
                 <div class="flex items-center justify-center w-full max-w-lg">
                     <!-- Home Team and Score -->
@@ -35,20 +35,19 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { defineProps, computed } from 'vue';
 
 // Define the props structure for gameweek and predictions
 const props = defineProps({
-    gameweek: Object,  // { number: 1, id: 123, status: 'Pending' or 'Locked' }
-    predictions: Array // List of user predictions for this gameweek
+    gameweek: Object,
+    predictions: Array
 });
 
 // Status class styling
-const statusClass = (status: string) => {
-    return status === 'Locked' ? 'text-red-600 bg-red-100' :  // Locked
-           status === 'Pending' ? 'text-gray-600 bg-gray-100' :  // Pending
-           'text-green-600 bg-green-100'; // Other status (e.g., Correct or Incorrect)
-};
+const statusClass = computed(() => {
+    return props.gameweek?.is_locked ? 'text-red-600 bg-red-100' : 'text-gray-600 bg-gray-100'
+}) 
+
 </script>
 
 <style scoped>
