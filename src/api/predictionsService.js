@@ -128,6 +128,45 @@ export const predictionsService = {
     }
   },
 
+/**
+ * Get all predictions for a gameweek by all group members
+ * @param {string} gameweekId - Gameweek ID
+ * @returns {Promise<{data: Array, error: Object}>}
+ */
+async getGameweekPredictions(gameweekId) {
+  try {
+    const { data, error } = await supabaseDb.customQuery((supabase) =>
+      supabase
+        .from('predictions')
+        .select(`
+          *,
+          users (
+            id,
+            username
+          ),
+          matches (
+            id,
+            gameweek_id,
+            home_team,
+            away_team,
+            match_time,
+            final_home_score,
+            final_away_score
+          )
+        `)
+        .eq('matches.gameweek_id', gameweekId)
+        .order('match_time', { foreignTable: 'matches', ascending: true }) // Sort by match time
+    )
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error) {
+    console.error('Error fetching gameweek predictions:', error)
+    return { data: null, error }
+  }
+},
+
   /**
    * Create or update a prediction
    * @param {string} userId - User ID

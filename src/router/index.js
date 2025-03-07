@@ -7,6 +7,7 @@ import Group from '../pages/Group.vue';
 import UpdateGroup from '../pages/UpdateGroup.vue';
 import CreateGameweek from '../pages/CreateGameweek.vue';
 import Gameweek from '../pages/Gameweek.vue';
+import GameweekPredictions from '../pages/GameweekPredictions.vue';
 
 import Predictions from '../pages/Predictions.vue';
 import Login from '../pages/Login.vue';
@@ -90,7 +91,16 @@ const router = createRouter({
         title: 'Gameweek - Footie Predictors',
         requiresAuth: true
       }
-    },  
+    },
+    {
+      path: '/gameweek-predictions/:id',
+      name: 'Gameweek Predictions',
+      component: GameweekPredictions,
+      meta: {
+        title: 'Gameweek Predictions - Footie Predictors',
+        requiresAuth: true
+      }
+    }, 
     {
       path: '/predictions',
       name: 'Predictions',

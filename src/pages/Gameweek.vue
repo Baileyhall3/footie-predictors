@@ -1,140 +1,118 @@
 <template>
     <div class="container mx-auto px-6 py-8">
-      <div v-if="!notInGroup" class="mb-1 ms-1">
-        <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 hover:underline font-medium">
-          ← Back to group
-        </router-link>
+      <LoadingScreen v-if="loading" />
+      <!-- Not in group message -->
+      <div v-if="notInGroup" class="bg-red-100 p-4 rounded-md text-red-600">
+        <p>You are not a member of this group.</p>
+        <button @click="redirectToGroup" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">
+          Go to Group
+        </button>
       </div>
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <div class="flex items-center gap-2 mb-4">
-          <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
-          <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
-            Active
-          </div>
-          <div v-if="gameweek?.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
-            Locked
-          </div>
+
+      <template v-else>
+        <div class="mb-1 ms-1">
+          <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 hover:underline font-medium">
+            ← Back to group
+          </router-link>
         </div>
-        <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
-    
-        <!-- Not in group message -->
-        <div v-if="notInGroup" class="bg-red-100 p-4 rounded-md text-red-600">
-          <p>You are not a member of this group.</p>
-          <button @click="redirectToGroup" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">
-            Go to Group
-          </button>
-        </div>
-    
-        <!-- Edit Mode Toggle (Admins Only) -->
-         <div class="flex flex-wrap gap-2 mt-3" v-if="isAdmin">
-            <button @click="toggleEditMode" class="px-4 py-2 bg-green-600 text-white rounded-md">
-              {{ editMode ? 'Exit Edit Mode' : 'Edit Gameweek' }}
-            </button>
-           <!-- Share Gameweek -->
-           <button @click="copyGameweekLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
-             <div class="justify-between items-center flex">
-               Share Gameweek
-               <ShareIcon class="text-white size-4 ms-2" />
-             </div>
-           </button>
-           <button @click="changeActiveStatus" class="px-4 py-2 bg-purple-600 text-white rounded-md">
-              {{ gameweek?.is_active ? 'Make gameweek inactive' : 'Make gameweek active' }}
-            </button>
-            <button @click="changeGameWeekLockedStatus" class="px-4 py-2 bg-red-600 text-white rounded-md">
-              {{ gameweek?.is_locked ? 'Unlock gameweek' : 'Lock gameweek' }}
-            </button>
-         </div>
-      </div>
+        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+          <div class="flex items-center gap-2 mb-4">
+            <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
+            <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
+              Active
+            </div>
+            <div v-if="gameweek?.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
+              Locked
+            </div>
+          </div>
+          <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
       
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <!-- Matches List -->
-        <h3 class="text-xl font-semibold">Matches</h3>
-        <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
-          <!-- Date Heading -->
-          <h3 class="text-lg mb-2">{{ day }}</h3>
-          
+          <!-- Edit Mode Toggle (Admins Only) -->
+           <div class="flex flex-wrap gap-2 mt-3" v-if="isAdmin">
+              <button @click="toggleEditMode" class="px-4 py-2 bg-green-600 text-white rounded-md">
+                {{ editMode ? 'Exit Edit Mode' : 'Edit Gameweek' }}
+              </button>
+             <!-- Share Gameweek -->
+             <button @click="copyGameweekLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
+               <div class="justify-between items-center flex">
+                 Share Gameweek
+                 <ShareIcon class="text-white size-4 ms-2" />
+               </div>
+             </button>
+             <button @click="changeActiveStatus" class="px-4 py-2 bg-purple-600 text-white rounded-md">
+                {{ gameweek?.is_active ? 'Make gameweek inactive' : 'Make gameweek active' }}
+              </button>
+              <button @click="changeGameWeekLockedStatus" class="px-4 py-2 bg-red-600 text-white rounded-md">
+                {{ gameweek?.is_locked ? 'Unlock gameweek' : 'Lock gameweek' }}
+              </button>
+           </div>
+        </div>
+
+        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
           <!-- Matches List -->
-          <ul>
-            <li v-for="match in matchGroup" :key="match.id" class="flex justify-between bg-gray-100 p-2 rounded-md my-2">
-              <span>
-                <span class="font-semibold">{{ match.home_team }}</span> vs <span class="font-semibold">{{ match.away_team }}</span> - {{ DateUtils.toTime(match.match_time) }}
-                <span v-if="match.final_home_score !== null">({{ match.final_home_score }} - {{ match.final_away_score }})</span>
-              </span>
-
-              <!-- Edit Score (Admins Only) -->
-              <div v-if="editMode">
-                <input type="number" v-model="match.final_home_score" class="w-10 border rounded-md p-1 text-center" />
-                -
-                <input type="number" v-model="match.final_away_score" class="w-10 border rounded-md p-1 text-center" />
-                <button @click="saveScore(match)" class="ml-2 text-green-600">Save</button>
-                <button @click="removeMatch(match.id)" class="ml-2 text-red-600">Remove</button>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Add Match (Admins Only) -->
-        <div v-if="editMode" class="mt-4">
-          <h3 class="text-xl font-semibold">Add Match</h3>
-          <input type="text" v-model="newMatch.home_team" placeholder="Home Team" class="p-2 border rounded-md w-full my-2" />
-          <input type="text" v-model="newMatch.away_team" placeholder="Away Team" class="p-2 border rounded-md w-full my-2" />
-          <input type="datetime-local" v-model="newMatch.match_time" class="p-2 border rounded-md w-full my-2" />
-          <button @click="addMatch" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
-        </div>
-      </div>
-      
-    <!-- Predictions -->
-      <div v-if="!editMode" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <div>
-          <div class="items-center flex">
-            <h3 class="text-xl font-semibold">Your Predictions</h3>
-            <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
-          </div>
-
+          <h3 class="text-xl font-semibold">Matches</h3>
           <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
             <!-- Date Heading -->
             <h3 class="text-lg mb-2">{{ day }}</h3>
-
-            <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
-              <!-- Match Info (Score Row) -->
-              <div class="flex items-center justify-center w-full max-w-lg">
-                  <!-- Home Team and Score -->
-                  <div class="flex items-center space-x-2 w-1/3 justify-end">
-                      <span class="font-medium">{{ match.home_team }}</span>
-                      <input v-if="!gameweek?.is_locked" type="number" v-model="predictions[match.id].home_score" class="w-10 border rounded-md p-1 text-center" min="0" @change="predictionsChanged = true" />
-                      <span v-else class="text-lg font-bold">{{ predictions[match.id].home_score }}</span>
-                  </div>
-
-                  <!-- Vertical Line (centered) -->
-                  <div class="border-l border-gray-300 h-8 mx-4"></div>
-
-                  <!-- Away Team and Score -->
-                  <div class="flex items-center space-x-2 w-1/3 justify-start">
-                      <input v-if="!gameweek?.is_locked" type="number" v-model="predictions[match.id].away_score" class="w-10 border rounded-md p-1 text-center" min="0" @change="predictionsChanged = true" />
-                      <span v-else class="text-lg font-bold">{{ predictions[match.id].away_score }}</span>
-                      <span class="font-medium">{{ match.away_team }}</span>
-                  </div>
-              </div>
-
-              <!-- Match Time (Now Below Score Row) -->
-              <div class="text-gray-500 text-sm mt-1">
-                {{ DateUtils.toTime(match.match_time) }}
-              </div>
-            </div>
-
+            
+            <!-- Matches List -->
+            <ul>
+              <li v-for="match in matchGroup" :key="match.id" class="flex justify-between bg-gray-100 p-2 rounded-md my-2">
+                <span>
+                  <span class="font-semibold">{{ match.home_team }}</span> vs <span class="font-semibold">{{ match.away_team }}</span> - {{ DateUtils.toTime(match.match_time) }}
+                  <span v-if="match.final_home_score !== null">({{ match.final_home_score }} - {{ match.final_away_score }})</span>
+                </span>
+  
+                <!-- Edit Score (Admins Only) -->
+                <div v-if="editMode">
+                  <input type="number" v-model="match.final_home_score" class="w-10 border rounded-md p-1 text-center" />
+                  -
+                  <input type="number" v-model="match.final_away_score" class="w-10 border rounded-md p-1 text-center" />
+                  <button @click="saveScore(match)" class="ml-2 text-green-600">Save</button>
+                  <button @click="removeMatch(match.id)" class="ml-2 text-red-600">Remove</button>
+                </div>
+              </li>
+            </ul>
           </div>
-
-           <template v-if="!gameweek?.is_locked">
-             <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
-               Predictions Saved ✅
-             </button>
-   
-             <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-               Submit Predictions
-             </button>
-           </template>
+  
+          <!-- Add Match (Admins Only) -->
+          <div v-if="editMode" class="mt-4">
+            <h3 class="text-xl font-semibold">Add Match</h3>
+            <input type="text" v-model="newMatch.home_team" placeholder="Home Team" class="p-2 border rounded-md w-full my-2" />
+            <input type="text" v-model="newMatch.away_team" placeholder="Away Team" class="p-2 border rounded-md w-full my-2" />
+            <input type="datetime-local" v-model="newMatch.match_time" class="p-2 border rounded-md w-full my-2" />
+            <button @click="addMatch" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
+          </div>
         </div>
-      </div>
+
+        <!-- Predictions -->
+          <div v-if="!editMode" class="bg-white shadow-lg rounded-xl p-6 mb-8">
+            <div>
+              <div class="items-center flex">
+                <h3 class="text-xl font-semibold">Your Predictions</h3>
+                <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
+              </div>
+    
+              <ScoreCard 
+                  :matches="matches"
+                  :predictions="predictions"
+                  :locked="gameweek?.is_locked"
+                  @update-prediction="handlePredictionUpdate"
+              />
+    
+               <template v-if="!gameweek?.is_locked">
+                 <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
+                   Predictions Saved ✅
+                 </button>
+       
+                 <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+                   Submit Predictions
+                 </button>
+               </template>
+            </div>
+          </div>
+      </template>
+      
     </div>
   </template>
   
@@ -148,10 +126,13 @@ import { userIsAdmin } from "../utils/checkPermissions";
 import { ShareIcon, LockClosedIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
+import LoadingScreen from "../components/LoadingScreen.vue";
+import ScoreCard from '../components/ScoreCard.vue';
 
 const route = useRoute();
 const router = useRouter();
 
+const loading = ref(true);
 const gameweekId = ref(null);
 const gameweek = ref(null);
 const matches = ref([]);
@@ -194,6 +175,7 @@ onMounted(async () => {
 });
   
 async function fetchGameweek() {
+  loading.value = true;
   gameweekId.value = route.params.id || route.query.id;
 
   const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
@@ -209,6 +191,7 @@ async function fetchGameweek() {
   // Check if user is in the group
   const isMember = members.value.some(member => member.id === userStore.user?.id);
   if (!isMember) {
+    loading.value = false;
     notInGroup.value = true;
     return;
   }
@@ -245,6 +228,9 @@ async function mapPredictions() {
     };
     return acc;
   }, {});
+
+  loading.value = false;
+
 }
   
 function toggleEditMode() {
@@ -314,6 +300,14 @@ async function changeGameWeekLockedStatus() {
     navigator.clipboard.writeText(url);
     alert('Gameweek link copied!');
   }
+
+const handlePredictionUpdate = ({ matchId, field, value }) => {
+    if (!predictions.value[matchId]) {
+        predictions.value[matchId] = { home_score: 0, away_score: 0 };
+    }
+    predictions.value[matchId][field] = value;
+    predictionsChanged.value = true;
+};
   
   function redirectToGroup() {
     router.push(`/group/${gameweek.value.group_id}`);

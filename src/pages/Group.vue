@@ -96,7 +96,7 @@
             <LockClosedIcon class="size-5 ms-2" v-if="gameweekIsLocked" />
           </div>
           <router-link 
-            :to="`/leaderboards?group=${groupId}`" 
+            :to="`/gameweek-predictions/${currentGameweekId}`" 
             v-if="gameweekIsLocked"
             class="text-sm text-blue-600 hover:underline"
           >
@@ -104,37 +104,12 @@
           </router-link>
         </div>
 
-        <div v-if="predictions?.length">
-            <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
-              <!-- Date Heading -->
-              <h3 class="text-lg mb-2">{{ day }}</h3>
-
-              <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
-                <!-- Match Info (Score Row) -->
-                <div class="flex items-center justify-center w-full max-w-lg">
-                    <!-- Home Team and Score -->
-                    <div class="flex items-center space-x-2 w-1/3 justify-end">
-                        <span class="font-medium">{{ match.home_team }}</span>
-                        <span class="text-lg font-bold">{{ match.predicted_home_score }}</span>
-                    </div>
-
-                    <!-- Vertical Line (centered) -->
-                    <div class="border-l border-gray-300 h-8 mx-4"></div>
-
-                    <!-- Away Team and Score -->
-                    <div class="flex items-center space-x-2 w-1/3 justify-start">
-                        <span class="text-lg font-bold">{{ match.predicted_away_score }}</span>
-                        <span class="font-medium">{{ match.away_team }}</span>
-                    </div>
-                </div>
-
-                <!-- Match Time (Now Below Score Row) -->
-                <div class="text-gray-500 text-sm mt-1">
-                  {{ DateUtils.toTime(match.match_time) }}
-                </div>
-              </div>
-
-            </div>
+        <div v-if="Object.keys(predictions).length > 0">
+          <ScoreCard 
+              :matches="matches"
+              :predictions="predictions"
+              :locked="true"
+          />
         </div>
 
         <p v-else class="text-gray-500 text-sm">No predictions made for this gameweek yet.</p>
@@ -234,8 +209,9 @@ import { gameweeksService } from "../api/gameweeksService";
 import { userIsAdmin } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
-import { predictionsStore } from '../store/predictionsStore';
 import { LockClosedIcon } from "@heroicons/vue/24/solid";
+import ScoreCard from "../components/ScoreCard.vue";
+import { predictionsService } from '../api/predictionsService';
 
 const route = useRoute();
 const router = useRouter();
@@ -249,8 +225,10 @@ const members = ref([]);
 const gameweeks = ref([]);
 const leaderboard = ref([]);
 const showAddMemberModal = ref(false);
-const predictions = ref([]);
-const gameweekIsLocked = ref(false)
+const predictions = ref({});
+const matches = ref([]);
+const gameweekIsLocked = ref(false);
+const currentGameweekId = ref();
 
 // Computed properties
 const isAdmin = ref(false);
@@ -258,19 +236,6 @@ const isAdmin = ref(false);
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
   return admin ? admin.username : 'Unknown';
-});
-
-const groupedMatches = computed(() => {
-  return predictions?.value.reduce((acc, match) => {
-    const matchDay = DateUtils.toShortDayMonth(match.match_time); // "Mon Dec 30"
-
-    if (!acc[matchDay]) {
-      acc[matchDay] = [];
-    }
-    acc[matchDay].push(match);
-    
-    return acc;
-  }, {});
 });
 
 // Fetch all data for the group
@@ -303,23 +268,18 @@ const fetchAllData = async () => {
     if (gameweeksError) throw new Error('Failed to load gameweeks');
     gameweeks.value = gameweeksData || [];
 
-    
-    // Ftech user predictions for active gameweek
-    const activeGameweek = gameweeksData.filter(x => x.is_active);
-
-    const { data: predictionsData, error: predictionsError } = await predictionsStore.fetchUserPredictions(activeGameweek[0].id);
-    if (predictionsError) throw new Error('Failed to load predictions');
-    predictions.value = predictionsData || [];
-
-    debugger
-
-    gameweekIsLocked.value = activeGameweek[0].is_locked;
-    
     // Fetch leaderboard
     const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value);
     if (leaderboardError) throw new Error('Failed to load leaderboard');
     leaderboard.value = leaderboardData || [];
-    
+
+    const activeGameweek = gameweeksData.filter(x => x.is_active);
+    if (activeGameweek.length > 0) {
+      currentGameweekId.value = activeGameweek[0].id;
+      gameweekIsLocked.value = activeGameweek[0].is_locked;
+      mapPredictions();
+    }
+
   } catch (err) {
     console.error('Error fetching group data:', err);
     error.value = err.message || 'An error occurred while loading group data';
@@ -327,6 +287,40 @@ const fetchAllData = async () => {
     loading.value = false;
   }
 };
+
+async function mapPredictions() {
+  // Fetch both matches and predictions
+  const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
+    gameweeksService.getMatches(currentGameweekId.value),
+    predictionsService.getUserGameweekPredictions(userStore.user?.id, currentGameweekId.value)
+  ]);
+
+  // Map predictions by match_id for quick lookup
+  const predictionsMap = predictionsData.reduce((acc, prediction) => {
+    acc[prediction.match_id] = prediction;
+    return acc;
+  }, {});
+
+  // Merge predictions into matches
+  matches.value = matchData.map(match => ({
+    ...match,
+    predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
+    predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
+    prediction_id: predictionsMap[match.id]?.id || null
+  }));
+
+  // Initialize predictions object for v-model binding
+  predictions.value = matches.value.reduce((acc, match) => {
+    acc[match.id] = {
+      home_score: match.predicted_home_score,
+      away_score: match.predicted_away_score
+    };
+    return acc;
+  }, {});
+
+  loading.value = false;
+
+}
 
 // Admin functions
 const editGroup = () => {
