@@ -91,7 +91,10 @@
 
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">Your Predictions</h3>
+          <div class="items-center flex">
+            <h3 class="text-xl font-semibold">Your Predictions</h3>
+            <LockClosedIcon class="size-5 ms-2" v-if="gameweekIsLocked" />
+          </div>
           <router-link 
             :to="`/leaderboards?group=${groupId}`" 
             v-if="gameweekIsLocked"
@@ -102,13 +105,17 @@
         </div>
 
         <div v-if="predictions?.length">
-            <div v-for="prediction in predictions" :key="prediction?.match_id" class="flex items-center justify-center border-b py-2">
-                <!-- Match Info -->
+            <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
+              <!-- Date Heading -->
+              <h3 class="text-lg mb-2">{{ day }}</h3>
+
+              <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
+                <!-- Match Info (Score Row) -->
                 <div class="flex items-center justify-center w-full max-w-lg">
                     <!-- Home Team and Score -->
                     <div class="flex items-center space-x-2 w-1/3 justify-end">
-                        <span class="font-medium">{{ prediction.home_team }}</span>
-                        <span class="text-lg font-bold">{{ prediction.predicted_home_score }}</span>
+                        <span class="font-medium">{{ match.home_team }}</span>
+                        <span class="text-lg font-bold">{{ match.predicted_home_score }}</span>
                     </div>
 
                     <!-- Vertical Line (centered) -->
@@ -116,10 +123,17 @@
 
                     <!-- Away Team and Score -->
                     <div class="flex items-center space-x-2 w-1/3 justify-start">
-                        <span class="text-lg font-bold">{{ prediction.predicted_away_score }}</span>
-                        <span class="font-medium">{{ prediction.away_team }}</span>
+                        <span class="text-lg font-bold">{{ match.predicted_away_score }}</span>
+                        <span class="font-medium">{{ match.away_team }}</span>
                     </div>
                 </div>
+
+                <!-- Match Time (Now Below Score Row) -->
+                <div class="text-gray-500 text-sm mt-1">
+                  {{ DateUtils.toTime(match.match_time) }}
+                </div>
+              </div>
+
             </div>
         </div>
 
@@ -221,6 +235,7 @@ import { userIsAdmin } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
 import { predictionsStore } from '../store/predictionsStore';
+import { LockClosedIcon } from "@heroicons/vue/24/solid";
 
 const route = useRoute();
 const router = useRouter();
@@ -243,6 +258,19 @@ const isAdmin = ref(false);
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
   return admin ? admin.username : 'Unknown';
+});
+
+const groupedMatches = computed(() => {
+  return predictions?.value.reduce((acc, match) => {
+    const matchDay = DateUtils.toShortDayMonth(match.match_time); // "Mon Dec 30"
+
+    if (!acc[matchDay]) {
+      acc[matchDay] = [];
+    }
+    acc[matchDay].push(match);
+    
+    return acc;
+  }, {});
 });
 
 // Fetch all data for the group
@@ -282,6 +310,8 @@ const fetchAllData = async () => {
     const { data: predictionsData, error: predictionsError } = await predictionsStore.fetchUserPredictions(activeGameweek[0].id);
     if (predictionsError) throw new Error('Failed to load predictions');
     predictions.value = predictionsData || [];
+
+    debugger
 
     gameweekIsLocked.value = activeGameweek[0].is_locked;
     

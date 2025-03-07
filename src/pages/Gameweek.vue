@@ -63,9 +63,9 @@
 
               <!-- Edit Score (Admins Only) -->
               <div v-if="editMode">
-                <input type="number" v-model="match.final_home_score" class="w-12 border rounded-md p-1 text-center" />
+                <input type="number" v-model="match.final_home_score" class="w-10 border rounded-md p-1 text-center" />
                 -
-                <input type="number" v-model="match.final_away_score" class="w-12 border rounded-md p-1 text-center" />
+                <input type="number" v-model="match.final_away_score" class="w-10 border rounded-md p-1 text-center" />
                 <button @click="saveScore(match)" class="ml-2 text-green-600">Save</button>
                 <button @click="removeMatch(match.id)" class="ml-2 text-red-600">Remove</button>
               </div>
@@ -73,7 +73,6 @@
           </ul>
         </div>
 
-    
         <!-- Add Match (Admins Only) -->
         <div v-if="editMode" class="mt-4">
           <h3 class="text-xl font-semibold">Add Match</h3>
@@ -87,31 +86,66 @@
     <!-- Predictions -->
       <div v-if="!editMode" class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div>
-          <h3 class="text-xl font-semibold">Your Predictions</h3>
-          <div v-for="match in matches" :key="match.id" class="flex justify-between items-center bg-gray-100 p-2 rounded-md my-2">
-            <span>
-              <span class="font-semibold">{{ match.home_team }}</span> vs <span class="font-semibold">{{ match.away_team }}</span>
-            </span>
-            <div>
-              <input type="number" v-model="predictions[match.id].home_score" class="w-12 border rounded-md p-1 text-center" />
-              -
-              <input type="number" v-model="predictions[match.id].away_score" class="w-12 border rounded-md p-1 text-center" />
-            </div>
+          <div class="items-center flex">
+            <h3 class="text-xl font-semibold">Your Predictions</h3>
+            <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
           </div>
-          <button @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">Submit Predictions</button>
+
+          <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
+            <!-- Date Heading -->
+            <h3 class="text-lg mb-2">{{ day }}</h3>
+
+            <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
+              <!-- Match Info (Score Row) -->
+              <div class="flex items-center justify-center w-full max-w-lg">
+                  <!-- Home Team and Score -->
+                  <div class="flex items-center space-x-2 w-1/3 justify-end">
+                      <span class="font-medium">{{ match.home_team }}</span>
+                      <input v-if="!gameweek?.is_locked" type="number" v-model="predictions[match.id].home_score" class="w-10 border rounded-md p-1 text-center" min="0" @change="predictionsChanged = true" />
+                      <span v-else class="text-lg font-bold">{{ predictions[match.id].home_score }}</span>
+                  </div>
+
+                  <!-- Vertical Line (centered) -->
+                  <div class="border-l border-gray-300 h-8 mx-4"></div>
+
+                  <!-- Away Team and Score -->
+                  <div class="flex items-center space-x-2 w-1/3 justify-start">
+                      <input v-if="!gameweek?.is_locked" type="number" v-model="predictions[match.id].away_score" class="w-10 border rounded-md p-1 text-center" min="0" @change="predictionsChanged = true" />
+                      <span v-else class="text-lg font-bold">{{ predictions[match.id].away_score }}</span>
+                      <span class="font-medium">{{ match.away_team }}</span>
+                  </div>
+              </div>
+
+              <!-- Match Time (Now Below Score Row) -->
+              <div class="text-gray-500 text-sm mt-1">
+                {{ DateUtils.toTime(match.match_time) }}
+              </div>
+            </div>
+
+          </div>
+
+           <template v-if="!gameweek?.is_locked">
+             <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
+               Predictions Saved ✅
+             </button>
+   
+             <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+               Submit Predictions
+             </button>
+           </template>
         </div>
       </div>
     </div>
   </template>
   
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin } from "../utils/checkPermissions";
-import { ShareIcon } from "@heroicons/vue/24/solid";
+import { ShareIcon, LockClosedIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 
@@ -129,6 +163,12 @@ const members = ref([]);
 
 const isAdmin = ref(false);
 
+const predictionsChanged = ref(false);
+
+// watch(predictions, () => {
+//   predictionsChanged.value = true;
+// }, { deep: true });
+
 const groupedMatches = computed(() => {
   return matches.value.reduce((acc, match) => {
     const matchDay = DateUtils.toShortDayMonth(match.match_time); // "Mon Dec 30"
@@ -140,6 +180,13 @@ const groupedMatches = computed(() => {
     
     return acc;
   }, {});
+});
+
+const allPredictionsSubmitted = computed(() => {
+  return matches.value.length > 0 && matches.value.every(match => {
+    const prediction = predictions.value[match.id];
+    return prediction?.home_score !== '' && prediction?.away_score !== '';
+  });
 });
   
 onMounted(async () => {
@@ -166,6 +213,10 @@ async function fetchGameweek() {
     return;
   }
 
+  mapPredictions();
+}
+
+async function mapPredictions() {
   // Fetch both matches and predictions
   const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
     gameweeksService.getMatches(gameweekId.value),
@@ -195,10 +246,12 @@ async function fetchGameweek() {
     return acc;
   }, {});
 }
-
   
 function toggleEditMode() {
   editMode.value = !editMode.value;
+  if (!editMode.value) {
+    mapPredictions();
+  }
 }
 
 async function changeGameWeekLockedStatus() {
