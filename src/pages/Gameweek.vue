@@ -122,7 +122,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
-import { userIsAdmin } from "../utils/checkPermissions";
+import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
 import { ShareIcon, LockClosedIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
@@ -186,15 +186,15 @@ async function fetchGameweek() {
   if (membersError) throw new Error('Failed to load group members');
   members.value = membersData || [];
 
-  isAdmin.value = userIsAdmin(members.value);
-
   // Check if user is in the group
-  const isMember = members.value.some(member => member.id === userStore.user?.id);
+  const isMember = userInGroup(members.value);
   if (!isMember) {
     loading.value = false;
     notInGroup.value = true;
     return;
   }
+
+  isAdmin.value = userIsAdmin(members.value);
 
   mapPredictions();
 }

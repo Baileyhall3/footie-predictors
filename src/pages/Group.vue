@@ -34,6 +34,20 @@
               Add Gameweek
             </button>
           </router-link>
+          <button @click="copyGroupLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
+            <div class="justify-between items-center flex">
+              Share Group
+              <ShareIcon class="text-white size-4 ms-2" />
+            </div>
+          </button>
+        </div>
+        <div v-else class="mt-4 flex flex-wrap gap-2">
+          <button v-if="notInGroup" @click="tryJoinGroup()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+              Join Group
+          </button>
+          <button v-else @click="updateMemberStatus(false)" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+              Leave Group
+          </button>
         </div>
       </div>
     
@@ -187,15 +201,10 @@
         </div>
         <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
       </div>
-    </div>
-
-    <!-- Add Member Modal (hidden by default) -->
-    <!-- You can implement this modal later -->
-
-    <!-- Add Gameweek Modal (hidden by default) -->
-    <!-- You can implement this modal later -->
-
+    </div>  
   </div>
+
+  <PinInput ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
 </template>
 
 <script setup>
@@ -206,15 +215,18 @@ import { groupsStore } from "../store/groupsStore";
 import { leaderboardStore } from "../store/leaderboardStore";
 import { userStore } from "../store/userStore";
 import { gameweeksService } from "../api/gameweeksService";
-import { userIsAdmin } from "../utils/checkPermissions";
+import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
-import { LockClosedIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, ShareIcon } from "@heroicons/vue/24/solid";
 import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
+import PinInput from "../components/PinInput.vue";
 
 const route = useRoute();
 const router = useRouter();
+
+const pinDialog = ref(null);
 
 // State
 const loading = ref(true);
@@ -229,6 +241,7 @@ const predictions = ref({});
 const matches = ref([]);
 const gameweekIsLocked = ref(false);
 const currentGameweekId = ref();
+const notInGroup = ref(false);
 
 // Computed properties
 const isAdmin = ref(false);
@@ -260,6 +273,14 @@ const fetchAllData = async () => {
     const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(groupId.value);
     if (membersError) throw new Error('Failed to load group members');
     members.value = membersData || [];
+
+    // Check if user is in the group
+    const isMember = userInGroup(members.value)
+    if (!isMember) {
+      loading.value = false;
+      notInGroup.value = true;
+      return;
+    }
 
     isAdmin.value = userIsAdmin(members.value);
     
@@ -355,6 +376,51 @@ const confirmRemoveMember = (member) => {
   }
 };
 
+async function tryJoinGroup() {
+  if (group.value.is_public) {
+    updateMemberStatus(true);
+  } else {
+    await pinDialog.value?.show();
+  }
+}
+
+async function updateMemberStatus(isJoining) {
+  if (isJoining) {
+    try {
+      const { success, error: joinError } = await groupsStore.addMember(
+        groupId.value,
+        userStore.user.id
+      );
+  
+      if (joinError) throw new Error('Failed to join group');
+      else {
+        alert('Successfully joined group!');
+        window.location.reload();
+      }
+    } catch(err) {
+      error.value = err.message || 'An error occurred while leaving group';
+    }
+
+  } else {
+    const userMembership = members.value.filter(x => x.id === userStore.user.id);
+    debugger
+    try {
+      const { success, error: leaveError } = await groupsStore.removeMember(
+        userMembership[0].membership_id, 
+        groupId.value
+      );
+  
+      if (leaveError) throw new Error('Failed to leave group');
+      else {
+        alert('Successfully left group.');
+        window.location.reload();
+      }
+    } catch (err) {
+      error.value = err.message || 'An error occurred while joining group';
+    }
+  }
+}
+
 const removeMember = async (member) => {
   try {
     loading.value = true;
@@ -375,6 +441,12 @@ const removeMember = async (member) => {
     loading.value = false;
   }
 };
+
+function copyGroupLink() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url);
+  alert('Group link copied!');
+}
 
 // Watch for route changes to reload data
 watch(() => route.params.id, (newId) => {
