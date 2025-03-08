@@ -3,8 +3,8 @@
       <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
         <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
           <h1 class="text-3xl font-bold">{{ group.name }}</h1>
-          <p v-if="adminName" class="mt-2 text-green-100">
-            Admin: {{ adminName }}
+          <p v-if="admin" class="mt-2 text-green-100">
+            Admin: {{ admin.username }}
           </p>
         </div>
   
@@ -73,26 +73,25 @@
                     </div>
                   </div>
 
+                  <!-- Maximum Members -->
+                  <div>
+                      <label class="block font-medium">Max Members</label>
+                      <input v-model.number="group.max_members" type="number" min="1" max="500" class="w-full border p-2 rounded-md" />
+                  </div>
 
-                <!-- Maximum Members -->
-                <div>
-                    <label class="block font-medium">Max Members</label>
-                    <input v-model.number="group.max_members" type="number" min="1" max="500" class="w-full border p-2 rounded-md" />
-                </div>
+                  <!-- Group Description -->
+                  <div>
+                      <label class="block font-medium">Group Description</label>
+                      <textarea v-model="group.description" rows="3" placeholder="Describe your group..." class="w-full border p-2 rounded-md"></textarea>
+                  </div>
 
-                <!-- Group Description -->
-                <div>
-                    <label class="block font-medium">Group Description</label>
-                    <textarea v-model="group.description" rows="3" placeholder="Describe your group..." class="w-full border p-2 rounded-md"></textarea>
-                </div>
+                  <!-- Error Message -->
+                  <p v-if="errorMessage" class="text-red-500 text-center">{{ errorMessage }}</p>
 
-                <!-- Error Message -->
-                <p v-if="errorMessage" class="text-red-500 text-center">{{ errorMessage }}</p>
-
-                <!-- Submit Button -->
-                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md font-bold hover:bg-green-700">
-                    {{ isSubmitting ? 'Updating...' : 'Update Group' }}
-                </button>
+                  <!-- Submit Button -->
+                  <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md font-bold hover:bg-green-700">
+                      {{ isSubmitting ? 'Updating...' : 'Update Group' }}
+                  </button>
                 </form>
             </div>
   
@@ -153,14 +152,10 @@ const members = ref([]);
 const showDeleteConfirmation = ref(false);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
+const admin = ref({});
 
 // Computed properties
 const isAdmin = ref(false);
-
-const adminName = computed(() => {
-  const admin = members.value.find(member => member.is_admin);
-  return admin ? admin.username : 'Unknown';
-});
 
 // Handle typing a digit
 const handleInput = (index, event) => {
@@ -201,14 +196,14 @@ const fetchAllData = async () => {
     error.value = null;
     
     // Get group ID from route
-    const groupId = route.params.id || route.query.id;
+    groupId.value = route.params.id || route.query.id;
     
-    if (!groupId) {
+    if (!groupId.value) {
       throw new Error('Group ID is missing');
     }
     
     // Fetch group details
-    const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(groupId);
+    const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(groupId.value);
     if (groupError) throw new Error('Failed to load group details');
 
     group.value = groupData;
@@ -219,7 +214,12 @@ const fetchAllData = async () => {
       pin.value = ["", "", "", ""]; 
     }
 
-    isAdmin.value = userIsAdmin(members.value);
+    // Fetch admin for group
+    const { data: adminData, error: adminError } = await groupsService.getGroupAdmin(groupId.value);
+    if (adminError) throw new Error('Failed to retrieve group admin');
+
+    admin.value = adminData;
+    isAdmin.value = userStore.user?.id == admin.value.id;
     
   } catch (err) {
     console.error('Error fetching group data:', err);

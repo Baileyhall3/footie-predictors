@@ -39,6 +39,7 @@ export const groupsService = {
         correct_result_points: groupData.correct_result_pts,
         incorrect_points: groupData.incorrect_points,
         is_public: groupData.is_public,
+        group_pin: groupData.group_pin,
         max_members: groupData.max_members,
       });
   
@@ -118,6 +119,48 @@ export const groupsService = {
     } catch (error) {
       console.error('Error fetching group members:', error)
       return { data: null, error }
+    }
+  },
+
+  /**
+   * Get the admin of a group
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Object | null, error: Object | null}>}
+   */
+  async getGroupAdmin(groupId) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('groups')
+          .select(`
+            admin_id,
+            users:admin_id (
+              id,
+              username,
+              email
+            )
+          `)
+          .eq('id', groupId)
+          .single() // Ensure we only get one record
+      );
+
+      if (error) throw error;
+
+      if (!data || !data.users) {
+        return { data: null, error: 'Admin not found' };
+      }
+
+      // Format the admin object
+      const admin = {
+        id: data.users.id,
+        username: data.users.username,
+        email: data.users.email,
+      };
+
+      return { data: admin, error: null };
+    } catch (error) {
+      console.error('Error fetching group admin:', error);
+      return { data: null, error };
     }
   },
 

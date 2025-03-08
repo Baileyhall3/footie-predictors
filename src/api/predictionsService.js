@@ -279,15 +279,15 @@ async getGameweekPredictions(gameweekId) {
       const { data: gameweek, error: gameweekError } = await supabaseDb.getById('gameweeks', match.gameweek_id)
       if (gameweekError) throw gameweekError
 
-      // Get the group settings
-      const { data: settings, error: settingsError } = await supabaseDb.customQuery((supabase) =>
+      // Get the group
+      const { data: group, error: groupError } = await supabaseDb.customQuery((supabase) =>
         supabase
-          .from('group_settings')
+          .from('groups')
           .select('*')
-          .eq('group_id', gameweek.group_id)
+          .eq('id', gameweek.group_id)
           .single()
       )
-      if (settingsError) throw settingsError
+      if (groupError) throw groupError
 
       // Get all predictions for this match
       const { data: predictions, error: predictionsError } = await supabaseDb.customQuery((supabase) =>
@@ -309,7 +309,7 @@ async getGameweekPredictions(gameweekId) {
           prediction.predicted_home_score === match.final_home_score &&
           prediction.predicted_away_score === match.final_away_score
         ) {
-          points = settings.exact_score_points
+          points = group.exact_score_points
           isExactScore = true
         }
         // Check if correct result
@@ -318,12 +318,12 @@ async getGameweekPredictions(gameweekId) {
           (prediction.predicted_home_score < prediction.predicted_away_score && match.final_home_score < match.final_away_score) ||
           (prediction.predicted_home_score === prediction.predicted_away_score && match.final_home_score === match.final_away_score)
         ) {
-          points = settings.correct_result_points
+          points = group.correct_result_points
           isCorrectResult = true
         }
         // Incorrect prediction
         else {
-          points = settings.incorrect_points
+          points = group.incorrect_points
         }
 
         // Update user's score for this gameweek

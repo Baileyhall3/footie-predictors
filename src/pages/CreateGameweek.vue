@@ -64,13 +64,13 @@
       <!-- Added Matches List -->
       <ul class="mb-4 mt-4">
         <li v-for="(match, index) in selectedMatches" :key="index" class="flex justify-between bg-gray-100 p-2 rounded-md mt-2">
-          {{ match.home_team }} vs {{ match.away_team }} - {{ match.match_time }}
+          {{ match.home_team }} vs {{ match.away_team }} - {{ DateUtils.toDateTime(match.match_time) }}
           <button @click="removeMatch(index)" class="text-red-500">Remove</button>
         </li>
       </ul>
   
       <!-- Submit Button -->
-      <button @click="createGameweek" class="w-full bg-green-600 text-white py-2 rounded-md">Create Gameweek</button>
+      <button v-if="selectedMatches.length > 0" @click="createGameweek" class="w-full bg-green-600 text-white py-2 rounded-md">Create Gameweek</button>
     </div>
   </template>
   
@@ -80,6 +80,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService'
 import { footballApiService } from '../api/footballApiService';  // We'll create this
 import { groupsStore } from '../store/groupsStore';
+import DateUtils from '../utils/dateUtils';
   
 const route = useRoute();
 const router = useRouter();
@@ -145,13 +146,16 @@ const addMatch = () => {
   
   const createGameweek = async () => {
     if (!deadline.value || selectedMatches.value.length === 0) return; // add error checking
-  
+    
+    debugger
+    
     const { data: newGameweek } = await gameweeksService.createGameweek({
       group_id: groupId,
       week_number: weekNumber.value,
       deadline: deadline.value,
       is_active: setActive.value
     });
+
   
     if (!newGameweek) return;
   

@@ -7,63 +7,25 @@
                 ← Back to group
             </router-link>
         </div>
+
+        <!-- Matches List -->
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <div class="flex items-center gap-2 mb-4">
                 <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
             </div>
-        </div>
-
-        <!-- Matches List -->
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <h3 class="text-xl font-semibold">Matches</h3>
-            <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
-                <h3 class="text-lg mb-2">{{ day }}</h3>
-                <ul>
-                    <li v-for="match in matchGroup" :key="match.id" class="flex justify-between bg-gray-100 p-2 rounded-md my-2">
-                        <span>
-                            <span class="font-semibold">{{ match.home_team }}</span> vs <span class="font-semibold">{{ match.away_team }}</span> - {{ DateUtils.toTime(match.match_time) }}
-                            <span v-if="match.final_home_score !== null">({{ match.final_home_score }} - {{ match.final_away_score }})</span>
-                        </span>
-                    </li>
-                </ul>
-            </div>
+            <ScoreCard 
+                :matches="matches"
+            />
         </div>
 
         <!-- Predictions Section -->
         <div v-for="(userPredictions, username) in groupedPredictions" :key="username" class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <h3 class="text-xl font-semibold">{{ username }}'s Predictions</h3>
-
-            <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
-                <h3 class="text-lg mb-2">{{ day }}</h3>
-
-                <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
-                    <!-- Match Info (Score Row) -->
-                    <div class="flex items-center justify-center w-full max-w-lg">
-                        <!-- Home Team and Score -->
-                        <div class="flex items-center space-x-2 w-1/3 justify-end">
-                            <span class="font-medium">{{ match.home_team }}</span>
-                            <span class="text-lg font-bold">
-                                {{ userPredictions[match.id]?.predicted_home_score ?? '-' }}
-                            </span>
-                        </div>
-
-                        <!-- Vertical Line (centered) -->
-                        <div class="border-l border-gray-300 h-8 mx-4"></div>
-
-                        <!-- Away Team and Score -->
-                        <div class="flex items-center space-x-2 w-1/3 justify-start">
-                            <span class="text-lg font-bold">
-                                {{ userPredictions[match.id]?.predicted_away_score ?? '-' }}
-                            </span>
-                            <span class="font-medium">{{ match.away_team }}</span>
-                        </div>
-                    </div>
-
-                    <div class="text-gray-500 text-sm mt-1">
-                        {{ DateUtils.toTime(match.match_time) }}
-                    </div>
-                </div>
-            </div>
+            <ScoreCard 
+                :matches="matches"
+                :predictions="userPredictions"
+                :locked="true"
+            />
         </div>
     </div>
 </template>
@@ -75,6 +37,7 @@ import DateUtils from '../utils/dateUtils';
 import { gameweeksService } from '../api/gameweeksService';
 import { predictionsService } from '../api/predictionsService';
 import LoadingScreen from "../components/LoadingScreen.vue";
+import ScoreCard from '../components/ScoreCard.vue';
 
 const route = useRoute();
 
@@ -144,6 +107,8 @@ async function mapPredictions() {
 
     matches.value = matchData;
     predictions.value = predictionsData || [];
+
+    debugger
     
     loading.value = false;
 

@@ -49,6 +49,24 @@
         </select>
       </div>
 
+      <!-- PIN Input (Only Visible When Private) -->
+      <div v-if="!groupData.is_public" class="mt-4">
+        <label class="block font-medium">Set Group PIN</label>
+          <div class="flex gap-2 justify-center mt-2">
+            <input
+              v-for="(digit, index) in pin"
+              :key="index"
+              ref="pinInputs"
+              type="text"
+              maxlength="1"
+              class="w-12 h-12 text-center border rounded-md text-xl font-bold"
+              v-model="pin[index]"
+              @input="handleInput(index, $event)"
+              @keydown.backspace="handleBackspace(index, $event)"
+            />
+          </div>
+      </div>
+
       <!-- Maximum Members -->
       <div>
         <label class="block font-medium">Max Members</label>
@@ -73,24 +91,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { groupsService } from '../api/groupsService';
 import { supabase } from '../api/supabase';
 
 const router = useRouter();
+
+const pin = ref(["", "", "", ""]);
+const pinInputs = ref([]);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
 
 // Reactive form data
 const groupData = ref({
   name: '',
-  scoring_system: 'classic', // Default scoring system
-  correct_result_pts: 1, // Default points
-  exact_score_pts: 3, // Default points
-  incorrect_points: 0, // Default points
-  is_public: true, // Default privacy
-  max_members: 100, // Default max members
+  scoring_system: 'classic',
+  correct_result_pts: 1, 
+  exact_score_pts: 3, 
+  incorrect_points: 0, 
+  is_public: true, 
+  group_pin: null,
+  max_members: 100, 
   description: ''
 });
 
@@ -124,4 +146,37 @@ const createGroup = async () => {
     isSubmitting.value = false;
   }
 };
+
+// Handle typing a digit
+const handleInput = (index, event) => {
+  const value = event.target.value.replace(/\D/g, ""); // Allow only numbers
+  pin.value[index] = value.substring(0, 1);
+
+  if (value && index < 3) {
+    nextTick(() => pinInputs.value[index + 1].focus());
+  }
+
+  updateGroupPin();
+};
+
+// Handle backspace key
+const handleBackspace = (index, event) => {
+  if (!pin.value[index] && index > 0) {
+    pinInputs.value[index - 1].focus();
+  }
+};
+
+// Update `group_pin` when PIN changes
+const updateGroupPin = () => {
+  groupData.value.group_pin = pin.value.join("");
+};
+
+// Reset PIN when switching to public
+watch(() => groupData.value.is_public, (newVal) => {
+  if (newVal) {
+    pin.value = ["", "", "", ""];
+    groupData.value.group_pin = "";
+  }
+});
+
 </script>

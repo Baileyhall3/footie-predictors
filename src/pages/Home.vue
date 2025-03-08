@@ -49,12 +49,16 @@
       <div class="mb-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Upcoming Matches</h2>
 
-        <div v-if="upcomingMatches.length" class="bg-white rounded-lg shadow overflow-hidden">
-          <div class="p-4 border-b border-gray-200">
+        <div v-if="upcomingMatches.length" class="bg-white rounded-lg shadow overflow-hidden p-6">
+          <!-- <div class="p-4 border-b border-gray-200">
             <h3 class="font-semibold text-gray-700">Make your predictions</h3>
-          </div>
+          </div> -->
+
+          <ScoreCard
+            :matches="upcomingMatches.slice(0, 3)"
+          />
           
-          <div class="divide-y divide-gray-200">
+          <!-- <div class="divide-y divide-gray-200">
             <div v-for="match in upcomingMatches.slice(0, 3)" :key="match.id" class="p-4 flex justify-between items-center">
               <div class="flex-1">
                 <div class="flex items-center justify-between">
@@ -71,13 +75,13 @@
                 Predict
               </router-link>
             </div>
-          </div>
+          </div> -->
           
-          <div class="p-4 bg-gray-50 border-t border-gray-200">
+          <!-- <div class="p-4 bg-gray-50 border-t border-gray-200">
             <router-link to="/predictions" class="text-green-600 font-medium hover:text-green-700 text-sm">
               View all upcoming matches →
             </router-link>
-          </div>
+          </div> -->
         </div>
         <div v-else class="bg-white rounded-lg shadow p-6 text-center">
           <p class="text-gray-500">No upcoming matches to predict.</p>
@@ -125,12 +129,11 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import GroupCard from "../components/GroupCard.vue";
-import PredictionCard from "../components/PredictionCard.vue";
-import LeaderboardCard from "../components/LeaderboardCard.vue";
 import { userStore } from "../store/userStore";
 import { groupsStore } from "../store/groupsStore";
 import { predictionsStore } from "../store/predictionsStore";
 import { leaderboardStore } from "../store/leaderboardStore";
+import ScoreCard from "../components/ScoreCard.vue";
 
 // State
 const isLoading = ref(true);

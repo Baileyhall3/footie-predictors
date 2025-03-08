@@ -83,20 +83,6 @@
               <div v-if="gameweek.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
                 Locked
               </div>
-
-              <router-link 
-                :to="`/predictions?gameweek=${gameweek.id}`" 
-                class="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full hover:bg-green-200 transition"
-              >
-                Predictions
-              </router-link>
-              
-              <router-link 
-                :to="`/leaderboards?gameweek=${gameweek.id}`" 
-                class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full hover:bg-blue-200 transition"
-              >
-                Results
-              </router-link>
             </div>
           </div>
         </div>
@@ -114,7 +100,7 @@
             v-if="gameweekIsLocked"
             class="text-sm text-blue-600 hover:underline"
           >
-            View All Predictions →
+            View All →
           </router-link>
         </div>
 
@@ -175,12 +161,12 @@
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">Leaderboard</h3>
-          <router-link 
+          <!-- <router-link 
             :to="`/leaderboards?group=${groupId}`" 
             class="text-sm text-blue-600 hover:underline"
           >
             View Full Leaderboard →
-          </router-link>
+          </router-link> -->
         </div>
         
         <div v-if="leaderboard.length">
@@ -204,7 +190,7 @@
     </div>  
   </div>
 
-  <PinInput ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
+  <PinDialog ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
 </template>
 
 <script setup>
@@ -221,7 +207,7 @@ import DateUtils from "../utils/dateUtils";
 import { LockClosedIcon, ShareIcon } from "@heroicons/vue/24/solid";
 import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
-import PinInput from "../components/PinInput.vue";
+import PinDialog from "../components/PinDialog.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -316,6 +302,8 @@ async function mapPredictions() {
     predictionsService.getUserGameweekPredictions(userStore.user?.id, currentGameweekId.value)
   ]);
 
+  if (predictionsData.length === 0) { return; }
+
   // Map predictions by match_id for quick lookup
   const predictionsMap = predictionsData.reduce((acc, prediction) => {
     acc[prediction.match_id] = prediction;
@@ -333,8 +321,8 @@ async function mapPredictions() {
   // Initialize predictions object for v-model binding
   predictions.value = matches.value.reduce((acc, match) => {
     acc[match.id] = {
-      home_score: match.predicted_home_score,
-      away_score: match.predicted_away_score
+      predicted_home_score: match.predicted_home_score,
+      predicted_away_score: match.predicted_away_score
     };
     return acc;
   }, {});

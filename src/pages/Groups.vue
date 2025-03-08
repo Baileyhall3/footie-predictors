@@ -56,7 +56,6 @@ const fetchUserData = async () => {
       const { data: fetchedPublicGroups, error: publicGroupsError } = await groupsStore.fetchPublicGroups();
       if (publicGroupsError) throw new Error('Failed to load public groups');
       publicGroups.value = fetchedPublicGroups || [];
-      debugger
     }
   } catch (err) {
     console.error('Error fetching user data:', err);

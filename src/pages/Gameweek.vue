@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto px-6 py-8">
+    <div class="container mx-auto py-8">
       <LoadingScreen v-if="loading" />
       <!-- Not in group message -->
       <div v-if="notInGroup" class="bg-red-100 p-4 rounded-md text-red-600">
@@ -39,41 +39,32 @@
                  <ShareIcon class="text-white size-4 ms-2" />
                </div>
              </button>
-             <button @click="changeActiveStatus" class="px-4 py-2 bg-purple-600 text-white rounded-md">
-                {{ gameweek?.is_active ? 'Make gameweek inactive' : 'Make gameweek active' }}
-              </button>
-              <button @click="changeGameWeekLockedStatus" class="px-4 py-2 bg-red-600 text-white rounded-md">
-                {{ gameweek?.is_locked ? 'Unlock gameweek' : 'Lock gameweek' }}
-              </button>
+             <template v-if="editMode">
+               <button @click="changeGameWeekActiveStatus" class="px-4 py-2 bg-purple-600 text-white rounded-md">
+                  {{ gameweek?.is_active ? 'Make gameweek inactive' : 'Make gameweek active' }}
+                </button>
+                <button @click="changeGameWeekLockedStatus" class="px-4 py-2 bg-gray-600 text-white rounded-md">
+                  {{ gameweek?.is_locked ? 'Unlock gameweek' : 'Lock gameweek' }}
+                </button>
+                <button @click="deleteGameweek" class="px-4 py-2 bg-red-600 text-white rounded-md">
+                  Delete Gameweek
+                </button>
+             </template>
            </div>
         </div>
 
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
           <!-- Matches List -->
           <h3 class="text-xl font-semibold">Matches</h3>
-          <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
-            <!-- Date Heading -->
-            <h3 class="text-lg mb-2">{{ day }}</h3>
-            
-            <!-- Matches List -->
-            <ul>
-              <li v-for="match in matchGroup" :key="match.id" class="flex justify-between bg-gray-100 p-2 rounded-md my-2">
-                <span>
-                  <span class="font-semibold">{{ match.home_team }}</span> vs <span class="font-semibold">{{ match.away_team }}</span> - {{ DateUtils.toTime(match.match_time) }}
-                  <span v-if="match.final_home_score !== null">({{ match.final_home_score }} - {{ match.final_away_score }})</span>
-                </span>
-  
-                <!-- Edit Score (Admins Only) -->
-                <div v-if="editMode">
-                  <input type="number" v-model="match.final_home_score" class="w-10 border rounded-md p-1 text-center" />
-                  -
-                  <input type="number" v-model="match.final_away_score" class="w-10 border rounded-md p-1 text-center" />
-                  <button @click="saveScore(match)" class="ml-2 text-green-600">Save</button>
-                  <button @click="removeMatch(match.id)" class="ml-2 text-red-600">Remove</button>
-                </div>
-              </li>
-            </ul>
-          </div>
+          <ScoreCard 
+              :matches="matches"
+              :isAdmin="editMode && gameweek?.is_active"
+              @update-score="handleScoreUpdate"
+          />
+
+          <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+            Save Scores
+          </button>
   
           <!-- Add Match (Admins Only) -->
           <div v-if="editMode" class="mt-4">
@@ -112,8 +103,9 @@
             </div>
           </div>
       </template>
-      
     </div>
+
+    <DeleteConfirm ref="deleteConfirm" title="Delete Gameweek" message="Are you sure you want to delete this gameweek?" />
   </template>
   
 <script setup>
@@ -128,6 +120,8 @@ import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from '../components/ScoreCard.vue';
+import DeleteConfirm from '../components/DeleteConfirm.vue';
+import { predictionsStore } from '../store/predictionsStore';
 
 const route = useRoute();
 const router = useRouter();
@@ -141,32 +135,17 @@ const newMatch = ref({ home_team: '', away_team: '', match_time: '' });
 const predictions = ref({});
 const notInGroup = ref(false);
 const members = ref([]);
+const deleteConfirm = ref(null);
 
 const isAdmin = ref(false);
 
 const predictionsChanged = ref(false);
-
-// watch(predictions, () => {
-//   predictionsChanged.value = true;
-// }, { deep: true });
-
-const groupedMatches = computed(() => {
-  return matches.value.reduce((acc, match) => {
-    const matchDay = DateUtils.toShortDayMonth(match.match_time); // "Mon Dec 30"
-
-    if (!acc[matchDay]) {
-      acc[matchDay] = [];
-    }
-    acc[matchDay].push(match);
-    
-    return acc;
-  }, {});
-});
+const matchesChanged = ref(false);
 
 const allPredictionsSubmitted = computed(() => {
   return matches.value.length > 0 && matches.value.every(match => {
     const prediction = predictions.value[match.id];
-    return prediction?.home_score !== '' && prediction?.away_score !== '';
+    return prediction?.predicted_home_score !== '' && prediction?.predicted_away_score !== '';
   });
 });
   
@@ -223,8 +202,8 @@ async function mapPredictions() {
   // Initialize predictions object for v-model binding
   predictions.value = matches.value.reduce((acc, match) => {
     acc[match.id] = {
-      home_score: match.predicted_home_score,
-      away_score: match.predicted_away_score
+      predicted_home_score: match.predicted_home_score,
+      predicted_away_score: match.predicted_away_score
     };
     return acc;
   }, {});
@@ -240,16 +219,49 @@ function toggleEditMode() {
   }
 }
 
+async function changeGameWeekActiveStatus() {
+  const { data, error } = await gameweeksService.updateGameweek(gameweek.value.id, {
+    is_active: !gameweek.value.is_active
+  });
+  
+  if (!error) {
+    alert('Gameweek active status changed');
+    window.location.reload();
+  }
+}
+
 async function changeGameWeekLockedStatus() {
   const { data, error } = await gameweeksService.updateGameweek(gameweek.value.id, {
-      is_locked: !gameweek.value.is_locked
-    });
+    is_locked: !gameweek.value.is_locked
+  });
   
-    if (!error) {
-      alert('Gameweek locked status changed');
-      window.location.reload();
-    }
+  if (!error) {
+    alert('Gameweek locked status changed');
+    window.location.reload();
+  }
 }
+
+const deleteGameweek = async () => {
+  const confirmed = await deleteConfirm.value?.show();
+  if (confirmed) {
+    try {
+      loading.value = true;
+      const { success, error: deleteError } = await gameweeksService.deleteGameweek(gameweekId.value)
+      
+      if (deleteError) throw new Error('Failed to delete gameweek');
+      
+      // Redirect to groups page
+      router.push(`/group/${gameweek.value.group_id}`);
+    } catch (err) {
+      err.value = err.message || 'An error occurred while deleting the gameweek';
+    } finally {
+      loading.value = false;
+      showDeleteConfirmation.value = false;
+    }
+  } else {
+    console.log("Deletion cancelled!");
+  }
+};
   
   async function addMatch() {
     if (!newMatch.value.home_team || !newMatch.value.away_team || !newMatch.value.match_time) {
@@ -275,43 +287,62 @@ async function changeGameWeekLockedStatus() {
     matches.value = matches.value.filter(match => match.id !== matchId);
   }
   
-  async function saveScore(match) {
-    await gameweeksService.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
-  }
-  
-  async function submitPredictions() {
-    console.log(predictions.value);
+async function submitPredictions() {
+  console.log(predictions.value);
 
-    for (const [matchId, prediction] of Object.entries(predictions.value)) {
-      await predictionsService.savePrediction(
-        userStore.user?.id, 
-        matchId, 
-        prediction.home_score,
-        prediction.away_score 
-      );
+  for (const [matchId, prediction] of Object.entries(predictions.value)) {
+    await predictionsService.savePrediction(
+      userStore.user?.id, 
+      matchId, 
+      prediction.predicted_home_score,
+      prediction.predicted_away_score 
+    );
+  }
+
+  toggleEditMode();
+  alert('Your predictions have been saved!');
+  // fetchGameweek();
+}
+
+function copyGameweekLink() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url);
+  alert('Gameweek link copied!');
+}
+
+async function saveScores() {
+  for (const match of matches.value) {
+    if (match.final_home_score !== null && match.final_away_score !== null) {
+      await predictionsStore.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
+      await predictionsService.calculateMatchScores(match.id);
     }
-
-    alert('Your predictions have been saved!');
   }
 
-  
-  function copyGameweekLink() {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    alert('Gameweek link copied!');
-  }
+  alert('Final scores have been saved!');
+}
 
 const handlePredictionUpdate = ({ matchId, field, value }) => {
     if (!predictions.value[matchId]) {
-        predictions.value[matchId] = { home_score: 0, away_score: 0 };
+        predictions.value[matchId] = { predicted_home_score: 0, predicted_away_score: 0 };
     }
     predictions.value[matchId][field] = value;
     predictionsChanged.value = true;
 };
+
+const handleScoreUpdate = ({ matchId, field, value }) => {
+    const match = matches.value.find(m => m.id === matchId);
+
+    if (match) {
+        match[field] = value;
+        matchesChanged.value = true;
+    } else {
+        console.error(`Match with ID ${matchId} not found.`);
+    }
+};
   
-  function redirectToGroup() {
-    router.push(`/group/${gameweek.value.group_id}`);
-  }
+function redirectToGroup() {
+  router.push(`/group/${gameweek.value.group_id}`);
+}
 
   </script>
   

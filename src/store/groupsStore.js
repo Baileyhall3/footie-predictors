@@ -260,27 +260,6 @@ export const groupsStore = {
     }
   },
 
-  async updateGroupSettings(groupId, settings) {
-    try {
-      state.loading = true
-      state.error = null
-
-      const { data, error } = await groupsService.updateGroupSettings(groupId, settings)
-
-      if (error) throw error
-
-      // Update local state
-      state.groupSettings = data
-
-      return { data, error: null }
-    } catch (error) {
-      state.error = error.message
-      return { data: null, error }
-    } finally {
-      state.loading = false
-    }
-  },
-
   clearError() {
     state.error = null
   }
