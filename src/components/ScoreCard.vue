@@ -76,6 +76,9 @@
             </div>
         </div>
     </div>
+    <!-- <div class="p-4 bg-gray-50 border-t border-gray-200" v-if="props.predictions && props.locked && !props.isAdmin">
+        Total Points: 
+    </div> -->
 </template>
 
 <script setup lang="ts">
@@ -103,6 +106,10 @@ const groupedMatches = computed(() => {
         return acc;
     }, {});
 });
+
+// const totalPoints = computed(() => {
+
+// })
 
 // Emit event when prediction changes (User Mode)
 const updatePrediction = (matchId: string, field: string, value: string) => {

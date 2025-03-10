@@ -194,6 +194,8 @@ async function mapPredictions() {
   // Merge predictions into matches
   matches.value = matchData.map(match => ({
     ...match,
+    previous_home_score: match.final_home_score, // Store initial score
+    previous_away_score: match.final_away_score,
     predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
     predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
     prediction_id: predictionsMap[match.id]?.id || null
@@ -299,7 +301,7 @@ async function submitPredictions() {
     );
   }
 
-  toggleEditMode();
+  // toggleEditMode();
   alert('Your predictions have been saved!');
   // fetchGameweek();
 }
@@ -312,9 +314,19 @@ function copyGameweekLink() {
 
 async function saveScores() {
   for (const match of matches.value) {
-    if (match.final_home_score !== null && match.final_away_score !== null) {
-      await predictionsStore.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
-      await predictionsService.calculateMatchScores(match.id);
+    try {
+      loading.value = true;
+      if (
+        match.final_home_score !== match.previous_home_score || 
+        match.final_away_score !== match.previous_away_score
+      ) {
+        await predictionsStore.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
+        await predictionsService.calculateMatchScores(match.id);
+      }
+    } catch(err) {
+      console.error(err);
+    } finally {
+      loading.value = false;
     }
   }
 

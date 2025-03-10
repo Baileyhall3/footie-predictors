@@ -22,7 +22,7 @@
         <!-- Admin Controls (only visible to the admin) -->
         <div v-if="isAdmin" class="mt-4 flex flex-wrap gap-2">
           <router-link :to="`/group/${group.id}/update-group`">
-            <button @click="editGroup" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+            <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
               Edit Group
             </button>
           </router-link>
@@ -160,7 +160,7 @@
       <!-- Leaderboard Section -->
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">Leaderboard</h3>
+          <h3 class="text-xl font-semibold">Leaderboard - All Time</h3>
           <!-- <router-link 
             :to="`/leaderboards?group=${groupId}`" 
             class="text-sm text-blue-600 hover:underline"
@@ -191,6 +191,7 @@
   </div>
 
   <PinDialog ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
+  <DeleteConfirm ref="removeMemberConfirm" title="Remove Member" :message="removeMemberDialogMsg" />
 </template>
 
 <script setup>
@@ -208,11 +209,14 @@ import { LockClosedIcon, ShareIcon } from "@heroicons/vue/24/solid";
 import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
+import DeleteConfirm from "../components/DeleteConfirm.vue";
 
 const route = useRoute();
 const router = useRouter();
 
 const pinDialog = ref(null);
+const removeMemberConfirm = ref(null);
+
 
 // State
 const loading = ref(true);
@@ -228,6 +232,7 @@ const matches = ref([]);
 const gameweekIsLocked = ref(false);
 const currentGameweekId = ref();
 const notInGroup = ref(false);
+const removeMemberDialogMsg = ref('');
 
 // Computed properties
 const isAdmin = ref(false);
@@ -332,9 +337,6 @@ async function mapPredictions() {
 }
 
 // Admin functions
-const editGroup = () => {
-  router.push(`/edit-group/${groupId.value}`);
-};
 
 const toggleAdminRole = async (member) => {
   try {
@@ -358,15 +360,25 @@ const toggleAdminRole = async (member) => {
   }
 };
 
-const confirmRemoveMember = (member) => {
-  if (confirm(`Are you sure you want to remove ${member.username} from the group?`)) {
-    removeMember(member);
+const confirmRemoveMember = async (member) => {
+  removeMemberDialogMsg.value = `Are you sure you want to remove ${member.username} from the group?`
+  const confirmed = await removeMemberConfirm.value?.show();
+  if (confirmed) {
+    try {
+      removeMember(member);
+    } catch (err) {
+      console.error(err);
+    }
   }
 };
 
 async function tryJoinGroup() {
+  if (group.value.max_members === members.value.length) {
+    alert('Unable to join group as it has reached maximum members.');
+    return;
+  }
   if (group.value.is_public) {
-    updateMemberStatus(true);
+      updateMemberStatus(true);
   } else {
     await pinDialog.value?.show();
   }
@@ -391,7 +403,6 @@ async function updateMemberStatus(isJoining) {
 
   } else {
     const userMembership = members.value.filter(x => x.id === userStore.user.id);
-    debugger
     try {
       const { success, error: leaveError } = await groupsStore.removeMember(
         userMembership[0].membership_id, 
