@@ -356,5 +356,5 @@ function redirectToGroup() {
   router.push(`/group/${gameweek.value.group_id}`);
 }
 
-  </script>
+</script>
   

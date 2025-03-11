@@ -97,7 +97,8 @@ export const groupsService = {
             users (
               id,
               username,
-              email
+              email,
+              is_fake
             )
           `)
           .eq('group_id', groupId)
@@ -112,7 +113,8 @@ export const groupsService = {
         email: membership.users.email,
         is_admin: membership.is_admin,
         joined_at: membership.joined_at,
-        membership_id: membership.id
+        membership_id: membership.id,
+        is_fake: membership.users.is_fake
       }))
 
       return { data: members, error: null }
@@ -197,4 +199,40 @@ export const groupsService = {
   async updateMemberRole(membershipId, isAdmin) {
     return supabaseDb.update('group_members', membershipId, { is_admin: isAdmin })
   },
+
+  /**
+   * Create a fake user and add them to a group
+   * @param {string} groupId - Group ID where the fake user should be added
+   * @param {string} username - Fake user's username
+   * @returns {Promise<{data: Object, error: Object}>}
+   */
+  async addFakeUserToGroup(groupId, username, isAdmin = false) {
+    // Step 1: Insert fake user into users table
+    const { data: userData, error: userError } = await supabaseDb.create('users', {
+      username,
+      is_fake: true
+    });
+
+    if (userError) {
+      console.error('Error creating fake user:', userError);
+      return { data: null, error: userError };
+    }
+
+    const fakeUserId = userData.id; // Assuming the inserted user data contains the ID
+
+    // Step 2: Add the fake user to the group
+    const { data: memberData, error: memberError } = await supabaseDb.create('group_members', {
+      group_id: groupId,
+      user_id: fakeUserId,
+      is_admin: isAdmin
+    });
+
+    if (memberError) {
+      console.error('Error adding fake user to group:', memberError);
+      return { data: null, error: memberError };
+    }
+
+    return { data: memberData, error: null };
+  },
+
 }

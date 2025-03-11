@@ -26,14 +26,14 @@
               Edit Group
             </button>
           </router-link>
-          <button @click="showAddMemberModal = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+          <!-- <button @click="showAddMemberModal = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
             Add Member
           </button>
           <router-link :to="`/group/${group.id}/create-gameweek`">
             <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
               Add Gameweek
             </button>
-          </router-link>
+          </router-link> -->
           <button @click="copyGroupLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
             <div class="justify-between items-center flex">
               Share Group
@@ -52,7 +52,7 @@
       </div>
     
       <!-- Gameweeks Section -->
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+      <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">Gameweeks</h3>
           <router-link :to="`/group/${group.id}/create-gameweek`">
@@ -68,9 +68,12 @@
         <div v-if="gameweeks.length">
           <div v-for="gameweek in gameweeks" :key="gameweek.id" class="flex justify-between items-center border-b py-3">
             <div>
-              <router-link :to="`/gameweek/${gameweek.id}`" class="text-blue-600 hover:underline font-medium">
-                Gameweek {{ gameweek.week_number }}
-              </router-link>
+              <div class="items-center flex">
+                <router-link :to="`/gameweek/${gameweek.id}`" class="text-blue-600 hover:underline font-medium">
+                  Gameweek {{ gameweek.week_number }}
+                </router-link>
+                <LockClosedIcon class="size-4 ms-2" v-if="gameweek.is_locked" />
+              </div>
               <div class="text-sm text-gray-500">
                 Deadline: {{ DateUtils.toFullDateTime(gameweek.deadline) }}
               </div>
@@ -80,16 +83,16 @@
               <div v-if="gameweek.is_active" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
                 Active
               </div>
-              <div v-if="gameweek.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
+              <!-- <div v-if="gameweek.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
                 Locked
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
         <p v-else class="text-gray-500 py-2">No gameweeks yet.</p>
       </div>
 
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+      <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
         <div class="flex justify-between items-center mb-4">
           <div class="items-center flex">
             <h3 class="text-xl font-semibold">Your Predictions</h3>
@@ -121,7 +124,7 @@
           <h3 class="text-xl font-semibold">Members ({{ members.length }})</h3>
           <button 
             v-if="isAdmin" 
-            @click="showAddMemberModal = true"
+            @click="openCreateMemberDialog()"
             class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
           >
             + Add Member
@@ -133,17 +136,26 @@
             <div class="flex items-center space-x-2">
               <UserIcon class="text-gray-500 size-4" />
               <span class="text-lg">{{ member.username }}</span>
+              <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
               <span v-if="member.is_admin" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>
             </div>
             
             <div v-if="isAdmin && userStore.user.id !== member.id" class="flex items-center gap-2">
-              <button 
+              <!-- <button 
                 @click="toggleAdminRole(member)" 
                 class="text-xs px-2 py-1 rounded"
                 :class="member.is_admin ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'"
               >
                 {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
-              </button>
+              </button> -->
+
+              <!-- <button 
+                v-if="member.is_fake" 
+                class="text-xs px-2 py-1 rounded"
+                :class="member.is_fake ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'"
+              >
+                Make Predictions
+              </button> -->
               
               <button 
                 @click="confirmRemoveMember(member)" 
@@ -158,7 +170,7 @@
       </div>
     
       <!-- Leaderboard Section -->
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+      <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">Leaderboard - All Time</h3>
           <!-- <router-link 
@@ -192,6 +204,7 @@
 
   <PinDialog ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
   <DeleteConfirm ref="removeMemberConfirm" title="Remove Member" :message="removeMemberDialogMsg" />
+  <CreateGroupMember ref="createMemberDialog" :groupId="groupId" @user-created="groupsStore.fetchGroupMembers(groupId)" />
 </template>
 
 <script setup>
@@ -210,13 +223,14 @@ import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
 import DeleteConfirm from "../components/DeleteConfirm.vue";
+import CreateGroupMember from "../components/CreateGroupMember.vue";
 
 const route = useRoute();
 const router = useRouter();
 
 const pinDialog = ref(null);
 const removeMemberConfirm = ref(null);
-
+const createMemberDialog = ref(null);
 
 // State
 const loading = ref(true);
@@ -440,6 +454,10 @@ const removeMember = async (member) => {
     loading.value = false;
   }
 };
+
+const openCreateMemberDialog = async() => {
+  await createMemberDialog.value.show();
+}
 
 function copyGroupLink() {
   const url = window.location.href;

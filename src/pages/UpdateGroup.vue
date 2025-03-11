@@ -1,6 +1,12 @@
 <template>
     <div class="container mx-auto px-4 py-8">
-      <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+      <div v-if="!isAdmin && !loading" class="bg-red-100 p-4 rounded-md text-red-600">
+        <p>You must be an admin to update this group.</p>
+        <button @click="redirectToGroup" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">
+          Go to Group
+        </button>
+      </div>
+      <div v-else class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
         <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
           <h1 class="text-3xl font-bold">{{ group.name }}</h1>
           <p v-if="admin" class="mt-2 text-green-100">
@@ -9,12 +15,7 @@
         </div>
   
         <div class="p-6">
-          <div v-if="loading" class="flex justify-center py-8">
-            <svg class="animate-spin h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
+          <LoadingScreen v-if="loading" />
   
           <div v-else class="space-y-6">
             <div class="border-b pb-6">
@@ -120,7 +121,6 @@ import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { groupsStore } from "../store/groupsStore";
 import { userStore } from "../store/userStore";
-import { userIsAdmin } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import { groupsService } from '../api/groupsService';
 import { supabase } from '../api/supabase';
@@ -242,7 +242,7 @@ const updateGroup = async () => {
       throw new Error('You must be logged in to create a group.');
     }
 
-    // Create the group in Supabase
+    // Update the group in Supabase
     const { data: updatedGroup, error } = await groupsService.updateGroup(group.value.id, group.value);
 
     if (error) {
@@ -279,6 +279,10 @@ const deleteGroup = async () => {
     console.log("Deletion cancelled!");
   }
 };
+
+function redirectToGroup() {
+  router.push(`/group/${group.value.id}`);
+}
 
 // Watch for route changes to reload data
 watch(() => route.params.id, (newId) => {
