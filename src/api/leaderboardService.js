@@ -87,7 +87,8 @@ export const leaderboardService = {
         return {
           user_id: member.user_id,
           username: member.users.username,
-          total_points: userScore.total_points
+          total_points: userScore.total_points,
+          total_correct_scores: userScore.total_correct_scores
         }
       })
 

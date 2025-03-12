@@ -172,30 +172,19 @@
       <!-- Leaderboard Section -->
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">Leaderboard - All Time</h3>
-          <!-- <router-link 
-            :to="`/leaderboards?group=${groupId}`" 
+          <h3 class="text-xl font-semibold">Leaderboard</h3>
+          <router-link 
+            :to="`/group/${groupId}/leaderboards`" 
             class="text-sm text-blue-600 hover:underline"
           >
             View Full Leaderboard →
-          </router-link> -->
+          </router-link>
         </div>
         
         <div v-if="leaderboard.length">
-          <div v-for="player in leaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
-            <div class="flex items-center gap-2">
-              <span class="font-medium w-6 text-center">{{ player.position }}.</span>
-              <span>{{ player.username }}</span>
-              <span v-if="player.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
-            </div>
-            
-            <div class="text-right">
-              <span class="font-semibold text-green-600">{{ player.total_points }} pts</span>
-              <div class="text-xs text-gray-500">
-                {{ player.total_correct_scores }} exact scores
-              </div>
-            </div>
-          </div>
+          <LeaderboardCard 
+            :leaderboard="leaderboard"
+          />
         </div>
         <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
       </div>
@@ -224,6 +213,7 @@ import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
 import DeleteConfirm from "../components/DeleteConfirm.vue";
 import CreateGroupMember from "../components/CreateGroupMember.vue";
+import LeaderboardCard from "../components/LeaderboardCard.vue";
 
 const route = useRoute();
 const router = useRouter();

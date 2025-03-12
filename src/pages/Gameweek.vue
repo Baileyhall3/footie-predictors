@@ -116,20 +116,9 @@
           </div>
           
           <div v-if="leaderboard.length">
-            <div v-for="player in leaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
-              <div class="flex items-center gap-2">
-                <span class="font-medium w-6 text-center">{{ player.position }}.</span>
-                <span>{{ player.username }}</span>
-                <span v-if="player.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
-              </div>
-              
-              <div class="text-right">
-                <span class="font-semibold text-green-600">{{ player.total_points }} pts</span>
-                <!-- <div class="text-xs text-gray-500">
-                  {{ player.total_correct_scores }} exact scores
-                </div> -->
-              </div>
-            </div>
+            <LeaderboardCard 
+              :leaderboard="leaderboard"
+            />
           </div>
           <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
         </div>
@@ -154,6 +143,7 @@ import ScoreCard from '../components/ScoreCard.vue';
 import DeleteConfirm from '../components/DeleteConfirm.vue';
 import { predictionsStore } from '../store/predictionsStore';
 import { leaderboardStore } from '../store/leaderboardStore';
+import LeaderboardCard from '../components/LeaderboardCard.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -303,29 +293,29 @@ const deleteGameweek = async () => {
   }
 };
   
-  async function addMatch() {
-    if (!newMatch.value.home_team || !newMatch.value.away_team || !newMatch.value.match_time) {
-      alert('Please fill in all fields.');
-      return;
-    }
-  
-    const { data, error } = await gameweeksService.createMatch({
-      gameweek_id: gameweekId.value,
-      home_team: newMatch.value.home_team,
-      away_team: newMatch.value.away_team,
-      match_time: newMatch.value.match_time
-    });
-  
-    if (!error) {
-      matches.value.push(data);
-      newMatch.value = { home_team: '', away_team: '', match_time: '' };
-    }
+async function addMatch() {
+  if (!newMatch.value.home_team || !newMatch.value.away_team || !newMatch.value.match_time) {
+    alert('Please fill in all fields.');
+    return;
   }
-  
-  async function removeMatch(matchId) {
-    await gameweeksService.deleteMatch(matchId);
-    matches.value = matches.value.filter(match => match.id !== matchId);
+
+  const { data, error } = await gameweeksService.createMatch({
+    gameweek_id: gameweekId.value,
+    home_team: newMatch.value.home_team,
+    away_team: newMatch.value.away_team,
+    match_time: newMatch.value.match_time
+  });
+
+  if (!error) {
+    matches.value.push(data);
+    newMatch.value = { home_team: '', away_team: '', match_time: '' };
   }
+}
+
+async function removeMatch(matchId) {
+  await gameweeksService.deleteMatch(matchId);
+  matches.value = matches.value.filter(match => match.id !== matchId);
+}
   
 async function submitPredictions() {
   console.log(predictions.value);

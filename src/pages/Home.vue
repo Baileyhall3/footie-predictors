@@ -57,31 +57,6 @@
           <ScoreCard
             :matches="upcomingMatches.slice(0, 3)"
           />
-          
-          <!-- <div class="divide-y divide-gray-200">
-            <div v-for="match in upcomingMatches.slice(0, 3)" :key="match.id" class="p-4 flex justify-between items-center">
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <span class="font-medium">{{ match.home_team }}</span>
-                  <span class="text-gray-500 mx-2">vs</span>
-                  <span class="font-medium">{{ match.away_team }}</span>
-                </div>
-                <div class="text-sm text-gray-500 mt-1">
-                  {{ new Date(match.match_time).toLocaleString() }}
-                </div>
-              </div>
-              
-              <router-link :to="`/predictions?match=${match.id}`" class="ml-4 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm hover:bg-green-200 transition">
-                Predict
-              </router-link>
-            </div>
-          </div> -->
-          
-          <!-- <div class="p-4 bg-gray-50 border-t border-gray-200">
-            <router-link to="/predictions" class="text-green-600 font-medium hover:text-green-700 text-sm">
-              View all upcoming matches →
-            </router-link>
-          </div> -->
         </div>
         <div v-else class="bg-white rounded-lg shadow p-6 text-center">
           <p class="text-gray-500">No upcoming matches to predict.</p>

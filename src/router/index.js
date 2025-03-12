@@ -14,6 +14,9 @@ import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
 import Profile from '../pages/Profile.vue';
 import AuthTest from '../pages/AuthTest.vue';
+import Leaderboards from '../pages/Leaderboards.vue';
+import GroupLeaderboards from '../pages/GroupLeaderboards.vue';
+
 import { userStore } from '../store/userStore';
 import { hasAuthState } from '../utils/authPersistence';
 
@@ -66,6 +69,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/group/:id/leaderboards',
+      name: 'GroupLeaderboards',
+      component: GroupLeaderboards,
+      meta: {
+        title: 'Group Leaderboards - Footie Predictors',
+        requiresAuth: true
+      }
+    },
+    {
       path: '/group/:id/update-group',
       name: 'UpdateGroup',
       component: UpdateGroup,
@@ -107,6 +119,15 @@ const router = createRouter({
       component: Predictions,
       meta: {
         title: 'Predictions - Footie Predictors',
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/leaderboards',
+      name: 'Leaderboards',
+      component: Leaderboards,
+      meta: {
+        title: 'Leaderboards - Footie Predictors',
         requiresAuth: true
       }
     },

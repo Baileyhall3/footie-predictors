@@ -260,133 +260,117 @@ async getGameweekPredictions(gameweekId) {
   },
 
   /**
-   * Calculate scores for a match
-   * @param {string} matchId - Match ID
-   * @returns {Promise<{success: boolean, error: Object}>}
-   */
-  async calculateMatchScores(matchId) {
-    try {
-      // Get the match
-      const { data: match, error: matchError } = await supabaseDb.getById('matches', matchId)
-      if (matchError) throw matchError
+ * Calculate scores for a match
+ * @param {string} matchId - Match ID
+ * @returns {Promise<{success: boolean, error: Object}>}
+ */
+async calculateMatchScores(matchId) {
+  try {
+    // Get the match
+    const { data: match, error: matchError } = await supabaseDb.getById('matches', matchId);
+    if (matchError) throw matchError;
 
-      // If match doesn't have final scores, can't calculate
-      if (match.final_home_score === null || match.final_away_score === null) {
-        throw new Error('Match does not have final scores')
-      }
-
-      // Get the gameweek
-      const { data: gameweek, error: gameweekError } = await supabaseDb.getById('gameweeks', match.gameweek_id)
-      if (gameweekError) throw gameweekError
-
-      // Get the group
-      const { data: group, error: groupError } = await supabaseDb.customQuery((supabase) =>
-        supabase
-          .from('groups')
-          .select('*')
-          .eq('id', gameweek.group_id)
-          .single()
-      )
-      if (groupError) throw groupError
-
-      // Get all predictions for this match
-      const { data: predictions, error: predictionsError } = await supabaseDb.customQuery((supabase) =>
-        supabase
-          .from('predictions')
-          .select('*')
-          .eq('match_id', matchId)
-      )
-      if (predictionsError) throw predictionsError
-
-      // Calculate points for each prediction
-      for (const prediction of predictions) {
-        let points = 0
-        let isExactScore = false
-        let isCorrectResult = false
-
-        // Check if exact score
-        if (
-          prediction.predicted_home_score === match.final_home_score &&
-          prediction.predicted_away_score === match.final_away_score
-        ) {
-          points = group.exact_score_points
-          isExactScore = true
-        }
-        // Check if correct result
-        else if (
-          (prediction.predicted_home_score > prediction.predicted_away_score && match.final_home_score > match.final_away_score) ||
-          (prediction.predicted_home_score < prediction.predicted_away_score && match.final_home_score < match.final_away_score) ||
-          (prediction.predicted_home_score === prediction.predicted_away_score && match.final_home_score === match.final_away_score)
-        ) {
-          points = group.correct_result_points
-          isCorrectResult = true
-        }
-        // Incorrect prediction
-        else {
-          points = group.incorrect_points
-        }
-
-        // Update user's score for this gameweek
-        const { data: existingScore, error: scoreError } = await supabaseDb.customQuery((supabase) =>
-          supabase
-            .from('scores')
-            .select('*')
-            .eq('user_id', prediction.user_id)
-            .eq('gameweek_id', gameweek.id)
-            .single()
-        )
-
-        if (scoreError && scoreError.code !== 'PGRST116') throw scoreError
-
-        if (existingScore) {
-          // Update existing score
-          await supabaseDb.update('scores', existingScore.id, {
-            total_points: existingScore.total_points + points
-          })
-        } else {
-          // Create new score
-          await supabaseDb.create('scores', {
-            user_id: prediction.user_id,
-            gameweek_id: gameweek.id,
-            total_points: points
-          })
-        }
-
-        // Update user's leaderboard entry
-        const { data: leaderboardEntry, error: leaderboardError } = await supabaseDb.customQuery((supabase) =>
-          supabase
-            .from('leaderboard')
-            .select('*')
-            .eq('user_id', prediction.user_id)
-            .eq('group_id', gameweek.group_id)
-            .single()
-        )
-
-        if (leaderboardError && leaderboardError.code !== 'PGRST116') throw leaderboardError
-
-        if (leaderboardEntry) {
-          // Update existing leaderboard entry
-          await supabaseDb.update('leaderboard', leaderboardEntry.id, {
-            total_points: leaderboardEntry.total_points + points,
-            total_correct_scores: leaderboardEntry.total_correct_scores + (isExactScore ? 1 : 0),
-            total_correct_results: leaderboardEntry.total_correct_results + (isCorrectResult ? 1 : 0)
-          })
-        } else {
-          // Create new leaderboard entry
-          await supabaseDb.create('leaderboard', {
-            user_id: prediction.user_id,
-            group_id: gameweek.group_id,
-            total_points: points,
-            total_correct_scores: isExactScore ? 1 : 0,
-            total_correct_results: isCorrectResult ? 1 : 0
-          })
-        }
-      }
-
-      return { success: true, error: null }
-    } catch (error) {
-      console.error('Error calculating match scores:', error)
-      return { success: false, error }
+    // If match doesn't have final scores, can't calculate
+    if (match.final_home_score === null || match.final_away_score === null) {
+      throw new Error('Match does not have final scores');
     }
+
+    // Get the gameweek
+    const { data: gameweek, error: gameweekError } = await supabaseDb.getById('gameweeks', match.gameweek_id);
+    if (gameweekError) throw gameweekError;
+
+    // Get the group
+    const { data: group, error: groupError } = await supabaseDb.customQuery((supabase) =>
+      supabase.from('groups').select('*').eq('id', gameweek.group_id).single()
+    );
+    if (groupError) throw groupError;
+
+    // Get all predictions for this match
+    const { data: predictions, error: predictionsError } = await supabaseDb.customQuery((supabase) =>
+      supabase.from('predictions').select('*').eq('match_id', matchId)
+    );
+    if (predictionsError) throw predictionsError;
+
+    // Calculate points for each prediction
+    for (const prediction of predictions) {
+      let points = 0;
+      let isExactScore = false;
+      let isCorrectResult = false;
+
+      // Check if exact score
+      if (
+        prediction.predicted_home_score === match.final_home_score &&
+        prediction.predicted_away_score === match.final_away_score
+      ) {
+        points = group.exact_score_points;
+        isExactScore = true;
+      }
+      // Check if correct result
+      else if (
+        (prediction.predicted_home_score > prediction.predicted_away_score && match.final_home_score > match.final_away_score) ||
+        (prediction.predicted_home_score < prediction.predicted_away_score && match.final_home_score < match.final_away_score) ||
+        (prediction.predicted_home_score === prediction.predicted_away_score && match.final_home_score === match.final_away_score)
+      ) {
+        points = group.correct_result_points;
+        isCorrectResult = true;
+      } else {
+        points = group.incorrect_points;
+      }
+
+      // Update user's score for this gameweek
+      const { data: existingScore, error: scoreError } = await supabaseDb.customQuery((supabase) =>
+        supabase.from('scores').select('*').eq('user_id', prediction.user_id).eq('gameweek_id', gameweek.id).single()
+      );
+
+      if (scoreError && scoreError.code !== 'PGRST116') throw scoreError;
+
+      if (existingScore) {
+        // Update existing score
+        await supabaseDb.update('scores', existingScore.id, {
+          total_points: existingScore.total_points + points,
+          total_correct_scores: existingScore.total_correct_scores + (isExactScore ? 1 : 0),
+        });
+      } else {
+        // Create new score
+        await supabaseDb.create('scores', {
+          user_id: prediction.user_id,
+          gameweek_id: gameweek.id,
+          total_points: points,
+          total_correct_scores: isExactScore ? 1 : 0,
+        });
+      }
+
+      // Update user's leaderboard entry
+      const { data: leaderboardEntry, error: leaderboardError } = await supabaseDb.customQuery((supabase) =>
+        supabase.from('leaderboard').select('*').eq('user_id', prediction.user_id).eq('group_id', gameweek.group_id).single()
+      );
+
+      if (leaderboardError && leaderboardError.code !== 'PGRST116') throw leaderboardError;
+
+      if (leaderboardEntry) {
+        // Update existing leaderboard entry
+        await supabaseDb.update('leaderboard', leaderboardEntry.id, {
+          total_points: leaderboardEntry.total_points + points,
+          total_correct_scores: leaderboardEntry.total_correct_scores + (isExactScore ? 1 : 0),
+          total_correct_results: leaderboardEntry.total_correct_results + (isCorrectResult ? 1 : 0),
+        });
+      } else {
+        // Create new leaderboard entry
+        await supabaseDb.create('leaderboard', {
+          user_id: prediction.user_id,
+          group_id: gameweek.group_id,
+          total_points: points,
+          total_correct_scores: isExactScore ? 1 : 0,
+          total_correct_results: isCorrectResult ? 1 : 0,
+        });
+      }
+    }
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error calculating match scores:', error);
+    return { success: false, error };
   }
+},
+
 }
