@@ -77,31 +77,62 @@
         </div>
 
         <!-- Predictions -->
-          <div v-if="!editMode" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div>
-              <div class="items-center flex">
-                <h3 class="text-xl font-semibold">Your Predictions</h3>
-                <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
+        <div v-if="!editMode" class="bg-white shadow-lg rounded-xl p-6 mb-8">
+          <div>
+            <div class="items-center flex">
+              <h3 class="text-xl font-semibold">Your Predictions</h3>
+              <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
+            </div>
+  
+            <ScoreCard 
+                :matches="matches"
+                :predictions="predictions"
+                :locked="gameweek?.is_locked"
+                @update-prediction="handlePredictionUpdate"
+            />
+  
+              <template v-if="!gameweek?.is_locked">
+                <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
+                  Predictions Saved ✅
+                </button>
+      
+                <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+                  Submit Predictions
+                </button>
+              </template>
+          </div>
+        </div>
+
+        <!-- Leaderboard Section -->
+        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold">Leaderboard - Gameweek {{  gameweek?.week_number }}</h3>
+            <router-link 
+              :to="`/leaderboards?group=${groupId}`" 
+              class="text-sm text-blue-600 hover:underline"
+            >
+              View Full Leaderboard →
+            </router-link>
+          </div>
+          
+          <div v-if="leaderboard.length">
+            <div v-for="player in leaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
+              <div class="flex items-center gap-2">
+                <span class="font-medium w-6 text-center">{{ player.position }}.</span>
+                <span>{{ player.username }}</span>
+                <span v-if="player.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
               </div>
-    
-              <ScoreCard 
-                  :matches="matches"
-                  :predictions="predictions"
-                  :locked="gameweek?.is_locked"
-                  @update-prediction="handlePredictionUpdate"
-              />
-    
-               <template v-if="!gameweek?.is_locked">
-                 <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
-                   Predictions Saved ✅
-                 </button>
-       
-                 <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-                   Submit Predictions
-                 </button>
-               </template>
+              
+              <div class="text-right">
+                <span class="font-semibold text-green-600">{{ player.total_points }} pts</span>
+                <!-- <div class="text-xs text-gray-500">
+                  {{ player.total_correct_scores }} exact scores
+                </div> -->
+              </div>
             </div>
           </div>
+          <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
+        </div>
       </template>
     </div>
 
@@ -122,6 +153,7 @@ import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from '../components/ScoreCard.vue';
 import DeleteConfirm from '../components/DeleteConfirm.vue';
 import { predictionsStore } from '../store/predictionsStore';
+import { leaderboardStore } from '../store/leaderboardStore';
 
 const route = useRoute();
 const router = useRouter();
@@ -136,6 +168,7 @@ const predictions = ref({});
 const notInGroup = ref(false);
 const members = ref([]);
 const deleteConfirm = ref(null);
+const leaderboard = ref([]);
 
 const isAdmin = ref(false);
 
@@ -174,6 +207,11 @@ async function fetchGameweek() {
   }
 
   isAdmin.value = userIsAdmin(members.value);
+
+  // Fetch leaderboard
+  const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGameweekScores(gameweek.value.group_id, gameweek.value.id);
+  if (leaderboardError) throw new Error('Failed to load leaderboard');
+  leaderboard.value = leaderboardData || [];
 
   mapPredictions();
 }
