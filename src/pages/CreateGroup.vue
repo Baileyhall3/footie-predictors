@@ -2,7 +2,7 @@
   <div class="max-w-2xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-xl">
     <h1 class="text-2xl font-bold mb-4 text-center">Create a New Group</h1>
 
-    <form @submit.prevent="createGroup" class="space-y-4">
+    <form @submit.prevent="createGroup" class="space-y-4" novalidate>
       <!-- Group Name -->
       <div>
         <label class="block font-medium">Group Name</label>
@@ -118,9 +118,27 @@ const groupData = ref({
 
 // Function to handle group creation with Supabase
 const createGroup = async () => {
-  isSubmitting.value = true;
   errorMessage.value = '';
-
+  
+  if (groupData.value.name == '') {
+    errorMessage.value = 'Please enter a name for your group.';
+    return;
+  }
+  if (groupData.value.correct_result_pts == null || groupData.value.exact_score_pts == null || groupData.value.incorrect_points == null) {
+    errorMessage.value = 'You are missing values for one or more of your scoring system options.';
+    return;
+  }
+  if (!groupData.value.is_public && !groupData.value.group_pin) {
+    errorMessage.value = 'Please enter a PIN for your private group.';
+    return;
+  }
+  if (groupData.value.max_members == null) {
+    errorMessage.value = 'Please enter a value for your maxmimum members.';
+    return;
+  }
+  
+  isSubmitting.value = true;
+  
   try {
     // Get the authenticated user
     const { data: user, error: userError } = await supabase.auth.getUser();

@@ -6,7 +6,7 @@
         <div class="flex items-center py-3 px-6 border-b relative bg-green-600 text-white">
             <!-- Logo & Title -->
             <div class="flex items-center space-x-2">
-                <TrophyIcon class="size-6" />
+                <TrophyIcon class="size-6" style="color: gold;" />
                 <router-link to="/" class="text-2xl font-bold">{{ props.headerTitle }}</router-link>
             </div>
 

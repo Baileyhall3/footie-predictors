@@ -214,26 +214,32 @@ export const groupsStore = {
     }
   },
 
-  async removeMember(membershipId, groupId) {
+  async removeMember(membershipId, groupId, fakeUserId = null) {
     try {
-      state.loading = true
-      state.error = null
+        state.loading = true;
+        state.error = null;
 
-      const { success, error } = await groupsService.removeMember(membershipId)
+        // Remove member
+        const { success: removeSuccess, error: removeError } = await groupsService.removeMember(membershipId);
+        if (!removeSuccess) throw removeError;
 
-      if (error) throw error
+        // If user is fake, delete them as well
+        if (fakeUserId) {
+            const { success: deleteSuccess, error: deleteError } = await groupsService.deleteFakeUser(fakeUserId);
+            if (!deleteSuccess) throw deleteError;
+        }
 
-      // Refresh members list if we're viewing this group
-      if (state.currentGroup && state.currentGroup.id === groupId) {
-        await this.fetchGroupMembers(groupId)
-      }
+        // Refresh members list if we're viewing this group
+        if (state.currentGroup && state.currentGroup.id === groupId) {
+            await this.fetchGroupMembers(groupId);
+        }
 
-      return { success, error: null }
+        return { success: true, error: null };
     } catch (error) {
-      state.error = error.message
-      return { success: false, error }
+        state.error = error.message;
+        return { success: false, error };
     } finally {
-      state.loading = false
+        state.loading = false;
     }
   },
 

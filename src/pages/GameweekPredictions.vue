@@ -26,6 +26,9 @@
                 :predictions="userPredictions"
                 :locked="true"
             />
+            <div class="p-4 bg-gray-50 border-t border-gray-200">
+                Total Points: 
+            </div>
         </div>
     </div>
 </template>
@@ -33,7 +36,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import DateUtils from '../utils/dateUtils';
 import { gameweeksService } from '../api/gameweeksService';
 import { predictionsService } from '../api/predictionsService';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -46,20 +48,6 @@ const matches = ref([]);
 const gameweekId = ref();
 const gameweek = ref([]);
 const predictions = ref([]);
-
-// Group matches by match day
-const groupedMatches = computed(() => {
-    return matches.value.reduce((acc, match) => {
-        const matchDay = DateUtils.toShortDayMonth(match.match_time);
-
-        if (!acc[matchDay]) {
-            acc[matchDay] = [];
-        }
-        acc[matchDay].push(match);
-
-        return acc;
-    }, {});
-});
 
 // Group predictions by user
 const groupedPredictions = computed(() => {
@@ -107,8 +95,6 @@ async function mapPredictions() {
 
     matches.value = matchData;
     predictions.value = predictionsData || [];
-
-    debugger
     
     loading.value = false;
 

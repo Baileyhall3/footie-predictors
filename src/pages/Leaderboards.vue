@@ -80,7 +80,6 @@ async function fetchAllData() {
             }));
             
             userGroups.value = groupsWithLeaderboards;
-            debugger
         }
     } catch (err) {
         console.error('Error fetching user data:', err);

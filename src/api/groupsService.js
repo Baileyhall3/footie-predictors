@@ -191,6 +191,26 @@ export const groupsService = {
   },
 
   /**
+   * Delete a fake user from the system
+   * @param {string} userId - User ID
+   * @returns {Promise<{success: boolean, error: Object | null}>}
+   */
+  async deleteFakeUser(userId) {
+      try {
+          const { error } = await supabaseDb.delete('users', userId);
+          if (error) {
+              console.error('Error deleting user:', error);
+              throw error;
+          }
+
+          return { success: true, error: null };
+      } catch (error) {
+          console.error('Delete failed:', error);
+          return { success: false, error };
+      }
+  },
+
+  /**
    * Update a member's role in a group
    * @param {string} membershipId - Membership ID
    * @param {boolean} isAdmin - Whether the user is an admin

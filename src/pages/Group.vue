@@ -26,14 +26,6 @@
               Edit Group
             </button>
           </router-link>
-          <!-- <button @click="showAddMemberModal = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-            Add Member
-          </button>
-          <router-link :to="`/group/${group.id}/create-gameweek`">
-            <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
-              Add Gameweek
-            </button>
-          </router-link> -->
           <button @click="copyGroupLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
             <div class="justify-between items-center flex">
               Share Group
@@ -115,7 +107,7 @@
           />
         </div>
 
-        <p v-else class="text-gray-500 text-sm">No predictions made for this gameweek yet.</p>
+        <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
       </div>
     
       <!-- Members Section -->
@@ -193,7 +185,7 @@
 
   <PinDialog ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
   <DeleteConfirm ref="removeMemberConfirm" title="Remove Member" :message="removeMemberDialogMsg" />
-  <CreateGroupMember ref="createMemberDialog" :groupId="groupId" @user-created="groupsStore.fetchGroupMembers(groupId)" />
+  <CreateGroupMember ref="createMemberDialog" :groupId="groupId" @user-created="getGroupMembers()" />
 </template>
 
 <script setup>
@@ -230,7 +222,6 @@ const group = ref({});
 const members = ref([]);
 const gameweeks = ref([]);
 const leaderboard = ref([]);
-const showAddMemberModal = ref(false);
 const predictions = ref({});
 const matches = ref([]);
 const gameweekIsLocked = ref(false);
@@ -265,9 +256,7 @@ const fetchAllData = async () => {
     group.value = groupData;
     
     // Fetch group members
-    const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(groupId.value);
-    if (membersError) throw new Error('Failed to load group members');
-    members.value = membersData || [];
+    await getGroupMembers();
 
     // Check if user is in the group
     const isMember = userInGroup(members.value)
@@ -340,32 +329,8 @@ async function mapPredictions() {
 
 }
 
-// Admin functions
-
-const toggleAdminRole = async (member) => {
-  try {
-    loading.value = true;
-    
-    const { data, error: updateError } = await groupsStore.updateMemberRole(
-      member.membership_id, 
-      !member.is_admin, 
-      groupId.value
-    );
-    
-    if (updateError) throw new Error('Failed to update member role');
-    
-    // Refresh members list
-    await groupsStore.fetchGroupMembers(groupId.value);
-    members.value = groupsStore.groupMembers;
-  } catch (err) {
-    error.value = err.message || 'An error occurred while updating member role';
-  } finally {
-    loading.value = false;
-  }
-};
-
 const confirmRemoveMember = async (member) => {
-  removeMemberDialogMsg.value = `Are you sure you want to remove ${member.username} from the group?`
+  removeMemberDialogMsg.value = `Are you sure you want to remove ${member.username} from the group? ${member.is_fake ? ' This will also delete this user.' : ''}`
   const confirmed = await removeMemberConfirm.value?.show();
   if (confirmed) {
     try {
@@ -425,18 +390,20 @@ async function updateMemberStatus(isJoining) {
 }
 
 const removeMember = async (member) => {
+  let memberUserId = member.is_fake ? member.id : null;
   try {
     loading.value = true;
     
     const { success, error: removeError } = await groupsStore.removeMember(
       member.membership_id, 
-      groupId.value
+      groupId.value,
+      memberUserId
     );
     
     if (removeError) throw new Error('Failed to remove member');
-    
+
     // Refresh members list
-    await groupsStore.fetchGroupMembers(groupId.value);
+    getGroupMembers();
     members.value = groupsStore.groupMembers;
   } catch (err) {
     error.value = err.message || 'An error occurred while removing member';
@@ -444,6 +411,12 @@ const removeMember = async (member) => {
     loading.value = false;
   }
 };
+
+async function getGroupMembers() {
+  const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(groupId.value);
+  if (membersError) throw new Error('Failed to load group members');
+  members.value = membersData || [];
+}
 
 const openCreateMemberDialog = async() => {
   await createMemberDialog.value.show();

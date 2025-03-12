@@ -20,7 +20,7 @@
           <div v-else class="space-y-6">
             <div class="border-b pb-6">
               <h2 class="text-xl font-semibold text-gray-800 mb-4">Group Information</h2>
-              <form @submit.prevent="updateGroup" class="space-y-4">
+              <form @submit.prevent="updateGroup" class="space-y-4" novalidate>
                 <!-- Group Name -->
                 <div>
                     <label class="block font-medium">Group Name</label>
@@ -141,7 +141,7 @@ const group = ref<{
   exact_score_points?: number;
   incorrect_points?: number;
   is_public?: boolean;
-  group_pin?: number;
+  group_pin?: number | String;
   max_members?: number;
   description?: string;
 }>({});
@@ -178,7 +178,8 @@ const handleBackspace = (index, event) => {
 
 // Update `group_pin` when PIN changes
 const updateGroupPin = () => {
-  group.value.group_pin = pin.value.join("");
+  const pinValue = pin.value.join(""); 
+  group.value.group_pin = pinValue.length === 4 ? parseInt(pinValue, 10) : null;
 };
 
 // Reset PIN when switching to public
@@ -231,8 +232,26 @@ const fetchAllData = async () => {
 
 // Function to handle group creation with Supabase
 const updateGroup = async () => {
-  isSubmitting.value = true;
   errorMessage.value = '';
+  
+  if (group.value.name == '') {
+    errorMessage.value = 'Please enter a name for your group.';
+    return;
+  }
+  if (group.value.correct_result_points == null || group.value.exact_score_points == null || group.value.incorrect_points == null) {
+    errorMessage.value = 'You are missing values for one or more of your scoring system options.';
+    return;
+  }
+  if (!group.value.is_public && !group.value.group_pin) {
+    errorMessage.value = 'Please enter a PIN for your private group.';
+    return;
+  }
+
+  if (group.value.is_public) {
+    group.value.group_pin = null;
+  }
+
+  isSubmitting.value = true;
 
   try {
     // Get the authenticated user

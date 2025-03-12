@@ -67,7 +67,7 @@
           </button>
   
           <!-- Add Match (Admins Only) -->
-          <div v-if="editMode" class="mt-4">
+          <div v-if="editMode && !gameweek?.is_locked" class="mt-4">
             <h3 class="text-xl font-semibold">Add Match</h3>
             <input type="text" v-model="newMatch.home_team" placeholder="Home Team" class="p-2 border rounded-md w-full my-2" />
             <input type="text" v-model="newMatch.away_team" placeholder="Away Team" class="p-2 border rounded-md w-full my-2" />
@@ -76,21 +76,22 @@
           </div>
         </div>
 
-        <!-- Predictions -->
-        <div v-if="!editMode" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-          <div>
-            <div class="items-center flex">
-              <h3 class="text-xl font-semibold">Your Predictions</h3>
-              <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
-            </div>
-  
-            <ScoreCard 
-                :matches="matches"
-                :predictions="predictions"
-                :locked="gameweek?.is_locked"
-                @update-prediction="handlePredictionUpdate"
-            />
-  
+        <template v-if="!editMode">
+          <!-- Predictions -->
+          <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+            <div>
+              <div class="items-center flex">
+                <h3 class="text-xl font-semibold">Your Predictions</h3>
+                <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
+              </div>
+    
+              <ScoreCard 
+                  :matches="matches"
+                  :predictions="predictions"
+                  :locked="gameweek?.is_locked"
+                  @update-prediction="handlePredictionUpdate"
+              />
+    
               <template v-if="!gameweek?.is_locked">
                 <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
                   Predictions Saved ✅
@@ -100,28 +101,29 @@
                   Submit Predictions
                 </button>
               </template>
+            </div>
           </div>
-        </div>
-
-        <!-- Leaderboard Section -->
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold">Leaderboard - Gameweek {{  gameweek?.week_number }}</h3>
-            <router-link 
-              :to="`/leaderboards?group=${groupId}`" 
-              class="text-sm text-blue-600 hover:underline"
-            >
-              View Full Leaderboard →
-            </router-link>
+  
+          <!-- Leaderboard Section -->
+          <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-semibold">Leaderboard - Gameweek {{  gameweek?.week_number }}</h3>
+              <router-link 
+                :to="`/group/${gameweek?.group_id}/leaderboards`" 
+                class="text-sm text-blue-600 hover:underline"
+              >
+                View Full Leaderboard →
+              </router-link>
+            </div>
+            
+            <div v-if="leaderboard.length">
+              <LeaderboardCard 
+                :leaderboard="leaderboard"
+              />
+            </div>
+            <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
           </div>
-          
-          <div v-if="leaderboard.length">
-            <LeaderboardCard 
-              :leaderboard="leaderboard"
-            />
-          </div>
-          <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-        </div>
+        </template>
       </template>
     </div>
 

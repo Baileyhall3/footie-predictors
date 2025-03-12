@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-      <div v-if="isVisible" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-md flex justify-center items-center z-50">
+      <div v-if="isVisible" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-md flex justify-center items-center z-50" @click.self="cancel">
           <div class="bg-white rounded-lg shadow-xl p-6 w-96 text-center">
               <h2 class="text-xl font-semibold mb-4">Create New Member</h2>
               <p class="text-gray-700 mb-4">Create a new member to be added to the group.</p>
@@ -8,6 +8,7 @@
               <div>
                   <!-- <label class="block font-medium">User Name</label> -->
                   <input
+                    ref="inputRef"
                     v-model="username"
                     type="text"
                     placeholder="Enter username"
@@ -32,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import { groupsService } from "../api/groupsService";
 
 const props = defineProps({
@@ -46,9 +47,15 @@ const emit = defineEmits(["user-created"]);
 const isVisible = ref(false);
 const errorMessage = ref("");
 const username = ref("");
+const inputRef = ref<HTMLInputElement | null>(null);
 
-const show = () => {
+const show = async () => {
   isVisible.value = true;
+  username.value = "";
+  errorMessage.value = "";
+
+  await nextTick();
+  inputRef.value?.focus();
 };
 
 const confirm = async() => {
