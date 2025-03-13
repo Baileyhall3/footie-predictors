@@ -141,13 +141,9 @@
                 {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
               </button> -->
 
-              <!-- <button 
-                v-if="member.is_fake" 
-                class="text-xs px-2 py-1 rounded"
-                :class="member.is_fake ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'"
-              >
-                Make Predictions
-              </button> -->
+              <router-link :to="`/admin-gameweek-predictions/${currentGameweekId}/${member.id}`" v-if="member.is_fake" class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200">
+                Predict
+              </router-link>
               
               <button 
                 @click="confirmRemoveMember(member)" 

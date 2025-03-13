@@ -94,12 +94,12 @@ export const groupsStore = {
     }
   },
 
-  async fetchGroupMembers(groupId) {
+  async fetchGroupMembers(groupId, onlyFakeUsers = false) {
     try {
       state.loading = true
       state.error = null
 
-      const { data, error } = await groupsService.getGroupMembers(groupId)
+      const { data, error } = await groupsService.getGroupMembers(groupId, onlyFakeUsers)
 
       if (error) throw error
 

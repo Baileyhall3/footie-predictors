@@ -4,9 +4,7 @@
             <h2 class="text-2xl font-bold mb-4">Your Predictions</h2>
 
             <div v-if="userPredictions.length">
-                <PredictionCard 
-                    v-for="gameweek in userPredictions"
-                    :key="gameweek.gameweek.id"
+                <ScoreCard 
                     :gameweek="gameweek.gameweek"
                     :predictions="gameweek.predictions"
                 />
@@ -18,12 +16,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import PredictionCard from "../components/PredictionCard.vue";
 import { predictionsService } from '../api/predictionsService';
 import { gameweeksService } from '../api/gameweeksService';
 import { userStore } from '../store/userStore';
 import { groupsStore } from '../store/groupsStore';
 import { predictionsStore } from '../store/predictionsStore';
+import ScoreCard from '../components/ScoreCard.vue';
 
 
 const userGroups = ref([]);

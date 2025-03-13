@@ -128,44 +128,59 @@ export const predictionsService = {
     }
   },
 
-/**
- * Get all predictions for a gameweek by all group members
- * @param {string} gameweekId - Gameweek ID
- * @returns {Promise<{data: Array, error: Object}>}
- */
-async getGameweekPredictions(gameweekId) {
-  try {
-    const { data, error } = await supabaseDb.customQuery((supabase) =>
-      supabase
-        .from('predictions')
-        .select(`
-          *,
-          users (
-            id,
-            username
-          ),
-          matches (
-            id,
-            gameweek_id,
-            home_team,
-            away_team,
-            match_time,
-            final_home_score,
-            final_away_score
-          )
-        `)
-        .eq('matches.gameweek_id', gameweekId)
-        .order('match_time', { foreignTable: 'matches', ascending: true }) // Sort by match time
-    )
+  /**
+   * Get all predictions for a gameweek, optionally filtering only fake users' predictions
+   * @param {string} gameweekId - Gameweek ID
+   * @param {boolean} onlyFakeUsers - Whether to filter by fake users
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getGameweekPredictions(gameweekId, onlyFakeUsers = false) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) => {
+        let query = supabase
+          .from('predictions')
+          .select(`
+            *,
+            users!inner (
+              id,
+              username,
+              is_fake
+            ),
+            matches (
+              id,
+              gameweek_id,
+              home_team,
+              away_team,
+              match_time,
+              final_home_score,
+              final_away_score
+            )
+          `)
+          .eq('matches.gameweek_id', gameweekId)
+          .order('match_time', { foreignTable: 'matches', ascending: true }) // Sort by match time
 
-    if (error) throw error
+        // Apply filtering to return only fake users' predictions
+        if (onlyFakeUsers) {
+          query = query.eq('users.is_fake', true)
+        }
 
-    return { data, error: null }
-  } catch (error) {
-    console.error('Error fetching gameweek predictions:', error)
-    return { data: null, error }
-  }
-},
+        return query
+      })
+
+      if (error) throw error
+
+      // If onlyFakeUsers is true and no predictions exist, return null
+      if (onlyFakeUsers && (!data || data.length === 0)) {
+        return { data: [], error: null }
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error fetching gameweek predictions:', error)
+      return { data: null, error }
+    }
+  },
+
 
   /**
    * Create or update a prediction
@@ -173,9 +188,10 @@ async getGameweekPredictions(gameweekId) {
    * @param {string} matchId - Match ID
    * @param {number} homeScore - Predicted home score
    * @param {number} awayScore - Predicted away score
+   * @param {boolean} createdByAdmin - If the prediction was made by admin (fake users only)
    * @returns {Promise<{data: Object, error: Object}>}
    */
-  async savePrediction(userId, matchId, homeScore, awayScore) {
+  async savePrediction(userId, matchId, homeScore, awayScore, createdByAdmin = false) {
     try {
       // Check if prediction already exists
       const { data: existingPrediction } = await this.getUserPrediction(userId, matchId)
@@ -197,7 +213,8 @@ async getGameweekPredictions(gameweekId) {
           match_id: matchId,
           predicted_home_score: homeScore,
           predicted_away_score: awayScore,
-          is_locked: false
+          is_locked: false,
+          created_by_admin: createdByAdmin
         })
       }
     } catch (error) {

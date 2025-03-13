@@ -88,11 +88,11 @@
               <ScoreCard 
                   :matches="matches"
                   :predictions="predictions"
-                  :locked="gameweek?.is_locked"
+                  :locked="gameweek?.is_locked || !gameweek?.is_active"
                   @update-prediction="handlePredictionUpdate"
               />
     
-              <template v-if="!gameweek?.is_locked">
+              <template v-if="!gameweek?.is_locked && gameweek?.is_active ">
                 <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
                   Predictions Saved ✅
                 </button>
@@ -320,8 +320,6 @@ async function removeMatch(matchId) {
 }
   
 async function submitPredictions() {
-  console.log(predictions.value);
-
   for (const [matchId, prediction] of Object.entries(predictions.value)) {
     await predictionsService.savePrediction(
       userStore.user?.id, 

@@ -85,10 +85,10 @@ export const groupsService = {
    * @param {string} groupId - Group ID
    * @returns {Promise<{data: Array, error: Object}>}
    */
-  async getGroupMembers(groupId) {
+  async getGroupMembers(groupId, onlyFakeUsers = false) {
     try {
-      const { data, error } = await supabaseDb.customQuery((supabase) =>
-        supabase
+      const { data, error } = await supabaseDb.customQuery((supabase) => {
+        let query = supabase
           .from('group_members')
           .select(`
             id,
@@ -102,12 +102,21 @@ export const groupsService = {
             )
           `)
           .eq('group_id', groupId)
-      )
+
+          // Apply filtering to return only fake users' predictions
+          if (onlyFakeUsers) {
+            query = query.eq('users.is_fake', true)
+          }
+
+          return query
+        })
 
       if (error) throw error
 
       // Transform the data to a more usable format
-      const members = data.map(membership => ({
+      const members = data
+        .filter(membership => membership.users)
+        .map(membership => ({
         id: membership.users.id,
         username: membership.users.username,
         email: membership.users.email,

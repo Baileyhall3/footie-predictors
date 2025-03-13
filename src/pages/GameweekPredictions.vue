@@ -26,9 +26,9 @@
                 :predictions="userPredictions"
                 :locked="true"
             />
-            <div class="p-4 bg-gray-50 border-t border-gray-200">
+            <!-- <div class="p-4 bg-gray-50 border-t border-gray-200">
                 Total Points: 
-            </div>
+            </div> -->
         </div>
     </div>
 </template>
