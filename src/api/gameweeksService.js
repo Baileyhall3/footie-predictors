@@ -30,6 +30,31 @@ export const gameweeksService = {
   },
 
   /**
+   * Get active gameweek for a group
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Object | null, error: Object | null}>}
+   */
+  async getActiveGameweek(groupId) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('gameweeks')
+          .select('*')
+          .eq('group_id', groupId)
+          .eq('is_active', true)
+          .limit(1)
+      )
+
+      if (error) throw error
+
+      return { data: data?.[0] || null, error: null };
+    } catch (error) {
+      console.error('Error fetching gameweek:', error)
+      return { data: null, error }
+    }
+  },
+
+  /**
    * Get a gameweek by ID
    * @param {string} id - Gameweek ID
    * @returns {Promise<{data: Object, error: Object}>}

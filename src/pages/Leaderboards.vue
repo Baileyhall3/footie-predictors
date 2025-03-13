@@ -53,7 +53,6 @@ import LoadingScreen from "../components/LoadingScreen.vue";
 const isLoading = ref(true);
 const error = ref(null);
 const userGroups = ref([]);
-const leaderboard = ref([]);
 
 onMounted(async () => {
     fetchAllData();
