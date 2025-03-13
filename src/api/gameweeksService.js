@@ -95,7 +95,7 @@ export const gameweeksService = {
   },
 
   /**
-   * Get all matches for a gameweek
+   * Get all matches for a gameweek, including team crest URLs
    * @param {string} gameweekId - Gameweek ID
    * @returns {Promise<{data: Array, error: Object}>}
    */
@@ -104,17 +104,28 @@ export const gameweeksService = {
       const { data, error } = await supabaseDb.customQuery((supabase) =>
         supabase
           .from('matches')
-          .select('*')
+          .select(`
+            *,
+            homeClub:clubs!home_team_api_id(api_club_id, crest_url),
+            awayClub:clubs!away_team_api_id(api_club_id, crest_url)
+          `)
           .eq('gameweek_id', gameweekId)
           .order('match_time', { ascending: true })
-      )
+      );
 
-      if (error) throw error
+      if (error) throw error;
 
-      return { data, error: null }
+      // Map the data to include crest URLs
+      const formattedData = data.map((match) => ({
+        ...match,
+        home_team_crest: match.homeClub?.crest_url || null,
+        away_team_crest: match.awayClub?.crest_url || null,
+      }));
+
+      return { data: formattedData, error: null };
     } catch (error) {
-      console.error('Error fetching matches:', error)
-      return { data: null, error }
+      console.error('Error fetching matches:', error);
+      return { data: null, error };
     }
   },
 
@@ -135,10 +146,98 @@ export const gameweeksService = {
    * @param {string} match.home_team - Home team name
    * @param {string} match.away_team - Away team name
    * @param {string} match.match_time - Match time timestamp
+   * @param {number} match.home_team_api_id - API home team ID
+   * @param {number} match.away_team_api_id - API away team ID
+   * @param {string} match.home_team_crest - API home team crest URL
+   * @param {string} match.away_team_crest - API match away crest URL
    * @returns {Promise<{data: Object, error: Object}>}
    */
   async createMatch(match) {
-    return supabaseDb.create('matches', match)
+
+    if (match.api_match_id) {
+      // Ensure home team exists in the 'clubs' table
+      await this.upsertClub(match.home_team_api_id, match.home_team, match.home_team_crest);
+  
+      // Ensure away team exists in the 'clubs' table
+      await this.upsertClub(match.away_team_api_id, match.away_team, match.away_team_crest);
+    }
+
+    const matchesTableValues = {
+      gameweek_id: match.gameweek_id,
+      api_match_id: match.api_match_id,
+      home_team: match.home_team,
+      away_team: match.away_team,
+      match_time: match.match_time,
+      home_team_api_id: match.home_team_api_id,
+      away_team_api_id: match.away_team_api_id
+
+    }
+
+    return supabaseDb.create('matches', matchesTableValues)
+  },
+
+  /**
+   * Insert a club if it does not exist
+   * @param {number} api_team_id - API team ID
+   * @param {string} team_name - Team name
+   * @param {string} team_crest - Team crest URL
+   */
+  async upsertClub(api_team_id, team_name, team_crest) {
+    const { data, error } = await supabaseDb
+      .from('clubs')
+      .select('id')
+      .eq('api_club_id', api_team_id)
+      .single(); // Fetch existing club
+
+    if (!data) {
+      // Club doesn't exist, insert it
+      await supabaseDb.from('clubs').insert({
+        api_team_id,
+        name: team_name,
+        crest_url: team_crest,
+      });
+    }
+  },
+
+  /**
+   * Check if a club exists, insert if it doesn't
+   * @param {number} api_team_id - API team ID
+   * @param {string} team_name - Team name
+   * @param {string} team_crest - Team crest URL
+   */
+  async upsertClub(api_team_id, team_name, team_crest) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('clubs')
+          .select('id')
+          .eq('api_club_id', api_team_id)
+          .single()
+      );
+
+      if (error && error.code !== 'PGRST116') {
+        // Ignore "no rows found" errors, only log unexpected ones
+        console.error('Error checking club existence:', error);
+        return;
+      }
+
+      if (!data) {
+        // Insert club if it doesn't exist
+        const { error: insertError } = await supabaseDb.customQuery((supabase) =>
+          supabase.from('clubs').insert({
+            api_club_id: api_team_id,
+            name: team_name,
+            crest_url: team_crest,
+          })
+        );
+
+        if (insertError) {
+          console.error('Error inserting club:', insertError);
+        }
+      }
+    } catch (err) {
+      console.error('Unexpected error in upsertClub:', err);
+    }
   },
 
   /**

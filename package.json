@@ -20,6 +20,7 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "@vueuse/head": "^2.0.0",
     "axios": "^1.8.1",
+    "cors": "^2.8.5",
     "retro-grid": "^1.2.3",
     "vite": "^6.0.5",
     "vue": "^3.5.13",

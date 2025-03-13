@@ -5,10 +5,13 @@
         <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
             <div class="flex items-center justify-center w-full max-w-lg">
                 <!-- Home Team and Score -->
-                <div class="flex items-center space-x-2 w-1/3 justify-end">
-                    <span class="font-medium">{{ match.home_team }}</span>
+                <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
+                    <span class="font-medium">
+                        <img v-if="match.home_team_crest" :src="match.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block mr-2">
+                        {{ match.home_team }}
+                    </span>
                     
-                    <template v-if="isAdmin">
+                    <template v-if="isAdmin && !match.api_match_id">
                         <!-- Admin Mode: Editing final scores -->
                         <input type="number" 
                             :value="match.final_home_score"
@@ -39,8 +42,8 @@
                 <div class="border-l border-gray-300 h-8 mx-4"></div>
 
                 <!-- Away Team and Score -->
-                <div class="flex items-center space-x-2 w-1/3 justify-start">
-                    <template v-if="isAdmin">
+                <div class="flex items-center space-x-2 justify-start" style="width: 100%;">
+                    <template v-if="isAdmin && !match.api_match_id">
                         <!-- Admin Mode: Editing final scores -->
                         <input type="number" 
                             :value="match.final_away_score"
@@ -67,7 +70,10 @@
                         </span>
                     </template>
 
-                    <span class="font-medium">{{ match.away_team }}</span>
+                    <span class="font-medium">
+                        {{ match.away_team }}
+                        <img v-if="match.away_team_crest" :src="match.away_team_crest" alt="Away Team" class="w-6 h-6 inline-block mr-2">
+                    </span>
                 </div>
             </div>
 

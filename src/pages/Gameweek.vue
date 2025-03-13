@@ -131,7 +131,7 @@
   </template>
   
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
@@ -224,11 +224,14 @@ async function mapPredictions() {
   // Merge predictions into matches
   matches.value = matchData.map(match => ({
     ...match,
+    api_match_id: match.api_match_id,
     previous_home_score: match.final_home_score, // Store initial score
     previous_away_score: match.final_away_score,
     predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
     predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
-    prediction_id: predictionsMap[match.id]?.id || null
+    prediction_id: predictionsMap[match.id]?.id || null,
+    home_team_crest: match.homeClub?.crest_url,
+    away_team_crest: match.awayClub?.crest_url
   }));
 
   // Initialize predictions object for v-model binding
