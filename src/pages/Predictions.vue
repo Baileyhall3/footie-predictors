@@ -17,7 +17,7 @@
                                     </router-link>
                                 </h3>
                                 <router-link 
-                                    :to="`/group/${group.id}/leaderboards`" 
+                                    :to="`/gameweek/${group.gameweek.id}`" 
                                     class="text-sm text-blue-600 hover:underline"
                                 >
                                     View Gameweek →
@@ -167,7 +167,6 @@ const handlePredictionUpdate = ({ group, matchId, field, value }) => {
 };
 
 async function submitPredictions(group) {
-    debugger
   for (const [matchId, prediction] of Object.entries(group.predictions)) {
     await predictionsService.savePrediction(
       userStore.user?.id, 

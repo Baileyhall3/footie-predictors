@@ -30,24 +30,24 @@
           <!-- Edit Mode Toggle (Admins Only) -->
            <div class="flex flex-wrap gap-2 mt-3" v-if="isAdmin">
               <button @click="toggleEditMode" class="px-4 py-2 bg-green-600 text-white rounded-md">
-                {{ editMode ? 'Exit Edit Mode' : 'Edit Gameweek' }}
+                {{ editMode ? 'Exit Edit Mode' : 'Edit' }}
               </button>
              <!-- Share Gameweek -->
              <button @click="copyGameweekLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
                <div class="justify-between items-center flex">
-                 Share Gameweek
+                 Share
                  <ShareIcon class="text-white size-4 ms-2" />
                </div>
              </button>
              <template v-if="editMode">
                <button @click="changeGameWeekActiveStatus" class="px-4 py-2 bg-purple-600 text-white rounded-md">
-                  {{ gameweek?.is_active ? 'Make gameweek inactive' : 'Make gameweek active' }}
+                  {{ gameweek?.is_active ? 'Make inactive' : 'Make active' }}
                 </button>
                 <button @click="changeGameWeekLockedStatus" class="px-4 py-2 bg-gray-600 text-white rounded-md">
-                  {{ gameweek?.is_locked ? 'Unlock gameweek' : 'Lock gameweek' }}
+                  {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                 </button>
                 <button @click="deleteGameweek" class="px-4 py-2 bg-red-600 text-white rounded-md">
-                  Delete Gameweek
+                  Delete
                 </button>
              </template>
            </div>
@@ -59,7 +59,9 @@
           <ScoreCard 
               :matches="matches"
               :isAdmin="editMode && gameweek?.is_active"
+              :canRemove="editMode"
               @update-score="handleScoreUpdate"
+              @match-removed="handleMatchRemoved"
           />
 
           <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
@@ -382,6 +384,24 @@ const handleScoreUpdate = ({ matchId, field, value }) => {
         console.error(`Match with ID ${matchId} not found.`);
     }
 };
+
+const handleMatchRemoved = async(matchId) => {
+  const match = matches.value.find(m => m.id === matchId);
+
+    if (match) {
+        try {
+          const { data, error } = await gameweeksService.deleteMatch(matchId);
+          
+          if (!error) {
+            mapPredictions();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+    } else {
+        console.error(`Match with ID ${matchId} not found.`);
+    }
+}
   
 function redirectToGroup() {
   router.push(`/group/${gameweek.value.group_id}`);

@@ -7,11 +7,11 @@
                 <!-- Home Team and Score -->
                 <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
                     <span class="font-medium">
-                        <img v-if="match.home_team_crest" :src="match.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block mr-2">
                         {{ match.home_team }}
+                        <img v-if="match.home_team_crest" :src="match.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block mr-2">
                     </span>
                     
-                    <template v-if="isAdmin && !match.api_match_id">
+                    <template v-if="props.isAdmin && !match.api_match_id">
                         <!-- Admin Mode: Editing final scores -->
                         <input type="number" 
                             :value="match.final_home_score"
@@ -43,7 +43,7 @@
 
                 <!-- Away Team and Score -->
                 <div class="flex items-center space-x-2 justify-start" style="width: 100%;">
-                    <template v-if="isAdmin && !match.api_match_id">
+                    <template v-if="props.isAdmin && !match.api_match_id">
                         <!-- Admin Mode: Editing final scores -->
                         <input type="number" 
                             :value="match.final_away_score"
@@ -71,15 +71,17 @@
                     </template>
 
                     <span class="font-medium">
-                        {{ match.away_team }}
                         <img v-if="match.away_team_crest" :src="match.away_team_crest" alt="Away Team" class="w-6 h-6 inline-block mr-2">
+                        {{ match.away_team }}
                     </span>
                 </div>
-            </div>
 
+            </div>
+            
             <div class="text-gray-500 text-sm mt-1">
                 {{ DateUtils.toTime(match.match_time) }}
             </div>
+            <button v-if="props.canRemove && !props.locked" @click="removeMatch(match.id)" class="text-red-500">Remove</button>
         </div>
     </div>
     <!-- <div class="p-4 bg-gray-50 border-t border-gray-200" v-if="props.predictions && props.locked && !props.isAdmin">
@@ -96,13 +98,15 @@ export interface IProps {
     predictions?: object;
     locked: boolean;
     isAdmin?: boolean;
+    canRemove: boolean;
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
     locked: false, 
-    isAdmin: false 
+    isAdmin: false ,
+    canRemove: false
 });
-const emit = defineEmits(["update-prediction", "update-score"]);
+const emit = defineEmits(["update-prediction", "update-score", "match-removed"]);
 
 const groupedMatches = computed(() => {
     return props.matches.reduce((acc, match) => {
@@ -125,6 +129,11 @@ const updatePrediction = (matchId: string, field: string, value: string) => {
 // Emit event when final score changes (Admin Mode)
 const updateScore = (matchId: string, field: string, value: string) => {
     emit("update-score", { matchId, field, value: parseInt(value) || 0 });
+};
+
+// Emit event when final score changes (Admin Mode)
+const removeMatch = (matchId: string) => {
+    emit("match-removed", matchId);
 };
 
 // Function to determine color based on prediction accuracy

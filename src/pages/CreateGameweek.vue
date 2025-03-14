@@ -123,7 +123,6 @@
 import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService'
-import { footballApiService } from '../api/footballApiService';  // We'll create this
 import { groupsStore } from '../store/groupsStore';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue"; 
@@ -215,7 +214,7 @@ async function fetchLeagues() {
     headers: { 'X-Auth-Token': '8a95ce980f7549e0813011d8a66b519e' }
   });  
   const data = await response.json();
-  const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019]
+  const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224]
   leagues.value = data.competitions.filter(({id}) => selectableLeagueIds.includes(id));
   loading.value = false;
 }
@@ -227,9 +226,16 @@ async function fetchMatches(leagueId) {
   });  
   const data = await response.json();
   const responseMatches = data.matches;
-  const upcomingMatches = responseMatches.filter(x => new Date(x.utcDate) > new Date());
+
+  const today = new Date();
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(today.getDate() - 7);
+
+  const upcomingMatches = responseMatches.filter(x => new Date(x.utcDate) >= oneWeekAgo);
   matches.value = upcomingMatches;
 }
+// .score.fullTime.home
+// .score.fullTime.away
   
 const addMatch = () => {
   if (selectedMatch.value) {
@@ -256,6 +262,8 @@ const createGameweek = async () => {
     errorMessage.value = 'Please add some matches to the gameweek.'
     return;
   }
+
+  loading.value = true;
       
   const { data: newGameweek } = await gameweeksService.createGameweek({
     group_id: groupId,

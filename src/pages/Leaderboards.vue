@@ -68,17 +68,20 @@ async function fetchAllData() {
             const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
             if (groupsError) throw new Error('Failed to load your groups');
             
-            // Attach leaderboards to groups
+            // Attach leaderboards to groups and filter out empty ones
             const groupsWithLeaderboards = await Promise.all(groups.map(async (group) => {
                 const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(group.id);
+                
                 if (leaderboardError) {
                     console.error(`Failed to load leaderboard for group ${group.id}`);
-                    return { ...group, leaderboard: [] }; // Return group with empty leaderboard on error
+                    return null; // Ignore this group in case of an error
                 }
-                return { ...group, leaderboard: leaderboardData || [] }; // Attach leaderboard to group
+
+                return leaderboardData && leaderboardData.length > 0 ? { ...group, leaderboard: leaderboardData } : null;
             }));
-            
-            userGroups.value = groupsWithLeaderboards;
+
+            // Filter out null values (groups without a leaderboard)
+            userGroups.value = groupsWithLeaderboards.filter(group => group !== null);
         }
     } catch (err) {
         console.error('Error fetching user data:', err);
