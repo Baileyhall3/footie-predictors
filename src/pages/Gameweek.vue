@@ -346,9 +346,9 @@ function copyGameweekLink() {
 }
 
 async function saveScores() {
+  loading.value = true;
   for (const match of matches.value) {
     try {
-      loading.value = true;
       if (
         match.final_home_score !== match.previous_home_score || 
         match.final_away_score !== match.previous_away_score

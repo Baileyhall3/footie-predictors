@@ -338,5 +338,22 @@ export const gameweeksService = {
       console.error('Error fetching upcoming matches:', error)
       return { data: null, error }
     }
+  },
+
+  async fetchFinishedMatches() {
+    const { data, error } = await supabaseDb.customQuery((supabase) =>
+      supabase
+        .from('matches')
+        .select('*')
+        .is('final_home_score', null)  // Get only matches without scores
+        .is('final_away_score', null)
+    );
+  
+    if (error) {
+      console.error("Error fetching matches:", error);
+      return [];
+    }
+  
+    return data;
   }
 }

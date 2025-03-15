@@ -8,7 +8,7 @@
                 <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
                     <span class="font-medium">
                         {{ match.home_team }}
-                        <img v-if="match.home_team_crest" :src="match.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block mr-2">
+                        <img v-if="match.home_team_crest" :src="match.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block ms-2">
                     </span>
                     
                     <template v-if="props.isAdmin && !match.api_match_id">
@@ -16,7 +16,7 @@
                         <input type="number" 
                             :value="match.final_home_score"
                             @input="updateScore(match.id, 'final_home_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" min="0" />
+                            class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
                     </template>
 
                     <template v-else-if="predictions && Object.keys(predictions).length > 0">
@@ -24,7 +24,7 @@
                         <input v-if="!locked" type="number" 
                             :value="predictions[match.id]?.predicted_home_score"
                             @input="updatePrediction(match.id, 'predicted_home_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" min="0" />
+                            class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
                         <span v-else 
                             class="text-lg font-bold" 
                             :class="getPredictionColor(predictions[match.id], match)">
@@ -48,7 +48,7 @@
                         <input type="number" 
                             :value="match.final_away_score"
                             @input="updateScore(match.id, 'final_away_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" min="0" />
+                            class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
                     </template>
 
                     <template v-else-if="predictions && Object.keys(predictions).length > 0">
@@ -56,7 +56,7 @@
                         <input v-if="!locked" type="number" 
                             :value="predictions[match.id]?.predicted_away_score"
                             @input="updatePrediction(match.id, 'predicted_away_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" min="0" />
+                            class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
                         <span v-else 
                             class="text-lg font-bold" 
                             :class="getPredictionColor(predictions[match.id], match)">

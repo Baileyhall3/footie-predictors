@@ -25,6 +25,7 @@ import Header from "./components/Header.vue";
 import LoadingScreen from "./components/LoadingScreen.vue";
 import mobileNavControls from './shared';
 import { userStore } from './store/userStore';
+import { footballApiService } from "./api/footballApiService";
 
 const isVisible = ref(false);
 const authInitialized = ref(false);
@@ -61,6 +62,7 @@ onMounted(async () => {
     // Make content visible with a slight delay for smoother transitions
     setTimeout(() => {
       isVisible.value = true;
+      footballApiService.updateMatchScores();
     }, 300);
   } catch (error) {
     console.error('Error initializing app:', error);
