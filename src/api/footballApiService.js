@@ -94,10 +94,10 @@ export const footballApiService = {
     }
   },
 
-  async updateMatchScores() {
+  async updateMatchScores(gameweekId = null) {
     console.log("Checking for finished matches...");
 
-    const finishedMatches = await gameweeksService.fetchFinishedMatches();
+    const finishedMatches = await gameweeksService.fetchFinishedMatches(gameweekId);
     const now = new Date();
 
     const matches = finishedMatches.filter(x => x.api_match_id && new Date(x.match_time) < now);

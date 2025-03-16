@@ -91,6 +91,7 @@
                   :matches="matches"
                   :predictions="predictions"
                   :locked="gameweek?.is_locked || !gameweek?.is_active"
+                  :totalPoints="userGameweekScore ?? null"
                   @update-prediction="handlePredictionUpdate"
               />
     
@@ -165,6 +166,7 @@ const notInGroup = ref(false);
 const members = ref([]);
 const deleteConfirm = ref(null);
 const leaderboard = ref([]);
+const userGameweekScore = ref();
 
 const isAdmin = ref(false);
 
@@ -208,6 +210,10 @@ async function fetchGameweek() {
   const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGameweekScores(gameweek.value.group_id, gameweek.value.id);
   if (leaderboardError) throw new Error('Failed to load leaderboard');
   leaderboard.value = leaderboardData || [];
+
+  if (leaderboard.value.length > 0) {
+    userGameweekScore.value = leaderboard.value.find(x => x.user_id == userStore.user?.id).total_points;
+  }
 
   mapPredictions();
 }
@@ -328,11 +334,6 @@ async function addMatch() {
     newMatch.value = { home_team: '', away_team: '', match_time: '' };
   }
 }
-
-async function removeMatch(matchId) {
-  await gameweeksService.deleteMatch(matchId);
-  matches.value = matches.value.filter(match => match.id !== matchId);
-}
   
 async function submitPredictions() {
   for (const [matchId, prediction] of Object.entries(predictions.value)) {
@@ -361,7 +362,8 @@ function copyGameweekLink() {
 
 async function saveScores() {
   loading.value = true;
-  for (const match of matches.value) {
+  const customMatches = matches.value.filter(x => !x.api_match_id);
+  for (const match of customMatches) {
     try {
       if (
         match.final_home_score !== match.previous_home_score || 
@@ -370,10 +372,11 @@ async function saveScores() {
         await predictionsStore.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
         await predictionsService.calculateMatchScores(match.id);
       }
+      loading.value = false;
     } catch(err) {
       console.error(err);
-    } finally {
       loading.value = false;
+
     }
   }
 

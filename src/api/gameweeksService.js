@@ -340,20 +340,70 @@ export const gameweeksService = {
     }
   },
 
-  async fetchFinishedMatches() {
-    const { data, error } = await supabaseDb.customQuery((supabase) =>
-      supabase
-        .from('matches')
-        .select('*')
-        .is('final_home_score', null)  // Get only matches without scores
-        .is('final_away_score', null)
-    );
-  
-    if (error) {
-      console.error("Error fetching matches:", error);
-      return [];
+  /**
+   * Get finished matches
+   * @param {string} gameweekId - Gamewek ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async fetchFinishedMatches(gameweekId = null) {
+    if (!gameweekId) {
+      console.log('all matchessss')
+
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('matches')
+          .select('*')
+          .is('final_home_score', null)
+          .is('final_away_score', null)
+      );
+    
+      if (error) {
+        console.error("Error fetching matches:", error);
+        return [];
+      }
+    
+      return data;
+    } else {
+      console.log('gameweek matchessss')
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('matches')
+          .select('*')
+          .is('final_home_score', null)
+          .is('final_away_score', null)
+          .eq('gameweek_id', gameweekId)
+      );
+    
+      if (error) {
+        console.error("Error fetching matches:", error);
+        return [];
+      }
+      
+      return data;
     }
-  
-    return data;
+  },
+
+  /**
+   * Get upcoming matches for a group
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getUserGameweekScores(gameweekId, userId) {
+    try {      
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('scores')
+          .select('*')
+          .eq('gameweek_id', gameweekId)
+          .eq('user_id', userId)
+      )
+
+      if (error) throw error
+
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error fetching user gameweek scores:', error)
+      return { data: null, error }
+    }
   }
 }

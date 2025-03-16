@@ -36,7 +36,8 @@ export const leaderboardService = {
         username: entry.users.username,
         total_points: entry.total_points,
         total_correct_scores: entry.total_correct_scores,
-        total_correct_results: entry.total_correct_results
+        total_correct_results: entry.total_correct_results,
+        last_updated: entry.updated_at
       }))
 
       return { data: leaderboard, error: null }

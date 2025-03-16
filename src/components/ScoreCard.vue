@@ -16,7 +16,11 @@
                         <input type="number" 
                             :value="match.final_home_score"
                             @input="updateScore(match.id, 'final_home_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
+                            class="w-10 border rounded-md p-1 text-center" 
+                            min="0" 
+                            max="9"
+                            maxlength="1"
+                        />
                     </template>
 
                     <template v-else-if="predictions && Object.keys(predictions).length > 0">
@@ -24,7 +28,11 @@
                         <input v-if="!locked" type="number" 
                             :value="predictions[match.id]?.predicted_home_score"
                             @input="updatePrediction(match.id, 'predicted_home_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
+                            class="w-10 border rounded-md p-1 text-center" 
+                            min="0" 
+                            max="9"
+                            maxlength="1"
+                        />
                         <span v-else 
                             class="text-md font-bold" 
                             :class="getPredictionColor(predictions[match.id], match)">
@@ -48,7 +56,11 @@
                         <input type="number" 
                             :value="match.final_away_score"
                             @input="updateScore(match.id, 'final_away_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
+                            class="w-10 border rounded-md p-1 text-center" 
+                            min="0" 
+                            max="9"
+                            maxlength="1" 
+                        />
                     </template>
 
                     <template v-else-if="predictions && Object.keys(predictions).length > 0">
@@ -56,7 +68,11 @@
                         <input v-if="!locked" type="number" 
                             :value="predictions[match.id]?.predicted_away_score"
                             @input="updatePrediction(match.id, 'predicted_away_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
+                            class="w-10 border rounded-md p-1 text-center" 
+                            min="0" 
+                            max="9"
+                            maxlength="1" 
+                        />
                         <span v-else 
                             class="text-md font-bold" 
                             :class="getPredictionColor(predictions[match.id], match)">
@@ -84,9 +100,8 @@
             <button v-if="props.canRemove && !props.locked" @click="removeMatch(match.id)" class="text-red-500">Remove</button>
         </div>
     </div>
-    <!-- <div class="p-4 bg-gray-50 border-t border-gray-200" v-if="props.predictions && props.locked && !props.isAdmin">
-        Total Points: 
-    </div> -->
+
+    <h3 class="text-lg mt-2" v-if="props.totalPoints"><span class="font-medium">Total Points:</span> {{ props.totalPoints }}</h3>
 </template>
 
 <script setup lang="ts">
@@ -96,9 +111,10 @@ import DateUtils from '../utils/dateUtils';
 export interface IProps {
     matches: [];
     predictions?: object;
-    locked: boolean;
+    locked?: boolean;
     isAdmin?: boolean;
-    canRemove: boolean;
+    canRemove?: boolean;
+    totalPoints?: number
 }
 
 const props = withDefaults(defineProps<IProps>(), { 

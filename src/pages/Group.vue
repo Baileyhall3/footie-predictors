@@ -143,7 +143,7 @@
             </div>
             
             <div v-if="isAdmin && userStore.user.id !== member.id" class="flex items-center gap-2">
-              <router-link :to="`/admin-gameweek-predictions/${currentGameweekId}/${member.id}`" v-if="member.is_fake" 
+              <router-link :to="`/admin-gameweek-predictions/${currentGameweekId}/${member.id}`" v-if="member.is_fake && !gameweekIsLocked" 
                 class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200"
               >
                 Predict
@@ -172,7 +172,9 @@
             View Full Leaderboard →
           </router-link>
         </div>
-        
+
+        <p v-if="leaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
+
         <div v-if="leaderboard.length">
           <LeaderboardCard 
             :leaderboard="leaderboard"
@@ -189,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, getCurrentInstance  } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { UserIcon } from "@heroicons/vue/24/outline";
 import { groupsStore } from "../store/groupsStore";
@@ -208,11 +210,10 @@ import CreateGroupMember from "../components/CreateGroupMember.vue";
 import LeaderboardCard from "../components/LeaderboardCard.vue";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { footballApiService } from "../api/footballApiService";
 
 const route = useRoute();
 const router = useRouter();
-
-const instance = getCurrentInstance();
 
 const pinDialog = ref(null);
 const removeMemberConfirm = ref(null);
@@ -232,6 +233,7 @@ const gameweekIsLocked = ref(false);
 const currentGameweekId = ref();
 const notInGroup = ref(false);
 const removeMemberDialogMsg = ref('');
+const leaderboardLastUpdated = ref();
 
 // Computed properties
 const isAdmin = ref(false);
@@ -291,11 +293,16 @@ const fetchAllData = async () => {
     if (leaderboardError) throw new Error('Failed to load leaderboard');
     leaderboard.value = leaderboardData || [];
 
+    if (leaderboard.value.length > 0) {
+      leaderboardLastUpdated.value = new Date(leaderboard.value[0].last_updated);
+    }
+
     const activeGameweek = gameweeksData.filter(x => x.is_active);
     if (activeGameweek.length > 0) {
       currentGameweekId.value = activeGameweek[0].id;
       gameweekIsLocked.value = activeGameweek[0].is_locked;
       mapPredictions();
+      await footballApiService.updateMatchScores(currentGameweekId.value);
     }
 
   } catch (err) {

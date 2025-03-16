@@ -25,6 +25,7 @@
                 :matches="matches"
                 :predictions="userPredictions"
                 :locked="true"
+                :totalPoints="getTotalPoints(userPredictions)"
             />
             <!-- <div class="p-4 bg-gray-50 border-t border-gray-200">
                 Total Points: 
@@ -48,6 +49,7 @@ const matches = ref([]);
 const gameweekId = ref();
 const gameweek = ref([]);
 const predictions = ref([]);
+const totalPoints = ref();
 
 // Group predictions by user
 const groupedPredictions = computed(() => {
@@ -69,6 +71,9 @@ const groupedPredictions = computed(() => {
     }, {});
 });
 
+function getTotalPoints(userPredictionsss) {
+    debugger
+}
 
 onMounted(async () => {
     await fetchGameweek();
@@ -82,6 +87,10 @@ async function fetchGameweek() {
     const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
     if (error) return console.error(error);
     gameweek.value = data;
+
+    // const { data, error } = await gameweeksService.getUserGameweekScores(gameweekId.value), ;
+    // if (error) return console.error(error);
+    // gameweek.value = data;
 
     mapPredictions();
 }
