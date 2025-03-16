@@ -6,7 +6,7 @@
             <div class="flex items-center justify-center w-full max-w-lg">
                 <!-- Home Team and Score -->
                 <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
-                    <span class="font-medium">
+                    <span class="font-medium text-sm">
                         {{ match.home_team }}
                         <img v-if="match.home_team_crest" :src="match.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block ms-2">
                     </span>
@@ -26,20 +26,20 @@
                             @input="updatePrediction(match.id, 'predicted_home_score', $event.target.value)"
                             class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
                         <span v-else 
-                            class="text-lg font-bold" 
+                            class="text-md font-bold" 
                             :class="getPredictionColor(predictions[match.id], match)">
                             {{ predictions[match.id]?.predicted_home_score }}
                         </span>
                     </template>
 
                     <template v-else>
-                        <span v-if="match.final_home_score !== null" class="text-lg font-bold">
+                        <span v-if="match.final_home_score !== null" class="text-md font-bold">
                             {{ match.final_home_score }}
                         </span>
                     </template>
                 </div>
 
-                <div class="border-l border-gray-300 h-8 mx-4"></div>
+                <div class="border-l border-gray-300 h-5 mx-2"></div>
 
                 <!-- Away Team and Score -->
                 <div class="flex items-center space-x-2 justify-start" style="width: 100%;">
@@ -58,19 +58,19 @@
                             @input="updatePrediction(match.id, 'predicted_away_score', $event.target.value)"
                             class="w-10 border rounded-md p-1 text-center" min="0" max="12" />
                         <span v-else 
-                            class="text-lg font-bold" 
+                            class="text-md font-bold" 
                             :class="getPredictionColor(predictions[match.id], match)">
                             {{ predictions[match.id]?.predicted_away_score }}
                         </span>
                     </template>
 
                     <template v-else>
-                        <span v-if="match.final_away_score !== null" class="text-lg font-bold">
+                        <span v-if="match.final_away_score !== null" class="text-md font-bold">
                             {{ match.final_away_score }}
                         </span>
                     </template>
 
-                    <span class="font-medium">
+                    <span class="font-medium text-sm">
                         <img v-if="match.away_team_crest" :src="match.away_team_crest" alt="Away Team" class="w-6 h-6 inline-block mr-2">
                         {{ match.away_team }}
                     </span>

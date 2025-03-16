@@ -7,6 +7,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { userStore } from './store/userStore';
 import { supabase } from './api/supabase';
 import { hasAuthState, getAuthState } from './utils/authPersistence';
+import VueToastify from "vue3-toastify";
 
 // Initialize the app
 const app = createApp(App);
@@ -60,11 +61,17 @@ async function initializeAuth() {
     return false;
   }
 }
+app.use(VueToastify, {
+  position: "top-center",
+  duration: 3000,
+  theme: "light",
+});
 
 // Initialize auth and then mount the app
 initializeAuth().then(() => {
   // Add router after auth is initialized
   app.use(router);
+
   
   // Mount the app
   app.mount('#app');

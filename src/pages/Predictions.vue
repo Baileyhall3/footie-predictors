@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto px-6 py-8">
+    <div class="container mx-auto py-8">
         <div class="mb-6">
             <h2 class="text-2xl font-bold mb-4">Your Predictions</h2>
             <LoadingScreen v-if="isLoading" />
@@ -75,6 +75,8 @@ import { userStore } from "../store/userStore";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from "../components/ScoreCard.vue";
 import { LockClosedIcon } from "@heroicons/vue/24/solid";
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 // State
 const isLoading = ref(true);
@@ -176,7 +178,11 @@ async function submitPredictions(group) {
     );
   }
 
-  alert('Your predictions have been saved!');
+  toast("Predictions have been saved!", {
+    "type": "success",
+    "position": "top-center"
+  });
+  
 }
 
 </script>

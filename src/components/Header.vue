@@ -41,7 +41,7 @@
                 <div class="flex flex-col space-y-4 text-lg font-medium text-gray-900">
                     <router-link to="/groups" @click="mobileNavControls.close" class="hover:underline">Groups</router-link>
                     <router-link to="/predictions" @click="mobileNavControls.close" class="hover:underline">Predictions</router-link>
-                    <router-link to="/leaderboard" @click="mobileNavControls.close" class="hover:underline">Leaderboards</router-link>
+                    <router-link to="/leaderboards" @click="mobileNavControls.close" class="hover:underline">Leaderboards</router-link>
                     <router-link to="/profile" @click="mobileNavControls.close" class="hover:underline">Profile</router-link>
                 </div>
             </nav>

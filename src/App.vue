@@ -62,7 +62,7 @@ onMounted(async () => {
     // Make content visible with a slight delay for smoother transitions
     setTimeout(() => {
       isVisible.value = true;
-      footballApiService.updateMatchScores();
+      // footballApiService.updateMatchScores();
     }, 300);
   } catch (error) {
     console.error('Error initializing app:', error);

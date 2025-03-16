@@ -102,7 +102,9 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { userStore } from '../store/userStore'
+import { userStore } from '../store/userStore';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 export default {
   name: 'LoginPage',
@@ -127,7 +129,10 @@ export default {
       
       const { error } = await userStore.resetPassword(email.value)
       if (!error) {
-        alert('Password reset email sent. Please check your inbox.')
+        toast("Password reset email sent. Please check your inbox.", {
+          "type": "info",
+          "position": "top-center"
+        });
       }
     }
 

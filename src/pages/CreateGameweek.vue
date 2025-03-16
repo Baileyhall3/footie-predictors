@@ -19,7 +19,7 @@
       <!-- Set Manually Checkbox -->
       <div class="mb-4 flex items-center">
           <input type="checkbox" id="setManually" v-model="setManually" class="mr-2">
-          <label for="setManually" class="text-sm font-medium text-gray-700">Set Manually</label>
+          <label for="setManually" class="text-sm font-medium text-gray-700">Custom Match</label>
       </div>
   
       <!-- League & Match Selection -->
@@ -37,7 +37,7 @@
                   <span v-else>Select a league</span>
                 </button>
                 
-                <ul v-if="leagueDropdownOpen" class="absolute left-0 right-0 bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+                <ul v-if="leagueDropdownOpen" class="absolute left-0 right-0 bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto z-20">
                   <li v-for="league in leagues" :key="league.id" 
                       @click="selectLeague(league)"
                       class="p-2 hover:bg-gray-100 flex items-center cursor-pointer">
@@ -64,18 +64,20 @@
                 </button>
 
                 <!-- Dropdown -->
-                <ul v-if="matchesDropdownOpen" class="absolute left-0 right-0 bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+                <ul v-if="matchesDropdownOpen" class="absolute left-0 right-0 bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto z-10">
                   <li v-for="match in matches" :key="match.id"
                       @click="selectMatch(match)"
-                      class="p-2 hover:bg-gray-100 cursor-pointer flex flex-col items-center border-b">
-                    
+                      :class="{
+                        'bg-blue-100': selectedMatches.some(m => m.api_match_id === match.id),
+                        'hover:bg-gray-100': !selectedMatches.some(m => m.api_match_id === match.id)
+                      }"
+                      class="p-2 cursor-pointer flex flex-col items-center border-b">
                     <!-- Match Teams & Crests -->
                     <div class="flex items-center w-full justify-between">
                       <img :src="match.homeTeam.crest" alt="Home Team" class="w-6 h-6 mr-2">
                       <span class="text-sm font-medium">{{ match.homeTeam.shortName }} vs {{ match.awayTeam.shortName }}</span>
                       <img :src="match.awayTeam.crest" alt="Away Team" class="w-6 h-6 ml-2">
                     </div>
-
                     <!-- Match Date (Centered) -->
                     <span class="text-xs text-gray-500 mt-1">
                       {{ DateUtils.toDateTime(match.utcDate) }}
@@ -100,17 +102,20 @@
                   <label class="block text-sm font-medium text-gray-700">Match Time</label>
                   <input type="datetime-local" v-model="manuallySelectedMatch.match_time" class="mt-1 p-2 w-full border rounded-md">
               </div>                
+              <button @click="addMatch" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
           </template>
-          <button @click="addMatch" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
         </div>
   
       <!-- Added Matches List -->
-      <ul class="mb-4 mt-4">
-        <li v-for="(match, index) in selectedMatches" :key="index" class="flex justify-between bg-gray-100 p-2 rounded-md mt-2">
-          {{ match.home_team }} vs {{ match.away_team }} - {{ DateUtils.toDateTime(match.match_time) }}
-          <button @click="removeMatch(index)" class="text-red-500">Remove</button>
-        </li>
-      </ul>
+       <div class="mt-4" v-if="selectedMatches.length > 0">
+         <p class="text-lg">Matches</p>
+         <ul class="mb-4 mt-4">
+           <li v-for="(match, index) in selectedMatches" :key="index" class="flex justify-between bg-gray-100 p-2 rounded-md mt-2">
+             {{ match.home_team }} vs {{ match.away_team }} - {{ DateUtils.toDateTime(match.match_time) }}
+             <button @click="removeMatch(index)" class="text-red-500">Remove</button>
+           </li>
+         </ul>
+       </div>
   
       <!-- Submit Button -->
       <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
@@ -179,18 +184,25 @@ const selectLeague = (league) => {
 };
 
 const selectMatch = (match) => {
-  const mappedMatch = {
-    api_match_id: match.id,
-    home_team: match.homeTeam.shortName,
-    away_team: match.awayTeam.shortName,
-    home_team_api_id: match.homeTeam.id,
-    away_team_api_id: match.awayTeam.id,
-    home_team_crest: match.homeTeam.crest,
-    away_team_crest: match.awayTeam.crest,
-    match_time: match.utcDate
-  };
-  selectedMatch.value = mappedMatch;
-  matchesDropdownOpen.value = false;
+  // Toggle the selection of the match
+  const matchIndex = selectedMatches.value.findIndex(m => m.api_match_id === match.id);
+  if (matchIndex === -1) {
+    // If the match is not already selected, add it to the selectedMatches array
+    const mappedMatch = {
+      api_match_id: match.id,
+      home_team: match.homeTeam.shortName,
+      away_team: match.awayTeam.shortName,
+      home_team_api_id: match.homeTeam.id,
+      away_team_api_id: match.awayTeam.id,
+      home_team_crest: match.homeTeam.crest,
+      away_team_crest: match.awayTeam.crest,
+      match_time: match.utcDate
+    };
+    selectedMatches.value.push(mappedMatch);
+  } else {
+    // If the match is already selected, remove it from the selectedMatches array
+    selectedMatches.value.splice(matchIndex, 1);
+  }
 };
   
 onMounted(async () => {
@@ -229,7 +241,6 @@ async function fetchMatches(leagueId) {
 
 }
 
-  
 const addMatch = () => {
   if (selectedMatch.value) {
       selectedMatches.value.push({ ...selectedMatch.value })
@@ -289,4 +300,3 @@ onUnmounted(() => {
 });
   
 </script>
-  

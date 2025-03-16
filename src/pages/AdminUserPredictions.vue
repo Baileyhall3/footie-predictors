@@ -54,6 +54,8 @@ import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from '../components/ScoreCard.vue';
 import { groupsStore } from '../store/groupsStore';
 import DateUtils from '../utils/dateUtils';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 const route = useRoute();
 
@@ -77,7 +79,7 @@ const allPredictionsSubmitted = computed(() => {
 });
 
 watch(showAllUsers, (state) => {
-    mapPredictions();
+    mapPredictions(false);
 })
 
 onMounted(async () => {
@@ -97,7 +99,11 @@ async function fetchGameweek() {
     mapPredictions();
 }
 
-async function mapPredictions() {
+async function mapPredictions(skipLoad = true) {
+
+    if (!skipLoad) {
+        loading.value = true;
+    }
 
     const groupId = gameweek.value.group_id;
 
@@ -185,6 +191,8 @@ async function submitPredictions(userId) {
         return;
     }
 
+    loading.value = true;
+
     for (const [matchId, prediction] of Object.entries(userPredictions)) {
         await predictionsService.savePrediction(
             userId,
@@ -195,7 +203,13 @@ async function submitPredictions(userId) {
         );
     }
 
-    alert(`Predictions for ${groupedPredictions.value[userId].username} have been saved!`);
+    loading.value = false;
+    predictionsChanged.value = false;
+
+    toast(`Predictions for ${groupedPredictions.value[userId].username} have been saved!`, {
+        "type": "success",
+        "position": "top-center"
+    });
 }
 
 </script>

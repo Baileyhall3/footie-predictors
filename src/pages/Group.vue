@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-6 py-8">
+  <div class="container mx-auto py-8">
     <!-- Loading State -->
     <LoadingScreen v-if="loading" />
 
@@ -103,8 +103,18 @@
           <ScoreCard 
               :matches="matches"
               :predictions="predictions"
-              :locked="true"
+              :locked="gameweekIsLocked"
+              @update-prediction="handlePredictionUpdate"
           />
+          <template v-if="!gameweekIsLocked">
+            <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
+              Predictions Saved ✅
+            </button>
+  
+            <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+              Submit Predictions
+            </button>
+          </template>
         </div>
 
         <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
@@ -133,15 +143,9 @@
             </div>
             
             <div v-if="isAdmin && userStore.user.id !== member.id" class="flex items-center gap-2">
-              <!-- <button 
-                @click="toggleAdminRole(member)" 
-                class="text-xs px-2 py-1 rounded"
-                :class="member.is_admin ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'"
+              <router-link :to="`/admin-gameweek-predictions/${currentGameweekId}/${member.id}`" v-if="member.is_fake" 
+                class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200"
               >
-                {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
-              </button> -->
-
-              <router-link :to="`/admin-gameweek-predictions/${currentGameweekId}/${member.id}`" v-if="member.is_fake" class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200">
                 Predict
               </router-link>
               
@@ -185,7 +189,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, getCurrentInstance  } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { UserIcon } from "@heroicons/vue/24/outline";
 import { groupsStore } from "../store/groupsStore";
@@ -202,9 +206,13 @@ import PinDialog from "../components/PinDialog.vue";
 import DeleteConfirm from "../components/DeleteConfirm.vue";
 import CreateGroupMember from "../components/CreateGroupMember.vue";
 import LeaderboardCard from "../components/LeaderboardCard.vue";
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 const route = useRoute();
 const router = useRouter();
+
+const instance = getCurrentInstance();
 
 const pinDialog = ref(null);
 const removeMemberConfirm = ref(null);
@@ -231,6 +239,15 @@ const isAdmin = ref(false);
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
   return admin ? admin.username : 'Unknown';
+});
+
+const predictionsChanged = ref(false);
+
+const allPredictionsSubmitted = computed(() => {
+  return matches.value.length > 0 && matches.value.every(match => {
+    const prediction = predictions.value[match.id];
+    return prediction?.predicted_home_score !== '' && prediction?.predicted_away_score !== '';
+  });
 });
 
 // Fetch all data for the group
@@ -296,7 +313,7 @@ async function mapPredictions() {
     predictionsService.getUserGameweekPredictions(userStore.user?.id, currentGameweekId.value)
   ]);
 
-  if (predictionsData.length === 0) { return; }
+  // if (predictionsData.length === 0) { return; }
 
   // Map predictions by match_id for quick lookup
   const predictionsMap = predictionsData.reduce((acc, prediction) => {
@@ -307,9 +324,14 @@ async function mapPredictions() {
   // Merge predictions into matches
   matches.value = matchData.map(match => ({
     ...match,
+    api_match_id: match.api_match_id,
+    previous_home_score: match.final_home_score, // Store initial score
+    previous_away_score: match.final_away_score,
     predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
     predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
-    prediction_id: predictionsMap[match.id]?.id || null
+    prediction_id: predictionsMap[match.id]?.id || null,
+    home_team_crest: match.homeClub?.crest_url,
+    away_team_crest: match.awayClub?.crest_url
   }));
 
   // Initialize predictions object for v-model binding
@@ -323,6 +345,30 @@ async function mapPredictions() {
 
   loading.value = false;
 
+}
+
+const handlePredictionUpdate = ({ matchId, field, value }) => {
+    if (!predictions.value[matchId]) {
+        predictions.value[matchId] = { predicted_home_score: 0, predicted_away_score: 0 };
+    }
+    predictions.value[matchId][field] = value;
+    predictionsChanged.value = true;
+};
+
+async function submitPredictions() {
+  for (const [matchId, prediction] of Object.entries(predictions.value)) {
+    await predictionsService.savePrediction(
+      userStore.user?.id, 
+      matchId, 
+      prediction.predicted_home_score,
+      prediction.predicted_away_score 
+    );
+  }
+
+  toast("Predictions have been saved!", {
+    "type": "success",
+    "position": "top-center"
+  });
 }
 
 const confirmRemoveMember = async (member) => {
@@ -339,7 +385,10 @@ const confirmRemoveMember = async (member) => {
 
 async function tryJoinGroup() {
   if (group.value.max_members === members.value.length) {
-    alert('Unable to join group as it has reached maximum members.');
+    toast("Unable to join group as it has reached maximum members.", {
+      "type": "error",
+      "position": "top-center"
+    })
     return;
   }
   if (group.value.is_public) {
@@ -359,7 +408,10 @@ async function updateMemberStatus(isJoining) {
   
       if (joinError) throw new Error('Failed to join group');
       else {
-        alert('Successfully joined group!');
+        toast("Successfully joined group!", {
+          "type": "success",
+          "position": "top-center"
+        });
         window.location.reload();
       }
     } catch(err) {
@@ -376,7 +428,10 @@ async function updateMemberStatus(isJoining) {
   
       if (leaveError) throw new Error('Failed to leave group');
       else {
-        alert('Successfully left group.');
+        toast("Successfully left group.", {
+          "type": "success",
+          "position": "top-center"
+        });
         router.push(`/groups`);
       }
     } catch (err) {
@@ -421,7 +476,10 @@ const openCreateMemberDialog = async() => {
 function copyGroupLink() {
   const url = window.location.href;
   navigator.clipboard.writeText(url);
-  alert('Group link copied!');
+  toast("Group link copied!", {
+    "type": "info",
+    "position": "top-center"
+  });
 }
 
 // Watch for route changes to reload data

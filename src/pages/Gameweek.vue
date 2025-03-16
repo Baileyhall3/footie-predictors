@@ -109,7 +109,7 @@
           <!-- Leaderboard Section -->
           <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold">Leaderboard - Gameweek {{  gameweek?.week_number }}</h3>
+              <h3 class="text-xl font-semibold">Leaderboard</h3>
               <router-link 
                 :to="`/group/${gameweek?.group_id}/leaderboards`" 
                 class="text-sm text-blue-600 hover:underline"
@@ -148,6 +148,8 @@ import DeleteConfirm from '../components/DeleteConfirm.vue';
 import { predictionsStore } from '../store/predictionsStore';
 import { leaderboardStore } from '../store/leaderboardStore';
 import LeaderboardCard from '../components/LeaderboardCard.vue';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 const route = useRoute();
 const router = useRouter();
@@ -246,7 +248,6 @@ async function mapPredictions() {
   }, {});
 
   loading.value = false;
-
 }
   
 function toggleEditMode() {
@@ -262,7 +263,10 @@ async function changeGameWeekActiveStatus() {
   });
   
   if (!error) {
-    alert('Gameweek active status changed');
+    toast("Gameweek active status changed.", {
+      "type": "info",
+      "position": "top-center"
+    });
     window.location.reload();
   }
 }
@@ -273,7 +277,10 @@ async function changeGameWeekLockedStatus() {
   });
   
   if (!error) {
-    alert('Gameweek locked status changed');
+    toast("Gameweek locked status changed.", {
+      "type": "info",
+      "position": "top-center"
+    });
     window.location.reload();
   }
 }
@@ -302,7 +309,10 @@ const deleteGameweek = async () => {
   
 async function addMatch() {
   if (!newMatch.value.home_team || !newMatch.value.away_team || !newMatch.value.match_time) {
-    alert('Please fill in all fields.');
+    toast("Please fill in all fields.", {
+      "type": "warning",
+      "position": "top-center"
+    });
     return;
   }
 
@@ -334,15 +344,19 @@ async function submitPredictions() {
     );
   }
 
-  // toggleEditMode();
-  alert('Your predictions have been saved!');
-  // fetchGameweek();
+  toast("Your predictions have been saved!", {
+    "type": "success",
+    "position": "top-center"
+  });
 }
 
 function copyGameweekLink() {
   const url = window.location.href;
   navigator.clipboard.writeText(url);
-  alert('Gameweek link copied!');
+  toast("Gameweek link copied!", {
+    "type": "info",
+    "position": "top-center"
+  });
 }
 
 async function saveScores() {
@@ -363,7 +377,13 @@ async function saveScores() {
     }
   }
 
-  alert('Final scores have been saved!');
+  toast("Final scores have been saved!", {
+    "type": "success",
+    "position": "top-center"
+  });
+
+  matchesChanged.value = false;
+  
 }
 
 const handlePredictionUpdate = ({ matchId, field, value }) => {
