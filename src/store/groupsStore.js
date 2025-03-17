@@ -207,8 +207,9 @@ export const groupsStore = {
 
       return { data, error: null }
     } catch (error) {
-      state.error = error.message
-      return { data: null, error }
+      console.error('Error:', error);
+      state.error = error.message || error;
+      return { data: null, error };
     } finally {
       state.loading = false
     }

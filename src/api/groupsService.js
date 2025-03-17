@@ -176,18 +176,36 @@ export const groupsService = {
   },
 
   /**
-   * Add a user to a group
+   * Add a user to a group and create a record in the leaderboard
    * @param {string} groupId - Group ID
    * @param {string} userId - User ID
    * @param {boolean} isAdmin - Whether the user is an admin
    * @returns {Promise<{data: Object, error: Object}>}
    */
   async addMember(groupId, userId, isAdmin = false) {
-    return supabaseDb.create('group_members', {
+    const { data: groupMemberData, error: groupMemberError } = await supabaseDb.create('group_members', {
       group_id: groupId,
       user_id: userId,
       is_admin: isAdmin
-    })
+    });
+
+    if (groupMemberError) {
+      console.error('Error adding user to group:', groupMemberError);
+      return { data: null, error: groupMemberError };
+    }
+
+    // Insert the new user into the leaderboard with total_points = 0
+    const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
+      user_id: userId,
+      group_id: groupId,
+    });
+
+    if (leaderboardError) {
+      console.error('Error adding user to leaderboard:', leaderboardError);
+      return { data: null, error: leaderboardError };
+    }
+
+    return { data: { groupMemberData, leaderboardData }, error: null };
   },
 
   /**

@@ -422,7 +422,7 @@ async function updateMemberStatus(isJoining) {
         window.location.reload();
       }
     } catch(err) {
-      error.value = err.message || 'An error occurred while leaving group';
+      error.value = err.message || 'An error occurred while joining group';
     }
 
   } else {
@@ -442,7 +442,7 @@ async function updateMemberStatus(isJoining) {
         router.push(`/groups`);
       }
     } catch (err) {
-      error.value = err.message || 'An error occurred while joining group';
+      error.value = err.message || 'An error occurred while leaving group';
     }
   }
 }
