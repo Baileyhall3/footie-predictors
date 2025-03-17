@@ -1,1 +1,9 @@
-{"rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]}
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/proxy?path=$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "env": {
+    "FOOTBALL_API_KEY": "8a95ce980f7549e0813011d8a66b519e"
+  }
+}
