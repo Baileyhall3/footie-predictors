@@ -28,8 +28,8 @@ import { predictionsService } from './predictionsService';
 //   }
 // });
 
-const API_KEY = '8a95ce980f7549e0813011d8a66b519e';
-// const BASE_URL = 'https://api.football-data.org/v4';
+const API_KEY = import.meta.env.VITE_API_KEY;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const footballApiService = {
   /**
@@ -38,7 +38,7 @@ export const footballApiService = {
    */
   async getLeagues() {
     try {
-      const response = await fetch('/api/competitions', {
+      const response = await fetch(`${BASE_URL}/competitions`, {
         headers: { 'X-Auth-Token': API_KEY }
       });  
       const data = await response.json();
@@ -59,7 +59,7 @@ export const footballApiService = {
    */
   async getMatches(leagueId) {
     try {
-      const response = await fetch(`/api/competitions/${leagueId}/matches`, {
+      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`, {
         headers: { 'X-Auth-Token': API_KEY }
       });  
       const data = await response.json();
@@ -77,7 +77,7 @@ export const footballApiService = {
    */
   async fetchMatchScore(matchId) {
     try {
-      const response = await fetch(`/api/matches/${matchId}`, {
+      const response = await fetch(`${BASE_URL}/matches/${matchId}`, {
         headers: { 'X-Auth-Token': API_KEY }
       });
 

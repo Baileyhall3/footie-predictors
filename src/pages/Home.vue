@@ -75,7 +75,14 @@
           <div class="divide-y divide-gray-200">
             <div v-for="position in userPositions" :key="position.groupId" class="p-4 flex justify-between items-center">
               <div>
-                <div class="font-medium">{{ position.groupName }}</div>
+                <div class="font-medium">
+                  <router-link 
+                      :to="`/group/${position.groupId}`" 
+                      class="text-blue-600 hover:underline"
+                  >
+                    {{ position.groupName }}
+                  </router-link>
+                </div>
                 <div class="text-sm text-gray-500">Position: {{ position.position }} of {{ position.totalMembers }}</div>
               </div>
               <div class="text-right">
