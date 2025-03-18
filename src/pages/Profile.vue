@@ -33,17 +33,36 @@
         <div v-else class="space-y-6">
           <!-- User Info Section -->
           <div class="border-b pb-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Account Information</h2>
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold text-gray-800">Account Information</h2>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <button v-if="!editMode" @click="toggleEditMode" class="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition">
+                        Edit
+                    </button>
+                    <button v-if="editMode" @click="cancelChanges" class="px-3 py-1 bg-gray-300 text-gray-800 rounded-md text-sm hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button v-if="editMode" @click="saveChanges" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
+                        Save
+                    </button>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p class="text-sm text-gray-500">Email</p>
                 <p class="text-gray-800">{{ userStore.user.email }}</p>
               </div>
               <div>
+                <p class="text-sm text-gray-500">Username</p>
+                <input v-if="editMode" type="text" class="w-full border p-2 rounded-md" v-model="userData.username" placeholder="Enter username">
+                <p v-else class="text-gray-800">{{ userStore.userProfile.username }}</p>
+              </div>
+              <div>
                 <p class="text-sm text-gray-500">Account ID</p>
                 <p class="text-gray-800">{{ userStore.user.id }}</p>
               </div>
             </div>
+            <p v-if="errorMessage" class="text-red-500 text-center mt-4">{{ errorMessage }}</p>
           </div>
 
           <!-- Account Actions -->
@@ -71,25 +90,56 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router'
-import { userStore } from '../store/userStore'
+import { userStore } from '../store/userStore';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
-export default {
-  name: 'ProfilePage',
-  setup() {
-    const router = useRouter()
+const router = useRouter();
+const editMode = ref(false);
+const errorMessage = ref('');
+const userData = ref({ username: userStore.userProfile.username });
 
-    const handleLogout = async () => {
-      const { error } = await userStore.signOut()
-      if (!error) {
-        router.push('/login')
+const toggleEditMode = () => {
+  editMode.value = true;
+}
+
+const cancelChanges = () => {
+  editMode.value = false;
+}
+
+const saveChanges = async () => {
+  if (userData.value.username == '') {
+    errorMessage.value = 'You need to enter a username.';
+    return;
+  } else {
+    try {
+      const { data: profileData, error: profileError } = await userStore.updateProfile({username: userData.value.username});
+
+      if (profileError) {
+        errorMessage.value = profileError;
+      } else {
+        toast("Profile updated successfully!", {
+            "type": "success",
+            "position": "top-center"
+        });
+        errorMessage.value = '';
+        editMode.value = false;
       }
-    }
-    return {
-      userStore,
-      handleLogout
+    } catch (err) {
+      console.error(err);
+      errorMessage.value = err;
     }
   }
 }
+
+const handleLogout = async () => {
+  const { error } = await userStore.signOut()
+  if (!error) {
+    router.push('/login')
+  }
+}
 </script>
+

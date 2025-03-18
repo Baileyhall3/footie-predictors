@@ -53,6 +53,13 @@ export const groupsService = {
       });
   
       if (memberError) throw memberError;
+
+      const { error: leaderboardError } = await supabaseDb.create('leaderboard', {
+        user_id: adminId,
+        group_id: group.id,
+      });
+
+      if (leaderboardError) throw leaderboardError;
   
       return { data: group, error: null };
     } catch (error) {

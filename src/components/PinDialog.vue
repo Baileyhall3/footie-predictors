@@ -63,7 +63,7 @@ const show = () => {
 
 const confirm = () => {
     const enteredPin = pin.value.join("");
-
+    console.log(enteredPin, props.groupPin)
     if (enteredPin === props.groupPin) {
         emit("submit-pin", enteredPin);
         isVisible.value = false;

@@ -426,6 +426,7 @@ async function updateMemberStatus(isJoining) {
     }
 
   } else {
+    // confirm dialog?
     const userMembership = members.value.filter(x => x.id === userStore.user.id);
     try {
       const { success, error: leaveError } = await groupsStore.removeMember(

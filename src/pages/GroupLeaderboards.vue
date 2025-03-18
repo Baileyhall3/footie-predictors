@@ -146,12 +146,12 @@ async function fetchAllData() {
     if (gameweeksData.length > 0) {
         const activeGameweek = gameweeksData.filter(x => x.is_active);
         currentGameweek.value = activeGameweek.length > 0 ? activeGameweek[0] : {};
+        
+        // Fetch gameweek leaderboard
+        const { data: scoresData, error: scoresError } = await leaderboardStore.fetchGameweekScores(currentGameweek.value.group_id, currentGameweek.value.id);
+        if (scoresError) throw new Error('Failed to load gameweek leaderboard');
+        scores.value = scoresData || [];
     }
-
-    // Fetch gameweek leaderboard
-    const { data: scoresData, error: scoresError } = await leaderboardStore.fetchGameweekScores(currentGameweek.value.group_id, currentGameweek.value.id);
-    if (scoresError) throw new Error('Failed to load gameweek leaderboard');
-    scores.value = scoresData || [];
 
     // if (scores.value.length > 0) {
     //     scoresLastUpdated.value = new Date(scores.value[0].last_updated);
