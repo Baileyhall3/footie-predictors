@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto px-6 py-8">
+    <div class="container mx-auto py-8">
         <LoadingScreen v-if="loading" />
 
         <div class="mb-1 ms-1">
@@ -19,6 +19,10 @@
         </div>
 
         <!-- Predictions Section -->
+        <!-- <div class="mb-8 justify-start flex">
+            <SearchBar @search-entered="handleSearchQuery" />
+        </div>
+        <p class="ms-3 mb-3" style="align-self: end;" v-if="searchString">Showing predictions for "{{ searchString }}"</p> -->
         <div v-for="(userPredictions, username) in groupedPredictions" :key="username" class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <h3 class="text-xl font-semibold">{{ username }}'s Predictions</h3>
             <ScoreCard 
@@ -41,6 +45,7 @@ import { gameweeksService } from '../api/gameweeksService';
 import { predictionsService } from '../api/predictionsService';
 import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from '../components/ScoreCard.vue';
+import SearchBar from '../components/UI/SearchBar.vue';
 
 const route = useRoute();
 
@@ -50,6 +55,7 @@ const gameweekId = ref();
 const gameweek = ref([]);
 const predictions = ref([]);
 const totalPoints = ref();
+const searchString = ref('')
 
 // Group predictions by user
 const groupedPredictions = computed(() => {
@@ -72,7 +78,7 @@ const groupedPredictions = computed(() => {
 });
 
 function getTotalPoints(userPredictionsss) {
-    debugger
+    return;
 }
 
 onMounted(async () => {
@@ -95,8 +101,7 @@ async function fetchGameweek() {
     mapPredictions();
 }
 
-async function mapPredictions() {
-    // Fetch matches and predictions
+async function mapPredictions(searchQuery: string = null) {
     const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
         gameweeksService.getMatches(gameweekId.value),
         predictionsService.getGameweekPredictions(gameweekId.value)
@@ -104,9 +109,18 @@ async function mapPredictions() {
 
     matches.value = matchData;
     predictions.value = predictionsData || [];
+
+    if (searchQuery && searchQuery != "" && predictions.value.length > 0) {
+        loading.value = true;
+        predictions.value = predictionsData.filter(x => x.users.username.toLowerCase().includes(searchQuery));
+    }
     
     loading.value = false;
+}
 
+async function handleSearchQuery(searchQuery: string) {
+    searchString.value = searchQuery;
+    mapPredictions(searchQuery.toLowerCase())
 }
 
 </script>

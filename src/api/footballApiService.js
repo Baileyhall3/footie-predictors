@@ -55,17 +55,62 @@ export const footballApiService = {
   /**
    * Fetch upcoming matches for a league
    * @param {number} leagueId - League ID
+   * @param {number} teamId - Team ID
    * @returns {Promise<{data: Array, error: Object}>}
    */
-  async getMatches(leagueId) {
+  async getMatches(leagueId, teamId) {
     try {
-      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`, {
+      let response = null;
+      
+      if (leagueId) {
+        response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`, {
+          headers: { 'X-Auth-Token': API_KEY }
+        });  
+      } else if (teamId) {
+        response = await fetch(`${BASE_URL}/teams/${teamId}/matches`, {
+          headers: { 'X-Auth-Token': API_KEY }
+        });  
+      }
+      const data = await response.json();
+      return { data: data.matches, error: null };
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Fetch teams for a league
+   * @param {number} leagueId - League ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getTeams(leagueId) {
+    try {
+      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/teams`, {
+        headers: { 'X-Auth-Token': API_KEY }
+      });  
+      const data = await response.json();
+      return { data: data.teams, error: null };
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Fetch upcoming matches for a particular team
+   * @param {number} teamId - Team ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getMatchesForTeam(teamId) {
+    try {
+      const response = await fetch(`${BASE_URL}/teams/${teamId}/matches`, {
         headers: { 'X-Auth-Token': API_KEY }
       });  
       const data = await response.json();
       return { data: data.matches, error: null };
     } catch (error) {
-      console.error('Error fetching matches:', error);
+      console.error('Error fetching matches for team:', error);
       return { data: null, error };
     }
   },

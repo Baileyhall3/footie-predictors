@@ -11,10 +11,10 @@
       </div>
 
       <!-- Active Gameweek Checkbox -->
-      <div class="mb-4 flex items-center">
+      <!-- <div class="mb-4 flex items-center">
           <input type="checkbox" id="setActive" v-model="setActive" class="mr-2">
           <label for="setActive" class="text-sm font-medium text-gray-700">Set Active</label>
-      </div>
+      </div> -->
 
       <!-- Set Manually Checkbox -->
       <div class="mb-4 flex items-center">
@@ -43,6 +43,29 @@
                       class="p-2 hover:bg-gray-100 flex items-center cursor-pointer">
                     <img :src="league.emblem" alt="League Emblem" class="w-6 h-6 mr-2">
                     {{ league.name }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mb-4" ref="teamsDropdown" v-if="selectedLeague">
+              <label class="block text-sm font-medium text-gray-700">Select Team (optional)</label>
+              <div class="relative">
+                <button @click="toggleTeamsDropdown"
+                        class="mt-1 p-2 w-full border rounded-md flex justify-between items-center">
+                  <span v-if="selectedTeam">
+                    <img :src="selectedTeam.crest" alt="Team Crest" class="w-6 h-6 inline-block mr-2">
+                    {{ selectedTeam.shortName }}
+                  </span>
+                  <span v-else>Select a team</span>
+                </button>
+                
+                <ul v-if="teamsDropdownOpen" class="absolute left-0 right-0 bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto z-20">
+                  <li v-for="team in teams" :key="team.id" 
+                      @click="selectTeam(team)"
+                      class="p-2 hover:bg-gray-100 flex items-center cursor-pointer">
+                    <img :src="team.crest" alt="Team Crest" class="w-6 h-6 mr-2">
+                    {{ team.shortName }}
                   </li>
                 </ul>
               </div>
@@ -141,6 +164,7 @@ const group = ref(null);
 const weekNumber = ref(1);
 const deadline = ref('');
 const leagues = ref([]);
+const teams = ref([]);
 const matches = ref([]);
 const selectedLeague = ref();
 const manuallySelectedMatch = ref({
@@ -149,6 +173,7 @@ const manuallySelectedMatch = ref({
   match_time: null
 });
 const selectedMatch = ref();
+const selectedTeam = ref();
 const selectedMatches = ref([]);
 const setManually = ref(false);
 const setActive = ref(true);
@@ -157,12 +182,18 @@ const errorMessage = ref();
 
 const leagueDropdownOpen = ref(false);
 const leagueDropdown = ref(null);
+const teamsDropdownOpen = ref(false);
+const teamsDropdown = ref(null);
 const matchesDropdownOpen = ref(false);
 const matchesDropdown = ref(null);
 
 const toggleLeagueDropdown = () => {
   leagueDropdownOpen.value = !leagueDropdownOpen.value;
 };
+
+const toggleTeamsDropdown = () => {
+  teamsDropdownOpen.value = !teamsDropdownOpen.value
+}
 
 const toggleMatchesDropdown = () => {
   matchesDropdownOpen.value = !matchesDropdownOpen.value;
@@ -173,14 +204,24 @@ const handleClickOutside = (event) => {
   if (leagueDropdown.value && !leagueDropdown.value.contains(event.target)) {
     leagueDropdownOpen.value = false;
   }
+  if (teamsDropdown.value && !teamsDropdown.value.contains(event.target)) {
+    teamsDropdownOpen.value = false;
+  }
   if (matchesDropdown.value && !matchesDropdown.value.contains(event.target)) {
     matchesDropdownOpen.value = false;
   }
 };
 
-const selectLeague = (league) => {
+const selectLeague = async(league) => {
   selectedLeague.value = league;
   leagueDropdownOpen.value = false;
+  const { data: teamsData } = await footballApiService.getTeams(league.id);
+  teams.value = teamsData;
+};
+
+const selectTeam = async(team) => {
+  selectedTeam.value = team;
+  teamsDropdownOpen.value = false;
 };
 
 const selectMatch = (match) => {
@@ -218,7 +259,11 @@ onMounted(async () => {
 });
 
 watch(() => selectedLeague.value, (newVal) => {
-  fetchMatches(newVal.id);
+  fetchMatches(newVal.id, null);
+});
+
+watch(() => selectedTeam.value, (newVal) => {
+  fetchMatches(null, newVal.id);
 });
 
 // Fetch leagues from football-data.org API
@@ -229,8 +274,8 @@ async function fetchLeagues() {
 }
 
 // Fetch matches for a selected league
-async function fetchMatches(leagueId) {
-  const { data: matchesData } = await footballApiService.getMatches(leagueId);
+async function fetchMatches(leagueId, teamId) {
+  const { data: matchesData } = await footballApiService.getMatches(leagueId, teamId);
 
   const today = new Date();
   const oneWeekAgo = new Date();
