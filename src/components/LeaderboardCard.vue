@@ -7,7 +7,16 @@
     </div>
     
     <div class="text-right">
-      <span class="font-semibold text-green-600">{{ player.total_points }} pts</span>
+      <span v-if="!props.editable" class="font-semibold text-green-600">{{ player.total_points }} pts</span>
+      <template v-if="props.editable">
+        <input type="number" 
+            v-model="player.total_points"
+            @input="updateScore(player.id, player.user_id, $event.target.value)"
+            class="w-12 border rounded-md p-1 text-center" 
+            min="0" 
+        />
+        <span class="text-green-600 font-semibold"> pts</span>
+      </template>
       <div class="text-xs text-gray-500">
         {{ player.total_correct_scores }} exact scores
       </div>
@@ -30,8 +39,14 @@ interface LeaderboardEntry {
   
 export interface IProps {
   leaderboard: LeaderboardEntry[];
+  editable?: boolean;
 }
   
 const props = defineProps<IProps>();
+const emit = defineEmits(["update-leaderboard-entry"]);
+
+const updateScore = (leaderboardId: string, userId: string, value: string) => {
+    emit("update-leaderboard-entry", { leaderboardId, userId, value: parseInt(value) || 0 });
+};
 
 </script>  

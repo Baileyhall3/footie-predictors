@@ -1,5 +1,5 @@
 <template>
-    <div v-for="(matchGroup, day) in groupedMatches" :key="day" class="mt-6">
+    <div v-for="(matchGroup, day) in groupedMatches" :key="day" :class="'mt-' + props.topMargin">
         <h3 class="text-lg mb-2">{{ day }}</h3>
 
         <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
@@ -115,12 +115,14 @@ export interface IProps {
     isAdmin?: boolean;
     canRemove?: boolean;
     totalPoints?: number
+    topMargin?: number;
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
     locked: false, 
-    isAdmin: false ,
-    canRemove: false
+    isAdmin: false,
+    canRemove: false,
+    topMargin: 6
 });
 const emit = defineEmits(["update-prediction", "update-score", "match-removed"]);
 

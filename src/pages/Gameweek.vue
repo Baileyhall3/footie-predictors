@@ -372,19 +372,17 @@ async function saveScores() {
         await predictionsStore.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
         await predictionsService.calculateMatchScores(match.id);
       }
-      loading.value = false;
     } catch(err) {
-      console.error(err);
-      loading.value = false;
-
+      console.error(err);      
     }
   }
-
+  
   toast("Final scores have been saved!", {
     "type": "success",
     "position": "top-center"
   });
-
+  
+  loading.value = false;
   matchesChanged.value = false;
   
 }

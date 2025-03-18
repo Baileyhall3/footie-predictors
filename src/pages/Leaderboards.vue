@@ -10,18 +10,18 @@
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-xl font-semibold">
                                     <router-link 
-                                        :to="`/group/${group.id}`" 
+                                        :to="`/group/${group.id}/leaderboards`" 
                                         class="text-blue-600 hover:underline"
                                     >
                                         {{ group.name }}
                                     </router-link>
                                 </h3>
-                                <router-link 
+                                <!-- <router-link 
                                     :to="`/group/${group.id}/leaderboards`" 
                                     class="text-sm text-blue-600 hover:underline"
                                 >
                                     View Full Leaderboard →
-                                </router-link>
+                                </router-link> -->
                             </div>
                             
                             <div v-if="group.leaderboard && group.leaderboard.length">
@@ -30,6 +30,11 @@
                                 />
                             </div>
                             <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
+                            <!-- <div class="p-4">
+                                <router-link to="/leaderboards" class="text-green-600 font-medium hover:text-green-700 text-sm">
+                                View all leaderboards →
+                                </router-link>
+                            </div> -->
                         </div>
                     </div>
                 </template>

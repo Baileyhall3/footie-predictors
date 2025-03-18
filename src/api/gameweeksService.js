@@ -306,37 +306,57 @@ export const gameweeksService = {
   },
 
   /**
-   * Get upcoming matches for a group
+   * Get upcoming matches for a group with team names and crests
    * @param {string} groupId - Group ID
    * @returns {Promise<{data: Array, error: Object}>}
    */
   async getUpcomingMatches(groupId) {
     try {
-      const now = new Date().toISOString()
+      const now = new Date().toISOString();
       
       const { data, error } = await supabaseDb.customQuery((supabase) =>
         supabase
           .from('matches')
           .select(`
-            *,
+            id,
+            match_time,
+            api_match_id,
+            home_team_api_id,
+            away_team_api_id,
             gameweeks!inner (
               id,
               week_number,
               deadline,
               group_id
-            )
+            ),
+            home_club:clubs!home_team_api_id(api_club_id, name, crest_url),
+            away_club:clubs!away_team_api_id(api_club_id, name, crest_url)
           `)
           .eq('gameweeks.group_id', groupId)
           .gt('match_time', now)
           .order('match_time', { ascending: true })
-      )
+      );
 
-      if (error) throw error
+      if (error) throw error;
 
-      return { data, error: null }
+      // Transform the data into the required format
+      const formattedData = data.map(match => ({
+        id: match.id,
+        match_time: match.match_time,
+        api_match_id: match.api_match_id,
+        home_team_id: match.home_team_api_id,
+        home_team: match.home_club?.name || "Unknown",
+        home_team_crest: match.home_club?.crest_url || null,
+        away_team_id: match.away_team_api_id,
+        away_team: match.away_club?.name || "Unknown",
+        away_team_crest: match.away_club?.crest_url || null,
+        gameweeks: match.gameweeks
+      }));
+
+      return { data: formattedData, error: null };
     } catch (error) {
-      console.error('Error fetching upcoming matches:', error)
-      return { data: null, error }
+      console.error('Error fetching upcoming matches:', error);
+      return { data: null, error };
     }
   },
 

@@ -21,11 +21,27 @@
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold">All Time</h3>
+                <div v-if="isAdmin" class="mt-4 flex flex-wrap gap-2">
+                    <button v-if="!editMode" @click="toggleEditMode" class="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition">
+                        Edit
+                    </button>
+                    <button v-if="editMode" @click="cancelChanges" class="px-3 py-1 bg-gray-300 text-gray-800 rounded-md text-sm hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button v-if="editMode" @click="saveChanges" :disabled="!hasLeaderboardChanges" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
+                        Save
+                    </button>
+                </div>
             </div>
+
+            <p v-if="leaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
+
             
             <div v-if="leaderboard.length">
                 <LeaderboardCard 
                     :leaderboard="leaderboard"
+                    :editable="editMode"
+                    @update-leaderboard-entry="handleLeaderboardUpdate"
                 />
             </div>
             <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
@@ -65,6 +81,15 @@ import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
 import { leaderboardStore } from '../store/leaderboardStore';
 import LeaderboardCard from '../components/LeaderboardCard.vue';
+import { leaderboardService } from '../api/leaderboardService';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
+
+interface LeaderboardRecord {
+  id: string;
+  user_id: string;
+  total_points: number;
+}
 
 const route = useRoute();
 const router = useRouter();
@@ -77,6 +102,11 @@ const isAdmin = ref(false)
 const leaderboard = ref([]);
 const currentGameweek = ref({});
 const scores = ref([]);
+const leaderboardLastUpdated = ref();
+const scoresLastUpdated = ref();
+const editMode = ref(false);
+const changedRecords = ref(<LeaderboardRecord[]>([])); 
+const hasLeaderboardChanges = ref(false);
 
 onMounted(async () => {
     fetchAllData();
@@ -105,6 +135,10 @@ async function fetchAllData() {
     if (leaderboardError) throw new Error('Failed to load leaderboard');
     leaderboard.value = leaderboardData || [];
 
+    if (leaderboard.value.length > 0) {
+        leaderboardLastUpdated.value = new Date(leaderboard.value[0].last_updated);
+    }
+
     // Fetch gameweeks
     const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getGameweeks(groupId.value);
     if (gameweeksError) throw new Error('Failed to load gameweeks');
@@ -119,12 +153,60 @@ async function fetchAllData() {
     if (scoresError) throw new Error('Failed to load gameweek leaderboard');
     scores.value = scoresData || [];
 
+    // if (scores.value.length > 0) {
+    //     scoresLastUpdated.value = new Date(scores.value[0].last_updated);
+    // }
+
     loading.value = false;
 
-    // Fetch current gameweek leaderboard
-    // const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGameweekScores(gameweek.value.group_id, gameweek.value.id);
-    // if (leaderboardError) throw new Error('Failed to load leaderboard');
-    // leaderboard.value = leaderboardData || [];
 }
 
+const toggleEditMode = () => {
+    editMode.value = true;
+}
+
+const cancelChanges = () => {
+    changedRecords.value.splice(0, changedRecords.value.length);
+    editMode.value = false;
+}
+
+const handleLeaderboardUpdate = ({ leaderboardId, userId, value }) => {
+    hasLeaderboardChanges.value = true;
+
+    const existingRecordIndex = changedRecords.value.findIndex(
+        record => record.id === leaderboardId
+    );
+
+    if (existingRecordIndex !== -1) {
+        changedRecords.value[existingRecordIndex].total_points = value;
+    } else {
+        changedRecords.value.push({
+            id: leaderboardId,
+            user_id: userId,
+            total_points: value
+        });
+    }
+};
+
+async function saveChanges() {
+    loading.value = true;
+
+    for (const record of changedRecords.value) {
+        try {
+            await leaderboardService.updateUserTotalPoints(record.id, record.user_id, groupId.value, record.total_points);
+        } catch(err) {
+            console.error(err);
+        }
+    }
+
+    toast("Leaderboard records have been updated!", {
+        "type": "success",
+        "position": "top-center"
+    });
+
+    loading.value = false;
+    editMode.value = false;
+    hasLeaderboardChanges.value = false;
+    changedRecords.value.splice(0, changedRecords.value.length);
+}
 </script>

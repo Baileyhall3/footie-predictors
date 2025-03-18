@@ -22,11 +22,11 @@
         <!-- Admin Controls (only visible to the admin) -->
         <div v-if="isAdmin" class="mt-4 flex flex-wrap gap-2">
           <router-link :to="`/group/${group.id}/update-group`">
-            <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+            <button class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition">
               Edit
             </button>
           </router-link>
-          <button @click="copyGroupLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
+          <button @click="copyGroupLink" class="px-3 py-1 bg-blue-500 text-white rounded-md">
             <div class="justify-between items-center flex">
               Share
               <ShareIcon class="text-white size-4 ms-2" />
@@ -34,10 +34,10 @@
           </button>
         </div>
         <div v-else class="mt-4 flex flex-wrap gap-2">
-          <button v-if="notInGroup" @click="tryJoinGroup()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+          <button v-if="notInGroup" @click="tryJoinGroup()" class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition">
               Join
           </button>
-          <button v-else @click="updateMemberStatus(false)" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+          <button v-else @click="updateMemberStatus(false)" class="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition">
               Leave
           </button>
         </div>

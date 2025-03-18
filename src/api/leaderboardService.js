@@ -222,5 +222,21 @@ export const leaderboardService = {
       console.error('Error fetching user position:', error)
       return { data: null, error }
     }
-  }
+  },
+
+  /**
+   * Update a leaderboard record for a user
+   * @param {string} leaderboardId - Leaderboard record ID
+   * @param {string} userId - User ID
+   * @param {string} groupId - Group ID
+   * @param {number} totalPoints - User's total points value
+   * @returns {Promise<{data: Object, error: Object}>}
+   */
+  async updateUserTotalPoints(leaderboardId, userId, groupId, totalPoints) {
+      return supabaseDb.update('leaderboard', leaderboardId, {
+        user_id: userId,
+        group_id: groupId,
+        total_points: totalPoints
+      })
+  },
 }
