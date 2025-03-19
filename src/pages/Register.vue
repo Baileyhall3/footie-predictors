@@ -116,63 +116,46 @@
   </div>
 </template>
 
-<script>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { userStore } from '../store/userStore'
+<script setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { userStore } from '../store/userStore';
 
-export default {
-  name: 'RegisterPage',
-  setup() {
-    const router = useRouter()
-    const email = ref('')
-    const username = ref('')
-    const password = ref('')
-    const confirmPassword = ref('')
-    const successMessage = ref('')
+const router = useRouter();
+const email = ref('');
+const username = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const successMessage = ref('');
 
-    const passwordsMatch = computed(() => {
-      return !password.value || !confirmPassword.value || password.value === confirmPassword.value
-    })
+const passwordsMatch = computed(() => {
+  return !password.value || !confirmPassword.value || password.value === confirmPassword.value;
+});
 
-    const isFormValid = computed(() => {
-      return email.value && username.value && password.value && confirmPassword.value
-    })
+const isFormValid = computed(() => {
+  return email.value && username.value && password.value && confirmPassword.value;
+});
 
-    const handleRegister = async () => {
-      if (!passwordsMatch.value || !isFormValid.value) {
-        return
-      }
-
-      const { data, error } = await userStore.signUp(email.value, password.value, username.value)
-      
-      if (!error) {
-        successMessage.value = 'Registration successful! Please check your email to confirm your account.'
-        
-        // Clear form
-        email.value = ''
-        username.value = ''
-        password.value = ''
-        confirmPassword.value = ''
-        
-        // Redirect to login after a delay
-        setTimeout(() => {
-          router.push('/login')
-        }, 3000)
-      }
-    }
-
-    return {
-      email,
-      username,
-      password,
-      confirmPassword,
-      passwordsMatch,
-      isFormValid,
-      successMessage,
-      userStore,
-      handleRegister
-    }
+const handleRegister = async () => {
+  if (!passwordsMatch.value || !isFormValid.value) {
+    return;
   }
-}
+
+  const { data, error } = await userStore.signUp(email.value, password.value, username.value);
+  
+  if (!error) {
+    successMessage.value = 'Registration successful! Please check your email to confirm your account.';
+    
+    // Clear form
+    email.value = '';
+    username.value = '';
+    password.value = '';
+    confirmPassword.value = '';
+    
+    // Redirect to login after a delay
+    setTimeout(() => {
+      router.push('/login');
+    }, 3000);
+  }
+};
 </script>

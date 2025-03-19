@@ -18,12 +18,13 @@
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
           <div class="flex items-center gap-2 mb-4">
             <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
+            <LockClosedIcon class="size-6 ms-1" v-if="gameweek?.is_locked" />
             <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
               Active
             </div>
-            <div v-if="gameweek?.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
+            <!-- <div v-if="gameweek?.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
               Locked
-            </div>
+            </div> -->
           </div>
           <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
       
@@ -84,9 +85,18 @@
           <!-- Predictions -->
           <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <div>
-              <div class="items-center flex">
-                <h3 class="text-xl font-semibold">Your Predictions</h3>
-                <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
+              <div class="flex justify-between items-center mb-4">
+                <div class="items-center flex">
+                  <h3 class="text-xl font-semibold">Your Predictions</h3>
+                  <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
+                </div>
+                <router-link 
+                  :to="`/gameweek-predictions/${gameweekId}`" 
+                  v-if="gameweek?.is_locked"
+                  class="text-sm text-blue-600 hover:underline"
+                >
+                  View All →
+                </router-link>
               </div>
               
               <template v-if="Object.keys(predictions).length > 0">

@@ -186,7 +186,7 @@
   </div>
 
   <PinDialog ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
-  <DeleteConfirm ref="removeMemberConfirm" title="Remove Member" :message="removeMemberDialogMsg" />
+  <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
   <CreateGroupMember ref="createMemberDialog" :groupId="groupId" @user-created="getGroupMembers()" />
 </template>
 
@@ -232,7 +232,9 @@ const matches = ref([]);
 const gameweekIsLocked = ref(false);
 const currentGameweekId = ref();
 const notInGroup = ref(false);
-const removeMemberDialogMsg = ref('');
+const deleteConfirmMsg = ref('');
+const deleteConfirmTitle = ref('');
+const deleteConfirmText = ref('Confirm');
 const leaderboardLastUpdated = ref();
 
 // Computed properties
@@ -384,7 +386,9 @@ async function submitPredictions() {
 }
 
 const confirmRemoveMember = async (member) => {
-  removeMemberDialogMsg.value = `Are you sure you want to remove ${member.username} from the group? ${member.is_fake ? ' This will also delete this user.' : ''}`
+  deleteConfirmMsg.value = `Are you sure you want to remove ${member.username} from the group? ${member.is_fake ? ' This will also delete this user.' : ''}`;
+  deleteConfirmTitle.value = 'Remove Member';
+  deleteConfirmText.value = 'Confirm';
   const confirmed = await removeMemberConfirm.value?.show();
   if (confirmed) {
     try {
@@ -431,24 +435,29 @@ async function updateMemberStatus(isJoining) {
     }
 
   } else {
-    // confirm dialog?
     const userMembership = members.value.filter(x => x.id === userStore.user.id);
-    try {
-      const { success, error: leaveError } = await groupsStore.removeMember(
-        userMembership[0].membership_id, 
-        groupId.value
-      );
-  
-      if (leaveError) throw new Error('Failed to leave group');
-      else {
-        toast("Successfully left group.", {
-          "type": "success",
-          "position": "top-center"
-        });
-        router.push(`/groups`);
+    deleteConfirmMsg.value = `Are you sure you want to leave ${group.value.name}? All of your leaderboard data will be erased.`;
+    deleteConfirmTitle.value = 'Leave Group';
+    deleteConfirmText.value = 'Leave';
+    const confirmed = await removeMemberConfirm.value?.show();
+    if (confirmed) {
+      try {
+        const { success, error: leaveError } = await groupsStore.removeMember(
+          userMembership[0].membership_id, 
+          groupId.value
+        );
+    
+        if (leaveError) throw new Error('Failed to leave group');
+        else {
+          toast("Successfully left group.", {
+            "type": "success",
+            "position": "top-center"
+          });
+          router.push(`/groups`);
+        }
+      } catch (err) {
+        error.value = err.message || 'An error occurred while leaving group';
       }
-    } catch (err) {
-      error.value = err.message || 'An error occurred while leaving group';
     }
   }
 }

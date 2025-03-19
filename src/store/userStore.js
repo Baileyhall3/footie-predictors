@@ -161,6 +161,11 @@ export const userStore = {
     try {
       state.loading = true
       state.error = null
+
+      if (!email) {
+        state.error = 'Please enter your email address';
+        return;
+      }
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

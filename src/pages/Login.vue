@@ -30,7 +30,6 @@
               name="email"
               type="email"
               autocomplete="email"
-              required
               v-model="email"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Email address"
@@ -38,16 +37,21 @@
           </div>
           <div>
             <label for="password" class="sr-only">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              v-model="password"
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Password"
-            />
+            <div class="relative">
+              <input
+                id="password"
+                name="password"
+                :type="isViewingPassword ? 'text' : 'password'"
+                autocomplete="current-password"
+                v-model="password"
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+              />
+              <button type="button" class="absolute inset-y-0 right-3 flex items-center" @click="togglePasswordVisibility">
+                <EyeIcon class="size-6" v-if="!isViewingPassword"  />
+                <EyeSlashIcon class="size-6" v-else />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -65,11 +69,11 @@
             </label>
           </div>
 
-          <div class="text-sm">
+          <!-- <div class="text-sm">
             <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500" @click.prevent="forgotPassword">
               Forgot your password?
             </a>
-          </div>
+          </div> -->
         </div>
 
         <div>
@@ -99,51 +103,43 @@
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { userStore } from '../store/userStore';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/24/outline";
 
-export default {
-  name: 'LoginPage',
-  setup() {
-    const router = useRouter()
-    const email = ref('')
-    const password = ref('')
-    const rememberMe = ref(false)
+const router = useRouter();
+const email = ref('');
+const password = ref('');
+const rememberMe = ref(false);
+const isViewingPassword = ref(false);
 
-    const handleLogin = async () => {
-      const { error } = await userStore.signIn(email.value, password.value)
-      if (!error) {
-        router.push('/')
-      }
-    }
+const togglePasswordVisibility = () => {
+  isViewingPassword.value = !isViewingPassword.value;
+};
 
-    const forgotPassword = async () => {
-      if (!email.value) {
-        userStore.error = 'Please enter your email address'
-        return
-      }
-      
-      const { error } = await userStore.resetPassword(email.value)
-      if (!error) {
-        toast("Password reset email sent. Please check your inbox.", {
-          "type": "info",
-          "position": "top-center"
-        });
-      }
-    }
-
-    return {
-      email,
-      password,
-      rememberMe,
-      userStore,
-      handleLogin,
-      forgotPassword
-    }
+const handleLogin = async () => {
+  const { error } = await userStore.signIn(email.value, password.value);
+  if (!error) {
+    router.push('/');
   }
-}
+};
+
+const forgotPassword = async () => {
+  if (!email.value) {
+    userStore.error = 'Please enter your email address';
+    return;
+  }
+  
+  const { error } = await userStore.resetPassword(email.value);
+  if (!error) {
+    toast("Password reset email sent. Please check your inbox.", {
+      type: "info",
+      position: "top-center",
+    });
+  }
+};
 </script>

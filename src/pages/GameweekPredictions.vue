@@ -23,24 +23,27 @@
             <SearchBar @search-entered="handleSearchQuery" />
         </div>
         <p class="ms-3 mb-3" style="align-self: end;" v-if="searchString">Showing predictions for "{{ searchString }}"</p> -->
-        <div v-for="(userPredictions, username) in groupedPredictions" :key="username" class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <div v-for="username in displayedUsers" :key="username" class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <h3 class="text-xl font-semibold">{{ username }}'s Predictions</h3>
             <ScoreCard 
                 :matches="matches"
-                :predictions="userPredictions"
+                :predictions="groupedPredictions[username] || {}"
                 :locked="true"
-                :totalPoints="getTotalPoints(userPredictions)"
+                :totalPoints="getTotalPoints(groupedPredictions[username] || {})"
             />
             <!-- <div class="p-4 bg-gray-50 border-t border-gray-200">
                 Total Points: 
             </div> -->
         </div>
+
+        <!-- Observer div to trigger lazy loading -->
+        <div ref="loadMoreTrigger" class="h-10"></div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, nextTick } from 'vue';
+import { useRoute } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService';
 import { predictionsService } from '../api/predictionsService';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -55,39 +58,26 @@ const gameweekId = ref();
 const gameweek = ref([]);
 const predictions = ref([]);
 const totalPoints = ref();
-const searchString = ref('')
+const searchString = ref('');
+const usersList = ref([]); 
+const displayedUsersCount = ref(5); // Initial users to display
+const loadMoreTrigger = ref(null); // Observer target
+const groupedPredictions = ref({});
 
-// Group predictions by user
-const groupedPredictions = computed(() => {
-    return predictions.value.reduce((acc, prediction) => {
-        const username = prediction.users?.username ?? "Unknown User";
-        
-        // Ensure matches exist before accessing id
-        if (!prediction.matches || !prediction.matches.id) {
-            console.warn("Skipping invalid prediction:", prediction);
-            return acc; // Skip this prediction if matches is missing
-        }
+const displayedUsers = computed(() => usersList.value.slice(0, displayedUsersCount.value));
 
-        if (!acc[username]) {
-            acc[username] = {};
-        }
-
-        acc[username][prediction.matches.id] = prediction;
-        return acc;
-    }, {});
-});
-
-function getTotalPoints(userPredictionsss) {
-    return;
+function getTotalPoints(userPredictions) {
+    if (!userPredictions) return 0;
+    return Object.values(userPredictions).reduce((total, pred) => total + (pred.points || 0), 0);
 }
 
 onMounted(async () => {
     await fetchGameweek();
+    nextTick(setupLazyLoading);
 });
 
 async function fetchGameweek() {
     loading.value = true;
-
     gameweekId.value = route.params.id || route.query.id;
 
     const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
@@ -98,10 +88,10 @@ async function fetchGameweek() {
     // if (error) return console.error(error);
     // gameweek.value = data;
 
-    mapPredictions();
+    await fetchPredictions();
 }
 
-async function mapPredictions(searchQuery: string = null) {
+async function fetchPredictions() {
     const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
         gameweeksService.getMatches(gameweekId.value),
         predictionsService.getGameweekPredictions(gameweekId.value)
@@ -110,12 +100,39 @@ async function mapPredictions(searchQuery: string = null) {
     matches.value = matchData;
     predictions.value = predictionsData || [];
 
-    if (searchQuery && searchQuery != "" && predictions.value.length > 0) {
-        loading.value = true;
-        predictions.value = predictionsData.filter(x => x.users.username.toLowerCase().includes(searchQuery));
-    }
+    mapPredictions();
     
     loading.value = false;
+}
+
+function mapPredictions(searchQuery: string = null) {
+
+    // if (searchQuery && searchQuery != "" && predictions.value.length > 0) {
+    //     loading.value = true;
+    //     predictions.value = predictionsData.filter(x => x.users.username.toLowerCase().includes(searchQuery));
+    // }
+
+    const grouped = {};
+
+    predictions.value.forEach(prediction => {
+        const username = prediction.users?.username ?? "Unknown User";
+
+        if (!prediction.matches || !prediction.matches.id) {
+            debugger
+            console.warn("Skipping invalid prediction:", prediction);
+            return;
+        }
+
+        if (!grouped[username]) {
+            grouped[username] = {};
+        }
+
+        grouped[username][prediction.matches.id] = prediction;
+    });
+
+    groupedPredictions.value = grouped; 
+    usersList.value = Object.keys(grouped); 
+
 }
 
 async function handleSearchQuery(searchQuery: string) {
@@ -123,4 +140,24 @@ async function handleSearchQuery(searchQuery: string) {
     mapPredictions(searchQuery.toLowerCase())
 }
 
+function setupLazyLoading() {
+    if (!loadMoreTrigger.value) return;
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting) {
+                loadMoreUsers();
+            }
+        },
+        { rootMargin: '100px' }
+    );
+
+    observer.observe(loadMoreTrigger.value);
+}
+
+function loadMoreUsers() {
+    if (displayedUsersCount.value < usersList.value.length) {
+        displayedUsersCount.value += 5;
+    }
+}
 </script>

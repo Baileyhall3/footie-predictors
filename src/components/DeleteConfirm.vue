@@ -9,7 +9,7 @@
                         Cancel
                     </button>
                     <button @click="confirm" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                        Confirm
+                        {{ props.confirmText }}
                     </button>
                 </div>
             </div>
@@ -23,11 +23,13 @@ import { ref } from "vue";
 export interface IProps {
     title: string;
     message: string;
+    confirmText?: string
 }
 
 const props = withDefaults(defineProps<IProps>(), {
     title: 'Confirm Delete',
     message: 'Are you sure you wish to delete? This cannot be undone.',
+    confirmText: 'Confirm'
 });
 
 const isVisible = ref(false);
