@@ -45,7 +45,7 @@ export const gameweeksService = {
           .limit(1)
       )
 
-      if (error) throw error
+      if (error) throw error;
 
       return { data: data?.[0] || null, error: null };
     } catch (error) {
@@ -323,6 +323,8 @@ export const gameweeksService = {
             api_match_id,
             home_team_api_id,
             away_team_api_id,
+            home_team,
+            away_team,
             gameweeks!inner (
               id,
               week_number,
@@ -345,10 +347,10 @@ export const gameweeksService = {
         match_time: match.match_time,
         api_match_id: match.api_match_id,
         home_team_id: match.home_team_api_id,
-        home_team: match.home_club?.name || "Unknown",
+        home_team: match.home_club?.name ?? match.home_team ?? "Unknown",
         home_team_crest: match.home_club?.crest_url || null,
         away_team_id: match.away_team_api_id,
-        away_team: match.away_club?.name || "Unknown",
+        away_team: match.away_club?.name ?? match.away_team ?? "Unknown",
         away_team_crest: match.away_club?.crest_url || null,
         gameweeks: match.gameweeks
       }));

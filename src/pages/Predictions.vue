@@ -93,19 +93,28 @@ async function fetchAllData() {
         const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups(userStore.user?.id);
         if (groupsError) throw new Error("Failed to load user groups");
 
+        // Fetch active gameweeks for each group
         const gameweekPromises = groups.map(group =>
             gameweeksService.getActiveGameweek(group.id)
         );
 
         const gameweeksResults = await Promise.all(gameweekPromises);
+        
+        // Filter out groups that don't have an active gameweek
         const activeGameweeks = gameweeksResults
-        .map(result => result.data)
-        .filter(gameweek => gameweek !== null);
+            .map(result => result.data)
+            .filter(gameweek => gameweek !== null);
+        
+        // If there are no active gameweeks, exit early
+        if (activeGameweeks.length === 0) {
+            userGroups.value = [];
+            return;
+        }
 
+        // Fetch matches and predictions only for active gameweeks
         const matchPromises = activeGameweeks.map(gameweek =>
             gameweeksService.getMatches(gameweek.id)
         );
-
         const predictionPromises = activeGameweeks.map(gameweek =>
             predictionsService.getUserGameweekPredictions(userStore.user?.id, gameweek.id)
         );
@@ -113,11 +122,14 @@ async function fetchAllData() {
         const matchesResults = await Promise.all(matchPromises);
         const predictionsResults = await Promise.all(predictionPromises);
 
+        // Create a mapping of groups to their active gameweek
+        const activeGroups = groups.filter(group => 
+            activeGameweeks.some(gameweek => gameweek.group_id === group.id)
+        );
 
-        userGroups.value = groups.map((group, index) => {
-            const gameweek = activeGameweeks[index];
-            if (!gameweek) return { ...group, gameweek: null };
-
+        // Now, map over the active groups, and assign matches and predictions
+        userGroups.value = activeGroups.map((group, index) => {
+            const gameweek = activeGameweeks[index];  // Ensure that active gameweeks correspond correctly to groups
             const matches = matchesResults[index].data || [];
             const predictionsData = predictionsResults[index].data || [];
 
@@ -162,6 +174,7 @@ async function fetchAllData() {
         isLoading.value = false;
     }
 }
+
 
 const handlePredictionUpdate = ({ group, matchId, field, value }) => {
     group.predictions[matchId][field] = value;

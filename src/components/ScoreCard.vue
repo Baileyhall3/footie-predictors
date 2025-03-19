@@ -11,29 +11,8 @@
                         <img v-if="match.home_team_crest" :src="match.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block ms-2">
                     </span>
                     
-                    <template v-if="props.isAdmin && !match.api_match_id">
-                        <!-- Admin Mode: Editing final scores -->
-                        <input type="number" 
-                            :value="match.final_home_score"
-                            @input="updateScore(match.id, 'final_home_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" 
-                            min="0" 
-                            max="9"
-                            maxlength="1"
-                        />
-                    </template>
-
-                    <template v-else-if="predictions && Object.keys(predictions).length > 0">
-                        <!-- User Mode: Editing Predictions -->
-                        <input v-if="!locked" type="number" 
-                            :value="predictions[match.id]?.predicted_home_score"
-                            @input="updatePrediction(match.id, 'predicted_home_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" 
-                            min="0" 
-                            max="9"
-                            maxlength="1"
-                        />
-                        <span v-else 
+                    <template v-if="predictions && Object.keys(predictions).length > 0">
+                        <span 
                             class="text-md font-bold" 
                             :class="getPredictionColor(predictions[match.id], match)">
                             {{ predictions[match.id]?.predicted_home_score }}
@@ -41,8 +20,8 @@
                     </template>
 
                     <template v-else>
-                        <span v-if="match.final_home_score !== null" class="text-md font-bold">
-                            {{ match.final_home_score }}
+                        <span class="text-md font-bold">
+                            {{ match.final_home_score === null && !match.api_match_id && props.isAdmin ? 0 : match.final_home_score }}
                         </span>
                     </template>
                 </div>
@@ -51,29 +30,8 @@
 
                 <!-- Away Team and Score -->
                 <div class="flex items-center space-x-2 justify-start" style="width: 100%;">
-                    <template v-if="props.isAdmin && !match.api_match_id">
-                        <!-- Admin Mode: Editing final scores -->
-                        <input type="number" 
-                            :value="match.final_away_score"
-                            @input="updateScore(match.id, 'final_away_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" 
-                            min="0" 
-                            max="9"
-                            maxlength="1" 
-                        />
-                    </template>
-
-                    <template v-else-if="predictions && Object.keys(predictions).length > 0">
-                        <!-- User Mode: Editing Predictions -->
-                        <input v-if="!locked" type="number" 
-                            :value="predictions[match.id]?.predicted_away_score"
-                            @input="updatePrediction(match.id, 'predicted_away_score', $event.target.value)"
-                            class="w-10 border rounded-md p-1 text-center" 
-                            min="0" 
-                            max="9"
-                            maxlength="1" 
-                        />
-                        <span v-else 
+                    <template v-if="predictions && Object.keys(predictions).length > 0">
+                        <span 
                             class="text-md font-bold" 
                             :class="getPredictionColor(predictions[match.id], match)">
                             {{ predictions[match.id]?.predicted_away_score }}
@@ -81,8 +39,8 @@
                     </template>
 
                     <template v-else>
-                        <span v-if="match.final_away_score !== null" class="text-md font-bold">
-                            {{ match.final_away_score }}
+                        <span class="text-md font-bold">
+                            {{ match.final_away_score === null && !match.api_match_id && props.isAdmin ? 0 : match.final_away_score }}
                         </span>
                     </template>
 
@@ -91,12 +49,34 @@
                         {{ match.away_team }}
                     </span>
                 </div>
-
             </div>
             
             <div class="text-gray-500 text-sm mt-1">
                 {{ DateUtils.toTime(match.match_time) }}
             </div>
+            
+            <div class="justify-between flex gap-8 h-5" v-if="!props.locked && props.predictions && Object.keys(props.predictions).length > 0">
+                <div class="flex rounded overflow-hidden items-center flex-start">
+                    <button @click="updatePrediction(match, 'predicted_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
+                    <button @click="updatePrediction(match, 'predicted_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
+                </div>
+                <div class="flex rounded overflow-hidden items-center">
+                    <button @click="updatePrediction(match, 'predicted_away_score', -1)" class="bg-gray-400 text-white px-2 py-1">-</button>
+                    <button @click="updatePrediction(match, 'predicted_away_score', 1)" class="bg-blue-500 text-white px-2 py-1">+</button>
+                </div>
+            </div>
+
+            <div class="justify-between flex gap-8 h-5" v-if="props.isAdmin && !match.api_match_id">
+                <div class="flex rounded overflow-hidden items-center flex-start">
+                    <button @click="updateScore(match, 'final_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
+                    <button @click="updateScore(match, 'final_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
+                </div>
+                <div class="flex rounded overflow-hidden items-center">
+                    <button @click="updateScore(match, 'final_away_score', -1)" class="bg-gray-400 text-white px-2 py-1">-</button>
+                    <button @click="updateScore(match, 'final_away_score', 1)" class="bg-blue-500 text-white px-2 py-1">+</button>
+                </div>
+            </div>
+
             <button v-if="props.canRemove && !props.locked" @click="removeMatch(match.id)" class="text-red-500">Remove</button>
         </div>
     </div>
@@ -135,18 +115,20 @@ const groupedMatches = computed(() => {
     }, {});
 });
 
-// const totalPoints = computed(() => {
-
-// })
-
 // Emit event when prediction changes (User Mode)
-const updatePrediction = (matchId: string, field: string, value: string) => {
-    emit("update-prediction", { matchId, field, value: parseInt(value) || 0 });
+const updatePrediction = (match: any, field: string, increment: number) => {
+    const currentScore = Number(match[field]) || 0; // Ensure it's a number
+    const newScore = Math.max(0, currentScore + increment); // Prevent negative values
+    match[field] = newScore;
+    emit("update-prediction", { matchId: match.id, field, value: newScore });
 };
 
 // Emit event when final score changes (Admin Mode)
-const updateScore = (matchId: string, field: string, value: string) => {
-    emit("update-score", { matchId, field, value: parseInt(value) || 0 });
+const updateScore = (match: any, field: string, increment: number) => {
+    const currentScore = Number(match[field]) || 0; // Ensure it's a number
+    const newScore = Math.max(0, currentScore + increment); // Prevent negative values
+    match[field] = newScore;
+    emit("update-score", { matchId: match.id, field, value: newScore });
 };
 
 // Emit event when final score changes (Admin Mode)

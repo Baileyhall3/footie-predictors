@@ -29,24 +29,24 @@
       
           <!-- Edit Mode Toggle (Admins Only) -->
            <div class="flex flex-wrap gap-2 mt-3" v-if="isAdmin">
-              <button @click="toggleEditMode" class="px-4 py-2 bg-green-600 text-white rounded-md">
+              <button @click="toggleEditMode" class="px-3 py-1 bg-green-600 text-white rounded-md">
                 {{ editMode ? 'Exit Edit Mode' : 'Edit' }}
               </button>
              <!-- Share Gameweek -->
-             <button @click="copyGameweekLink" class="px-4 py-2 bg-blue-500 text-white rounded-md">
+             <button @click="copyGameweekLink" class="px-3 py-1 bg-blue-500 text-white rounded-md">
                <div class="justify-between items-center flex">
                  Share
                  <ShareIcon class="text-white size-4 ms-2" />
                </div>
              </button>
              <template v-if="editMode">
-               <button @click="changeGameWeekActiveStatus" class="px-4 py-2 bg-purple-600 text-white rounded-md">
+               <button @click="changeGameWeekActiveStatus" class="px-3 py-1 bg-purple-600 text-white rounded-md">
                   {{ gameweek?.is_active ? 'Make inactive' : 'Make active' }}
                 </button>
-                <button @click="changeGameWeekLockedStatus" class="px-4 py-2 bg-gray-600 text-white rounded-md">
+                <button @click="changeGameWeekLockedStatus" class="px-3 py-1 bg-gray-600 text-white rounded-md">
                   {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                 </button>
-                <button @click="deleteGameweek" class="px-4 py-2 bg-red-600 text-white rounded-md">
+                <button @click="deleteGameweek" class="px-3 py-1 bg-red-600 text-white rounded-md">
                   Delete
                 </button>
              </template>
@@ -56,26 +56,28 @@
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
           <!-- Matches List -->
           <h3 class="text-xl font-semibold">Matches</h3>
-          <ScoreCard 
-              :matches="matches"
-              :isAdmin="editMode && gameweek?.is_active"
-              :canRemove="editMode"
-              @update-score="handleScoreUpdate"
-              @match-removed="handleMatchRemoved"
-          />
-
-          <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-            Save Scores
-          </button>
-  
-          <!-- Add Match (Admins Only) -->
-          <div v-if="editMode && !gameweek?.is_locked" class="mt-4">
-            <h3 class="text-xl font-semibold">Add Match</h3>
-            <input type="text" v-model="newMatch.home_team" placeholder="Home Team" class="p-2 border rounded-md w-full my-2" />
-            <input type="text" v-model="newMatch.away_team" placeholder="Away Team" class="p-2 border rounded-md w-full my-2" />
-            <input type="datetime-local" v-model="newMatch.match_time" class="p-2 border rounded-md w-full my-2" />
-            <button @click="addMatch" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
-          </div>
+            <template v-if="matches.length > 0">
+              <ScoreCard 
+                  :matches="matches"
+                  :isAdmin="editMode && gameweek?.is_active"
+                  :canRemove="editMode"
+                  @update-score="handleScoreUpdate"
+                  @match-removed="handleMatchRemoved"
+              />
+    
+              <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+                Save Scores
+              </button>
+            </template>
+    
+            <!-- Add Match (Admins Only) -->
+            <div v-if="(editMode || matches.length == 0) && !gameweek?.is_locked" class="mt-4">
+              <h3 class="text-xl font-semibold">Add Match</h3>
+              <input type="text" v-model="newMatch.home_team" placeholder="Home Team" class="p-2 border rounded-md w-full my-2" />
+              <input type="text" v-model="newMatch.away_team" placeholder="Away Team" class="p-2 border rounded-md w-full my-2" />
+              <input type="datetime-local" v-model="newMatch.match_time" class="p-2 border rounded-md w-full my-2" />
+              <button @click="addMatch" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
+            </div>
         </div>
 
         <template v-if="!editMode">
@@ -86,24 +88,27 @@
                 <h3 class="text-xl font-semibold">Your Predictions</h3>
                 <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
               </div>
-    
-              <ScoreCard 
-                  :matches="matches"
-                  :predictions="predictions"
-                  :locked="gameweek?.is_locked || !gameweek?.is_active"
-                  :totalPoints="userGameweekScore ?? null"
-                  @update-prediction="handlePredictionUpdate"
-              />
-    
-              <template v-if="!gameweek?.is_locked && gameweek?.is_active ">
-                <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
-                  Predictions Saved ✅
-                </button>
+              
+              <template v-if="Object.keys(predictions).length > 0">
+                <ScoreCard 
+                    :matches="matches"
+                    :predictions="predictions"
+                    :locked="gameweek?.is_locked || !gameweek?.is_active"
+                    :totalPoints="userGameweekScore ?? null"
+                    @update-prediction="handlePredictionUpdate"
+                />
       
-                <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-                  Submit Predictions
-                </button>
+                <template v-if="!gameweek?.is_locked && gameweek?.is_active ">
+                  <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
+                    Predictions Saved ✅
+                  </button>
+        
+                  <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+                    Submit Predictions
+                  </button>
+                </template>
               </template>
+              <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
             </div>
           </div>
   
@@ -336,6 +341,8 @@ async function addMatch() {
 }
   
 async function submitPredictions() {
+  loading.value = true;
+
   for (const [matchId, prediction] of Object.entries(predictions.value)) {
     await predictionsService.savePrediction(
       userStore.user?.id, 
@@ -349,6 +356,9 @@ async function submitPredictions() {
     "type": "success",
     "position": "top-center"
   });
+
+  predictionsChanged.value = false;
+  loading.value = false;
 }
 
 function copyGameweekLink() {
@@ -383,6 +393,7 @@ async function saveScores() {
   });
   
   loading.value = false;
+  editMode.value = false;
   matchesChanged.value = false;
   
 }

@@ -363,6 +363,8 @@ const handlePredictionUpdate = ({ matchId, field, value }) => {
 };
 
 async function submitPredictions() {
+  loading.value = true;
+
   for (const [matchId, prediction] of Object.entries(predictions.value)) {
     await predictionsService.savePrediction(
       userStore.user?.id, 
@@ -372,10 +374,13 @@ async function submitPredictions() {
     );
   }
 
-  toast("Predictions have been saved!", {
+  toast("Your predictions have been saved!", {
     "type": "success",
     "position": "top-center"
   });
+
+  predictionsChanged.value = false;
+  loading.value = false;
 }
 
 const confirmRemoveMember = async (member) => {
