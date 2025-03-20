@@ -56,29 +56,35 @@
 
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
           <!-- Matches List -->
-          <h3 class="text-xl font-semibold">Matches</h3>
-            <template v-if="matches.length > 0">
-              <ScoreCard 
-                  :matches="matches"
-                  :isAdmin="editMode && gameweek?.is_active"
-                  :canRemove="editMode"
-                  @update-score="handleScoreUpdate"
-                  @match-removed="handleMatchRemoved"
-              />
+          <div class="items-center flex">
+            <h3 class="text-xl font-semibold">Matches</h3>
+            <button type="button" @click="toggleMatchesCollapse">
+              <ChevronDownIcon v-if="!matchesCollapsed" class="size-5 ms-2"  />
+              <ChevronUpIcon v-else class="size-5 ms-2" />
+            </button>
+          </div>
+          <template v-if="matches.length > 0 && !matchesCollapsed">
+            <ScoreCard 
+                :matches="matches"
+                :isAdmin="editMode && gameweek?.is_active"
+                :canRemove="editMode && gameweek?.is_active"
+                @update-score="handleScoreUpdate"
+                @match-removed="handleMatchRemoved"
+            />
+  
+            <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+              Save Scores
+            </button>
+          </template>
     
-              <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-                Save Scores
-              </button>
-            </template>
-    
-            <!-- Add Match (Admins Only) -->
-            <div v-if="(editMode || matches.length == 0) && !gameweek?.is_locked" class="mt-4">
-              <h3 class="text-xl font-semibold">Add Match</h3>
-              <input type="text" v-model="newMatch.home_team" placeholder="Home Team" class="p-2 border rounded-md w-full my-2" />
-              <input type="text" v-model="newMatch.away_team" placeholder="Away Team" class="p-2 border rounded-md w-full my-2" />
-              <input type="datetime-local" v-model="newMatch.match_time" class="p-2 border rounded-md w-full my-2" />
-              <button @click="addMatch" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
-            </div>
+          <!-- Add Match (Admins Only) -->
+          <div v-if="(editMode || matches.length == 0) && !gameweek?.is_locked" class="mt-4">
+            <h3 class="text-xl font-semibold">Add Match</h3>
+            <input type="text" v-model="newMatch.home_team" placeholder="Home Team" class="p-2 border rounded-md w-full my-2" />
+            <input type="text" v-model="newMatch.away_team" placeholder="Away Team" class="p-2 border rounded-md w-full my-2" />
+            <input type="datetime-local" v-model="newMatch.match_time" class="p-2 border rounded-md w-full my-2" />
+            <button @click="addMatch" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
+          </div>
         </div>
 
         <template v-if="!editMode">
@@ -155,7 +161,7 @@ import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
-import { ShareIcon, LockClosedIcon } from "@heroicons/vue/24/solid";
+import { ShareIcon, LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -182,6 +188,7 @@ const members = ref([]);
 const deleteConfirm = ref(null);
 const leaderboard = ref([]);
 const userGameweekScore = ref();
+const matchesCollapsed = ref(false);
 
 const isAdmin = ref(false);
 
@@ -443,6 +450,10 @@ const handleMatchRemoved = async(matchId) => {
     } else {
         console.error(`Match with ID ${matchId} not found.`);
     }
+}
+
+const toggleMatchesCollapse = () => {
+  matchesCollapsed.value = !matchesCollapsed.value;
 }
   
 function redirectToGroup() {

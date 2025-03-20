@@ -8,32 +8,47 @@
             </router-link>
         </div>
 
-        <!-- Matches List -->
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <div class="flex items-center gap-2 mb-4">
                 <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
+                <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
+                    Active
+                </div>
+            </div>     
+            <label for="predictionSearchBar">Search for User's Predictions</label>
+            <div class="mb-8 justify-start flex" id="predictionSearchBar">
+                <SearchBar @search-entered="handleSearchQuery" />
             </div>
-            <ScoreCard 
-                :matches="matches"
-            />
+            <p class="ms-3 mb-3" style="align-self: end;" v-if="searchString">Showing predictions for "{{ searchString }}"</p>
+        </div>
+
+        <!-- Matches List -->
+        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+            <div class="items-center flex mb-4">
+                <h3 class="text-xl font-semibold">Match Results</h3>
+                <button type="button" @click="toggleMatchesCollapse">
+                    <ChevronDownIcon v-if="!matchesCollapsed" class="size-5 ms-2 transition-transform duration-300"  />
+                    <ChevronUpIcon v-else class="size-5 ms-2 transition-transform duration-300" />
+                </button>
+            </div>
+            <!-- <transition name="fade-slide"> -->
+                <div v-if="!matchesCollapsed">
+                    <ScoreCard 
+                        :matches="matches"
+                    />
+                </div>
+            <!-- </transition> -->
         </div>
 
         <!-- Predictions Section -->
-        <!-- <div class="mb-8 justify-start flex">
-            <SearchBar @search-entered="handleSearchQuery" />
-        </div>
-        <p class="ms-3 mb-3" style="align-self: end;" v-if="searchString">Showing predictions for "{{ searchString }}"</p> -->
-        <div v-for="username in displayedUsers" :key="username" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <h3 class="text-xl font-semibold">{{ username }}'s Predictions</h3>
+        <div v-for="user in displayedUsers" :key="user" class="bg-white shadow-lg rounded-xl p-6 mb-8">
+            <h3 class="text-xl font-semibold">{{ user.username }}'s Predictions</h3>
             <ScoreCard 
                 :matches="matches"
-                :predictions="groupedPredictions[username] || {}"
+                :predictions="groupedPredictions[user.username] || {}"
                 :locked="true"
-                :totalPoints="getTotalPoints(groupedPredictions[username] || {})"
+                :totalPoints="user.total_points"
             />
-            <!-- <div class="p-4 bg-gray-50 border-t border-gray-200">
-                Total Points: 
-            </div> -->
         </div>
 
         <!-- Observer div to trigger lazy loading -->
@@ -49,6 +64,8 @@ import { predictionsService } from '../api/predictionsService';
 import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from '../components/ScoreCard.vue';
 import SearchBar from '../components/UI/SearchBar.vue';
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
+import { leaderboardService } from '../api/leaderboardService';
 
 const route = useRoute();
 
@@ -63,12 +80,18 @@ const usersList = ref([]);
 const displayedUsersCount = ref(5); // Initial users to display
 const loadMoreTrigger = ref(null); // Observer target
 const groupedPredictions = ref({});
+const matchesCollapsed = ref(false);
+const scores = ref([]);
 
 const displayedUsers = computed(() => usersList.value.slice(0, displayedUsersCount.value));
 
 function getTotalPoints(userPredictions) {
     if (!userPredictions) return 0;
-    return Object.values(userPredictions).reduce((total, pred) => total + (pred.points || 0), 0);
+    return scores.value.find(x => x.username)
+}
+
+const toggleMatchesCollapse = () => {
+  matchesCollapsed.value = !matchesCollapsed.value;
 }
 
 onMounted(async () => {
@@ -84,41 +107,41 @@ async function fetchGameweek() {
     if (error) return console.error(error);
     gameweek.value = data;
 
-    // const { data, error } = await gameweeksService.getUserGameweekScores(gameweekId.value), ;
-    // if (error) return console.error(error);
-    // gameweek.value = data;
-
     await fetchPredictions();
 }
 
-async function fetchPredictions() {
-    const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
+async function fetchPredictions(searchQuery: string = null) {
+    const [{ data: matchData }, { data: predictionsData }, { data: scoresData }] = await Promise.all([
         gameweeksService.getMatches(gameweekId.value),
-        predictionsService.getGameweekPredictions(gameweekId.value)
+        predictionsService.getGameweekPredictions(gameweekId.value),
+        leaderboardService.getGameweekScores(gameweek.value.group_id, gameweekId.value)
     ]);
 
     matches.value = matchData;
-    predictions.value = predictionsData || [];
+    if (searchQuery && searchQuery != "" && predictions.value.length > 0) {
+        loading.value = true;
+        predictions.value = predictionsData.filter(x => x.users.username.toLowerCase().includes(searchQuery));
+    } else {
+        matchesCollapsed.value = false;
+        predictions.value = predictionsData || [];
+    }
 
-    mapPredictions();
+    scores.value = scoresData || [];
+
+    debugger
+
+    await mapPredictions();
     
     loading.value = false;
 }
 
-function mapPredictions(searchQuery: string = null) {
-
-    // if (searchQuery && searchQuery != "" && predictions.value.length > 0) {
-    //     loading.value = true;
-    //     predictions.value = predictionsData.filter(x => x.users.username.toLowerCase().includes(searchQuery));
-    // }
-
+async function mapPredictions() {
     const grouped = {};
 
     predictions.value.forEach(prediction => {
         const username = prediction.users?.username ?? "Unknown User";
 
         if (!prediction.matches || !prediction.matches.id) {
-            debugger
             console.warn("Skipping invalid prediction:", prediction);
             return;
         }
@@ -131,13 +154,25 @@ function mapPredictions(searchQuery: string = null) {
     });
 
     groupedPredictions.value = grouped; 
-    usersList.value = Object.keys(grouped); 
 
+    // Convert usernames to user objects & attach scores
+    usersList.value = Object.keys(grouped).map(username => {
+        // Find matching score entry
+        const userScore = scores.value.find(score => score.username === username) || {};
+
+        return {
+            username,
+            total_points: userScore.total_points ?? 0, // Default to 0 if not found
+            total_correct_scores: userScore.total_correct_scores ?? 0,
+        };
+    });
 }
+
 
 async function handleSearchQuery(searchQuery: string) {
     searchString.value = searchQuery;
-    mapPredictions(searchQuery.toLowerCase())
+    matchesCollapsed.value = true;
+    fetchPredictions(searchQuery.toLowerCase())
 }
 
 function setupLazyLoading() {
@@ -161,3 +196,19 @@ function loadMoreUsers() {
     }
 }
 </script>
+
+<style scoped>
+.fade-slide-enter-active, .fade-slide-leave-active {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-slide-enter-from, .fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.fade-slide-enter-to, .fade-slide-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>

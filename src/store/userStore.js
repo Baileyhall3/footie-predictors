@@ -221,6 +221,11 @@ export const userStore = {
     try {
       state.loading = true
       state.error = null
+
+      if (!email) {
+        state.error = 'Please enter your email address';
+        return;
+      }
       
       const { error } = await supabase.auth.resetPasswordForEmail(email)
       

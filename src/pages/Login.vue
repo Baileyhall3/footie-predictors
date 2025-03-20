@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
       <div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -37,7 +37,7 @@
           </div>
           <div>
             <label for="password" class="sr-only">Password</label>
-            <div class="relative">
+            <div class="relative" @mouseover="showEyeIcon()">
               <input
                 id="password"
                 name="password"
@@ -47,7 +47,7 @@
                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
               />
-              <button type="button" class="absolute inset-y-0 right-3 flex items-center" @click="togglePasswordVisibility">
+              <button type="button" class="absolute inset-y-0 right-3 flex items-center" style="z-index: 1000;" @click="togglePasswordVisibility">
                 <EyeIcon class="size-6" v-if="!isViewingPassword"  />
                 <EyeSlashIcon class="size-6" v-else />
               </button>
@@ -69,11 +69,11 @@
             </label>
           </div>
 
-          <!-- <div class="text-sm">
+          <div class="text-sm">
             <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500" @click.prevent="forgotPassword">
               Forgot your password?
             </a>
-          </div> -->
+          </div>
         </div>
 
         <div>
@@ -129,10 +129,10 @@ const handleLogin = async () => {
 };
 
 const forgotPassword = async () => {
-  if (!email.value) {
-    userStore.error = 'Please enter your email address';
-    return;
-  }
+  // if (!email.value) {
+  //   userStore.error = 'Please enter your email address';
+  //   return;
+  // }
   
   const { error } = await userStore.resetPassword(email.value);
   if (!error) {
