@@ -1,0 +1,157 @@
+<template>
+    <div class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto mt-6">
+        <LoadingScreen v-if="loading" />
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Gameweek {{ gameweek?.week_number }} - Add Matches</h2>
+            <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
+        </div>
+
+        <AddMatches 
+            :deadline="gameweek?.deadline"
+            :selectedMatches="matches"
+            @error-message="handleErrorMessage"
+            @match-added="handleMatchAdded"
+            @match-removed="handleApiMatchRemoved"
+        />
+    
+        <div class="mt-4 mb-4" v-if="matches.length > 0">
+            <p class="text-lg font-semibold">Matches</p>
+            <ScoreCard 
+                :matches="matches"
+                canRemove
+                @match-removed="handleMatchRemoved"
+            />
+        </div>
+    
+        <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
+
+        <div class="justify-between items-center flex gap-4">
+            <button @click="cancelChanges" :disabled="!hasChanges" class="w-full bg-gray-300 text-gray-800 hover:bg-gray-400 py-2 rounded-md mt-4 disabled:opacity-50">
+                Cancel Changes
+            </button>
+            <button @click="doUpdates" :disabled="!hasChanges" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md mt-4 disabled:opacity-50">
+                Update Gameweek
+            </button>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { gameweeksService } from '../api/gameweeksService';
+import LoadingScreen from '../components/LoadingScreen.vue';
+import AddMatches from '../components/AddMatches.vue';
+import ScoreCard from '../components/ScoreCard.vue';
+import DateUtils from '../utils/dateUtils';
+
+const route = useRoute();
+const router = useRouter();
+
+const loading = ref(true);
+const gameweekId = ref(null);
+const gameweek = ref(null);
+const matches = ref([]);
+const errorMessage = ref('');
+const hasChanges = ref(false);
+const removedMatchesIds = ref([]);
+
+onMounted(async () => {
+  await fetchGameweek();
+});
+  
+async function fetchGameweek() {
+    loading.value = true;
+    gameweekId.value = route.params.id || route.query.id;
+
+    const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
+    if (error) return console.error(error);
+    gameweek.value = data;
+
+    const { data: matchData } = await gameweeksService.getMatches(gameweekId.value);
+    matches.value = matchData;
+
+    loading.value = false;
+}
+
+async function doUpdates() {
+    loading.value = true;
+
+    const newMatches = matches.value.filter(x => x.isNew);
+    for (const match of newMatches) {
+        try {
+            await gameweeksService.createMatch({
+                gameweek_id: gameweekId.value,
+                api_match_id: match.api_match_id,
+                home_team: match.home_team,
+                away_team: match.away_team,
+                match_time: match.match_time,
+                home_team_api_id: match.home_team_api_id,
+                away_team_api_id: match.away_team_api_id,
+                home_team_crest: match.home_team_crest,
+                away_team_crest: match.away_team_crest
+            });
+        } catch (err) {
+            errorMessage.value = err;
+        }
+    }
+
+    if (removedMatchesIds.value.length > 0) {
+        removedMatchesIds.value.forEach(matchId => {
+            removeMatch(matchId);
+        });
+    }
+    
+    hasChanges.value = false;
+    loading.value = false;
+}
+
+const removeMatch = async(matchId: string) => {
+    try {
+        const { data, error } = await gameweeksService.deleteMatch(matchId);
+        
+        if (error) {
+            errorMessage.value = error;
+        }
+    } catch (err) {
+        console.error(err);
+        errorMessage.value = err;
+    }
+}
+
+const cancelChanges = async() => {
+    removedMatchesIds.value = [];
+    hasChanges.value = false;
+    fetchGameweek();
+}
+
+const handleMatchAdded = (match: any) => {
+    hasChanges.value = true;
+}
+
+const handleApiMatchRemoved = (apiMatchId: string) => {
+    const match = matches.value.find(m => m.api_match_id === apiMatchId);
+    if (match) {
+        handleMatchRemoved(match.id, true);
+    }
+}
+
+const handleMatchRemoved = async(matchId: string, skipSplice: boolean = false) => {
+    hasChanges.value = true;
+    const match = matches.value.find(m => m.id === matchId);
+    const matchIndex = matches.value.findIndex(m => m.id === matchId);
+
+    if (matchIndex !== -1) { 
+        if (!match.isNew) {
+            removedMatchesIds.value.push(match.id);
+        }
+        if (!skipSplice) {
+            matches.value.splice(matchIndex, 1);
+        }
+    }
+}
+
+const handleErrorMessage = (errorMsg: string) => {
+    errorMessage.value = errorMsg;
+}
+</script>

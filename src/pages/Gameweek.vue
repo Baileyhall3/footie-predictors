@@ -56,12 +56,22 @@
 
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
           <!-- Matches List -->
-          <div class="items-center flex">
-            <h3 class="text-xl font-semibold">Matches</h3>
-            <button type="button" @click="toggleMatchesCollapse">
-              <ChevronDownIcon v-if="!matchesCollapsed" class="size-5 ms-2"  />
-              <ChevronUpIcon v-else class="size-5 ms-2" />
-            </button>
+          <div class="flex justify-between items-center mb-4">
+            <div class="items-center flex">
+              <h3 class="text-xl font-semibold">Matches</h3>
+              <button type="button" @click="toggleMatchesCollapse">
+                <ChevronDownIcon v-if="!matchesCollapsed" class="size-5 ms-2"  />
+                <ChevronUpIcon v-else class="size-5 ms-2" />
+              </button>
+            </div>
+            <router-link :to="`/gameweek/${gameweekId}/add-matches`">
+              <button 
+                v-if="isAdmin && !gameweek?.is_locked" 
+                class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+              >
+                + Add Matches
+              </button>
+            </router-link>
           </div>
           <template v-if="matches.length > 0 && !matchesCollapsed">
             <ScoreCard 
@@ -76,15 +86,6 @@
               Save Scores
             </button>
           </template>
-    
-          <!-- Add Match (Admins Only) -->
-          <div v-if="(editMode || matches.length == 0) && !gameweek?.is_locked" class="mt-4">
-            <h3 class="text-xl font-semibold">Add Match</h3>
-            <input type="text" v-model="newMatch.home_team" placeholder="Home Team" class="p-2 border rounded-md w-full my-2" />
-            <input type="text" v-model="newMatch.away_team" placeholder="Away Team" class="p-2 border rounded-md w-full my-2" />
-            <input type="datetime-local" v-model="newMatch.match_time" class="p-2 border rounded-md w-full my-2" />
-            <button @click="addMatch" class="px-4 py-2 bg-blue-600 text-white rounded-md">Add Match</button>
-          </div>
         </div>
 
         <template v-if="!editMode">
@@ -334,28 +335,6 @@ const deleteGameweek = async () => {
     console.log("Deletion cancelled!");
   }
 };
-  
-async function addMatch() {
-  if (!newMatch.value.home_team || !newMatch.value.away_team || !newMatch.value.match_time) {
-    toast("Please fill in all fields.", {
-      "type": "warning",
-      "position": "top-center"
-    });
-    return;
-  }
-
-  const { data, error } = await gameweeksService.createMatch({
-    gameweek_id: gameweekId.value,
-    home_team: newMatch.value.home_team,
-    away_team: newMatch.value.away_team,
-    match_time: newMatch.value.match_time
-  });
-
-  if (!error) {
-    matches.value.push(data);
-    newMatch.value = { home_team: '', away_team: '', match_time: '' };
-  }
-}
   
 async function submitPredictions() {
   loading.value = true;

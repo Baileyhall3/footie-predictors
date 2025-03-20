@@ -6,7 +6,6 @@
               <p class="text-gray-700 mb-4">Create a new member to be added to the group.</p>
 
               <div>
-                  <!-- <label class="block font-medium">User Name</label> -->
                   <input
                     ref="inputRef"
                     v-model="username"
@@ -20,7 +19,7 @@
               <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
 
               <div class="mt-6 flex justify-center gap-4">
-                  <button @click="confirm" class="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700">
+                  <button :disabled="!username" @click="confirm" class="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50">
                       Create
                   </button>
                   <button @click="cancel" class="bg-gray-300 px-4 py-2 rounded-md font-medium hover:bg-gray-400">
