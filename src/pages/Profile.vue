@@ -61,6 +61,10 @@
                 <p class="text-sm text-gray-500">Account ID</p>
                 <p class="text-gray-800">{{ userStore.user.id }}</p>
               </div>
+              <div>
+                <p class="text-sm text-gray-500">Member Since</p>
+                <p class="text-gray-800">{{ DateUtils.toShortDate(userStore.user.created_at) }}</p>
+              </div>
             </div>
             <p v-if="errorMessage" class="text-red-500 text-center mt-4">{{ errorMessage }}</p>
           </div>
@@ -96,6 +100,7 @@ import { useRouter } from 'vue-router'
 import { userStore } from '../store/userStore';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import DateUtils from '../utils/dateUtils';
 
 const router = useRouter();
 const editMode = ref(false);

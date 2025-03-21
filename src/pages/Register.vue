@@ -39,7 +39,6 @@
               name="email"
               type="email"
               autocomplete="email"
-              required
               v-model="email"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Email address"
@@ -52,7 +51,6 @@
               name="username"
               type="text"
               autocomplete="username"
-              required
               v-model="username"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Username"
@@ -65,7 +63,6 @@
               name="password"
               type="password"
               autocomplete="new-password"
-              required
               v-model="password"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Password"
@@ -78,7 +75,6 @@
               name="confirm-password"
               type="password"
               autocomplete="new-password"
-              required
               v-model="confirmPassword"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Confirm Password"
@@ -89,7 +85,8 @@
         <div>
           <button
             type="submit"
-            :disabled="userStore.loading || !passwordsMatch || !isFormValid"
+            @click="handleRegister"
+            :disabled="userStore.loading || !passwordsMatch || !isFormValid || !isPasswordStrong"
             class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             <span v-if="userStore.loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
@@ -110,6 +107,9 @@
         </div>
         <div v-if="!passwordsMatch && password && confirmPassword" class="text-sm text-red-600 text-center">
           Passwords do not match
+        </div>
+        <div v-if="passwordsMatch && password && confirmPassword && !isPasswordStrong" class="text-sm text-red-600 text-center">
+          Password must contain minimum 8 characters and consist of at least one uppercase letter, one lowercase letter and one number.
         </div>
       </form>
     </div>
@@ -136,11 +136,12 @@ const isFormValid = computed(() => {
   return email.value && username.value && password.value && confirmPassword.value;
 });
 
-const handleRegister = async () => {
-  if (!passwordsMatch.value || !isFormValid.value) {
-    return;
-  }
+const isPasswordStrong = computed(() => {
+  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  return strongPasswordRegex.test(password.value);
+});
 
+const handleRegister = async () => {
   const { data, error } = await userStore.signUp(email.value, password.value, username.value);
   
   if (!error) {

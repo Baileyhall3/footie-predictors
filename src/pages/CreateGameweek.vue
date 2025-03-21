@@ -7,7 +7,7 @@
       <!-- Deadline Input -->
       <div class="mb-8 mt-4">
         <label class="block text-sm font-medium text-gray-700">Deadline</label>
-        <input type="datetime-local" v-model="deadline" class="mt-1 p-2 w-full border rounded-md">
+        <input type="datetime-local" v-model="deadline" class="appearance-none mt-1 p-2 w-full border rounded-md">
       </div>
 
       <!-- Active Gameweek Checkbox -->
