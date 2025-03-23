@@ -3,7 +3,11 @@
         <LoadingScreen v-if="loading" />
         <div class="mb-8">
             <h2 class="text-2xl font-semibold mb-4">Gameweek {{ gameweek?.week_number }} - Add Matches</h2>
-            <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
+            <!-- <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p> -->
+            <div class="mb-8 mt-4" v-if="gameweek">
+                <label class="block text-sm font-medium text-gray-700">Deadline</label>
+                <input type="datetime-local" v-model="gameweek.deadline" class="appearance-none mt-1 p-2 w-full border rounded-md">
+            </div>
         </div>
 
         <AddMatches 
@@ -37,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService';
 import LoadingScreen from '../components/LoadingScreen.vue';
@@ -55,9 +59,16 @@ const matches = ref([]);
 const errorMessage = ref('');
 const hasChanges = ref(false);
 const removedMatchesIds = ref([]);
+const originalDeadline = ref();
+
+watch(() => gameweek.value?.deadline, (newVal) => {
+    if (newVal != originalDeadline.value) {
+        hasChanges.value = true;
+    }
+});
 
 onMounted(async () => {
-  await fetchGameweek();
+    await fetchGameweek();
 });
   
 async function fetchGameweek() {
@@ -68,6 +79,8 @@ async function fetchGameweek() {
     if (error) return console.error(error);
     gameweek.value = data;
 
+    originalDeadline.value = gameweek.value.deadline;
+
     const { data: matchData } = await gameweeksService.getMatches(gameweekId.value);
     matches.value = matchData;
 
@@ -77,22 +90,41 @@ async function fetchGameweek() {
 async function doUpdates() {
     loading.value = true;
 
+    const deadline = new Date(gameweek.value.deadline);  
+
+    const hasInvalidMatchTime = matches.value.some(match => new Date(match.match_time) < deadline);
+
+    if (hasInvalidMatchTime) {
+        errorMessage.value = 'One or more matches have a match time before the gameweek deadline.';
+        loading.value = false; 
+        return;
+    } else {
+        const { data, error } = await gameweeksService.updateGameweek(gameweek.value.id, {
+            deadline: deadline
+        });
+        if (error) {
+            errorMessage.value = `${error}`;
+        }
+    }
+    
     const newMatches = matches.value.filter(x => x.isNew);
-    for (const match of newMatches) {
-        try {
-            await gameweeksService.createMatch({
-                gameweek_id: gameweekId.value,
-                api_match_id: match.api_match_id,
-                home_team: match.home_team,
-                away_team: match.away_team,
-                match_time: match.match_time,
-                home_team_api_id: match.home_team_api_id,
-                away_team_api_id: match.away_team_api_id,
-                home_team_crest: match.home_team_crest,
-                away_team_crest: match.away_team_crest
-            });
-        } catch (err) {
-            errorMessage.value = err;
+    if (newMatches.length > 0) {
+        for (const match of newMatches) {
+            try {
+                await gameweeksService.createMatch({
+                    gameweek_id: gameweekId.value,
+                    api_match_id: match.api_match_id,
+                    home_team: match.home_team,
+                    away_team: match.away_team,
+                    match_time: match.match_time,
+                    home_team_api_id: match.home_team_api_id,
+                    away_team_api_id: match.away_team_api_id,
+                    home_team_crest: match.home_team_crest,
+                    away_team_crest: match.away_team_crest
+                });
+            } catch (err) {
+                errorMessage.value = err;
+            }
         }
     }
 
@@ -102,6 +134,7 @@ async function doUpdates() {
         });
     }
     
+    errorMessage.value = '';
     hasChanges.value = false;
     loading.value = false;
 }

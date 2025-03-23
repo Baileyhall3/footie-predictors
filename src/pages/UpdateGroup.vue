@@ -117,7 +117,7 @@
   </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { groupsStore } from "../store/groupsStore";
 import { userStore } from "../store/userStore";
@@ -153,6 +153,7 @@ const showDeleteConfirmation = ref(false);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
 const admin = ref({});
+const numberOfMembers = ref();
 
 // Computed properties
 const isAdmin = ref(false);
@@ -221,6 +222,12 @@ const fetchAllData = async () => {
 
     admin.value = adminData;
     isAdmin.value = userStore.user?.id == admin.value.id;
+
+    const { data: membersData, error: membersError } = await groupsService.getGroupMembers(groupId.value);
+    if (membersError) throw new Error('Failed to retrieve group members');
+
+    members.value = membersData || [];
+    numberOfMembers.value = membersData.length;
     
   } catch (err) {
     console.error('Error fetching group data:', err);
@@ -244,6 +251,10 @@ const updateGroup = async () => {
   }
   if (!group.value.is_public && !group.value.group_pin) {
     errorMessage.value = 'Please enter a PIN for your private group.';
+    return;
+  }
+  if (group.value.max_members < numberOfMembers.value) {
+    errorMessage.value = `There are currently ${numberOfMembers.value} members in your group. Maximum members cannot be lower than this.`;
     return;
   }
 
