@@ -16,9 +16,11 @@
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <h2 class="text-2xl font-bold mb-2">{{ group.name }}</h2>
         <p class="text-gray-500 mb-4">{{ group.description || 'No description available' }}</p>
-        <p class="text-sm text-gray-600">Admin: {{ adminName }}</p>
-        <p class="text-sm text-gray-600">Established: {{ DateUtils.toLongDate(group.created_at) }}</p>
-    
+        <p class="text-sm text-gray-600"><span class="font-semibold">Admin:</span> {{ adminName }}</p>
+        <p class="text-sm text-gray-600"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
+        <!-- <p class="text-sm text-gray-600">Points Per Correct Score: {{ group.exact_score_points }}</p>
+        <p class="text-sm text-gray-600">Points Per Correct Result: {{ group.correct_result_points }}</p> -->
+
         <!-- Admin Controls (only visible to the admin) -->
         <div v-if="isAdmin" class="mt-4 flex flex-wrap gap-2">
           <router-link :to="`/group/${group.id}/update-group`">
@@ -137,7 +139,7 @@
           <div v-for="member in members" :key="member.id" class="flex justify-between items-center border-b py-3">
             <div class="flex items-center space-x-2">
               <UserIcon class="text-gray-500 size-4" />
-              <span class="text-lg">{{ member.username }}</span>
+              <span >{{ member.username }}</span>
               <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
               <span v-if="member.is_admin" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>
             </div>

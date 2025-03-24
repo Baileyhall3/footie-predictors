@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto px-6 py-8">
+    <div class="container mx-auto py-8">
         <LoadingScreen v-if="loading" />
         
         <div class="mb-1 ms-1">

@@ -137,7 +137,7 @@ const isFormValid = computed(() => {
 });
 
 const isPasswordStrong = computed(() => {
-  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
   return strongPasswordRegex.test(password.value);
 });
 
