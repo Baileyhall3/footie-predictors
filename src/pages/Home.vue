@@ -139,14 +139,21 @@ const fetchUserData = async () => {
       userGroups.value = groups || [];
       
       // Fetch upcoming matches for predictions
-      // We'll get matches from all groups the user is in
       upcomingMatches.value = [];
+      const matchesMap = new Map();  // Use a Map to track unique matches by api_match_id
+
       for (const group of userGroups.value) {
         const { data: matches, error: matchesError } = await predictionsStore.fetchUpcomingMatches(group.id);
         if (!matchesError && matches) {
-          upcomingMatches.value = [...upcomingMatches.value, ...matches];
+          // Add matches to the map, ensuring uniqueness based on api_match_id
+          for (const match of matches) {
+            matchesMap.set(match.api_match_id, match);
+          }
         }
       }
+
+      // Convert the unique matches back to an array
+      upcomingMatches.value = Array.from(matchesMap.values());
       
       // Sort upcoming matches by date
       upcomingMatches.value.sort((a, b) => new Date(a.match_time) - new Date(b.match_time));

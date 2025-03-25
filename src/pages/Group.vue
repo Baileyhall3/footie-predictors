@@ -189,7 +189,7 @@
 
   <PinDialog ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
-  <CreateGroupMember ref="createMemberDialog" :groupId="groupId" @user-created="getGroupMembers()" />
+  <CreateGroupMember ref="createMemberDialog" :groupId="groupId" @user-created="getGroupMembers(); getLeaderboard();" />
 </template>
 
 <script setup>
@@ -293,13 +293,7 @@ const fetchAllData = async () => {
     gameweeks.value = gameweeksData || [];
 
     // Fetch leaderboard
-    const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value);
-    if (leaderboardError) throw new Error('Failed to load leaderboard');
-    leaderboard.value = leaderboardData || [];
-
-    if (leaderboard.value.length > 0) {
-      leaderboardLastUpdated.value = new Date(leaderboard.value[0].last_updated);
-    }
+    await getLeaderboard();
 
     const activeGameweek = gameweeksData.filter(x => x.is_active);
     if (activeGameweek.length > 0) {
@@ -479,6 +473,9 @@ const removeMember = async (member) => {
 
     // Refresh members list
     getGroupMembers();
+    
+    // Refresh leaderboard
+    getLeaderboard();
     members.value = groupsStore.groupMembers;
   } catch (err) {
     error.value = err.message || 'An error occurred while removing member';
@@ -491,6 +488,16 @@ async function getGroupMembers() {
   const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(groupId.value);
   if (membersError) throw new Error('Failed to load group members');
   members.value = membersData || [];
+}
+
+async function getLeaderboard() {
+  const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value);
+  if (leaderboardError) throw new Error('Failed to load leaderboard');
+  leaderboard.value = leaderboardData || [];
+
+  if (leaderboard.value.length > 0) {
+    leaderboardLastUpdated.value = new Date(leaderboard.value[0].last_updated);
+  }
 }
 
 const openCreateMemberDialog = async() => {

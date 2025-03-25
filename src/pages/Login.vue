@@ -37,7 +37,7 @@
           </div>
           <div>
             <label for="password" class="sr-only">Password</label>
-            <div class="relative" @mouseover="showEyeIcon()">
+            <div class="relative">
               <input
                 id="password"
                 name="password"

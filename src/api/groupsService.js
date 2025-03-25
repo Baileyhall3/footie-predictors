@@ -286,7 +286,19 @@ export const groupsService = {
       return { data: null, error: memberError };
     }
 
-    return { data: memberData, error: null };
+    // Insert the new user into the leaderboard with total_points = 0
+    const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
+      user_id: fakeUserId,
+      group_id: groupId,
+    });
+
+    if (leaderboardError) {
+      console.error('Error adding user to leaderboard:', leaderboardError);
+      return { data: null, error: leaderboardError };
+    }
+
+    return { data: { memberData, leaderboardData }, error: null };
+
   },
 
 }
