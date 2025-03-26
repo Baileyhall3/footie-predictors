@@ -36,7 +36,7 @@
         </div>
         <div>
           <label class="block font-medium">Incorrect Result Points</label>
-          <input v-model.number="groupData.incorrect_points" type="number" class="w-full border p-2 rounded-md" />
+          <input v-model.number="groupData.incorrect_points" type="number" max="0" class="w-full border p-2 rounded-md" />
         </div>
       </div>
 

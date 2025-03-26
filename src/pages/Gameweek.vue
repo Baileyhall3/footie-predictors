@@ -22,11 +22,10 @@
             <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
               Active
             </div>
-            <!-- <div v-if="gameweek?.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
-              Locked
-            </div> -->
           </div>
           <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
+          <p class="text-lg" v-if="gameweek?.is_finished">Winner: {{ gameweekWinner }}</p>
+          <!-- <p class="text-sm text-gray-600"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p> -->
       
           <!-- Edit Mode Toggle (Admins Only) -->
            <div class="flex flex-wrap gap-2 mt-3" v-if="isAdmin">
@@ -66,7 +65,7 @@
             </div>
             <router-link :to="`/gameweek/${gameweekId}/add-matches`">
               <button 
-                v-if="isAdmin && !gameweek?.is_locked" 
+                v-if="isAdmin && !gameweek?.is_locked && gameweek?.is_active" 
                 class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
               >
                 + Add Matches
@@ -76,8 +75,8 @@
           <template v-if="matches.length > 0 && !matchesCollapsed">
             <ScoreCard 
                 :matches="matches"
-                :isAdmin="editMode && gameweek?.is_active"
-                :canRemove="editMode && gameweek?.is_active"
+                :isAdmin="editMode && gameweek?.is_active && !gameweek?.is_locked"
+                :canRemove="editMode && gameweek?.is_active && !gameweek?.is_locked"
                 @update-score="handleScoreUpdate"
                 @match-removed="handleMatchRemoved"
             />
@@ -190,6 +189,7 @@ const deleteConfirm = ref(null);
 const leaderboard = ref([]);
 const userGameweekScore = ref();
 const matchesCollapsed = ref(false);
+const gameweekWinner = ref('');
 
 const isAdmin = ref(false);
 
@@ -236,6 +236,8 @@ async function fetchGameweek() {
 
   if (leaderboard.value.length > 0) {
     userGameweekScore.value = leaderboard.value.find(x => x.user_id == userStore.user?.id).total_points;
+    gameweekWinner.value = leaderboard.value.find(x => x.position == 1).username;
+    debugger
   }
 
   mapPredictions();
@@ -391,6 +393,7 @@ async function saveScores() {
   loading.value = false;
   editMode.value = false;
   matchesChanged.value = false;
+  fetchGameweek();
   
 }
 

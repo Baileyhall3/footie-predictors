@@ -18,8 +18,7 @@
         <p class="text-gray-500 mb-4">{{ group.description || 'No description available' }}</p>
         <p class="text-sm text-gray-600"><span class="font-semibold">Admin:</span> {{ adminName }}</p>
         <p class="text-sm text-gray-600"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
-        <!-- <p class="text-sm text-gray-600">Points Per Correct Score: {{ group.exact_score_points }}</p>
-        <p class="text-sm text-gray-600">Points Per Correct Result: {{ group.correct_result_points }}</p> -->
+        <p class="text-sm text-gray-600"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
 
         <!-- Admin Controls (only visible to the admin) -->
         <div v-if="isAdmin" class="mt-4 flex flex-wrap gap-2">
@@ -126,13 +125,21 @@
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">Members ({{ members.length }})</h3>
-          <button 
-            v-if="isAdmin" 
-            @click="openCreateMemberDialog()"
-            class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-          >
-            + Add Member
-          </button>
+          <template v-if="isAdmin">
+            <button 
+              v-if="members.length != group.max_members" 
+              @click="openCreateMemberDialog()"
+              class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+            >
+              + Add Member
+            </button>
+            <button 
+              v-else
+              class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded hover:bg-red-200 transition"
+            >
+              Max Members Reached
+            </button>
+          </template>
         </div>
         
         <div v-if="members.length">
@@ -511,6 +518,14 @@ function copyGroupLink() {
     "type": "info",
     "position": "top-center"
   });
+}
+
+function getScoringSystem(group) {
+  if (group.exact_score_points == 3 && group.correct_result_points == 1 && group.incorrect_points == 0) {
+    return `Classic (3 points for correct score, 1 point for correct result)`;
+  } else {
+    return `Custom (${group.exact_score_points} points for correct score, ${group.correct_result_points} for correct result and ${group.incorrect_points} for incorrect result)`;
+  }
 }
 
 // Watch for route changes to reload data
