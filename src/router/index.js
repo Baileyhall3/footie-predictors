@@ -10,6 +10,7 @@ import Gameweek from '../pages/Gameweek.vue';
 import GameweekPredictions from '../pages/GameweekPredictions.vue';
 import AdminUserPredictions from '../pages/AdminUserPredictions.vue';
 import AddGameweekMatches from '../pages/AddGameweekMatches.vue';
+import AppInfo from '../pages/AppInfo.vue';
 
 import Predictions from '../pages/Predictions.vue';
 import Login from '../pages/Login.vue';
@@ -18,6 +19,8 @@ import Profile from '../pages/Profile.vue';
 import AuthTest from '../pages/AuthTest.vue';
 import Leaderboards from '../pages/Leaderboards.vue';
 import GroupLeaderboards from '../pages/GroupLeaderboards.vue';
+
+import PrivacyPolicy from '../pages/PrivacyPolicy.vue';
 
 import { userStore } from '../store/userStore';
 import { hasAuthState } from '../utils/authPersistence';
@@ -44,11 +47,29 @@ const router = createRouter({
       }
     },
     {
+      path: '/privacy-policy',
+      name: 'Privacy Policy',
+      component: PrivacyPolicy,
+      meta: {
+        title: 'Privacy Policy - Footie Predictors',
+        requiresAuth: false
+      }
+    },
+    {
       path: '/',
       name: 'Home',
       component: Home,
       meta: {
         title: 'Footie Predictors',
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/app-info',
+      name: 'App Info',
+      component: AppInfo,
+      meta: {
+        title: 'App Info - Footie Predictors',
         requiresAuth: true
       }
     },

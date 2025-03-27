@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
+    <div class="max-w-md w-full ">
       <div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Create a new account
@@ -112,6 +112,8 @@
           Password must contain minimum 8 characters and consist of at least one uppercase letter, one lowercase letter and one number.
         </div>
       </form>
+      
+      <span class="justify-center block text-center text-sm mt-4">By signing up, you agree to our <router-link to="privacy-policy" class="font-medium text-indigo-600 hover:text-indigo-500"> Terms of Service & Privacy Policy</router-link>.</span>
     </div>
   </div>
 </template>

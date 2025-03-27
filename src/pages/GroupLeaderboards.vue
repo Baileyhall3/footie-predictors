@@ -48,7 +48,7 @@
         </div>
 
         <!-- Current gameweek leaderboard -->
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="Object.keys(currentGameweek).length > 0">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold">                    
                     <router-link 

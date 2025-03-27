@@ -4,6 +4,7 @@
     <div class="mb-8 bg-white rounded-lg shadow-md p-6">
       <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome{{ userStore.userProfile ? ', ' + userStore.userProfile.username : '' }}!</h1>
       <p class="text-gray-600">Track your football predictions and compete with friends.</p>
+      <p class="text-gray-600">Need help getting set up? Read all about the app <router-link to="/app-info" class="text-blue-600 hover:underline">here</router-link>.</p>
     </div>
     
     <!-- Loading State -->
