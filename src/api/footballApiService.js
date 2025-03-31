@@ -1,4 +1,4 @@
-// Support both ES modules and CommonJS
+// ES module version of the file
 let gameweeksService, predictionsService;
 
 // Function to initialize dependencies
@@ -16,11 +16,11 @@ const initDependencies = async () => {
   } catch (e) {
     console.log('ES module import failed, trying CommonJS');
   }
-  
-  // Fall back to CommonJS require (for Node.js)
+
+  // Fall back to CommonJS require (for Node.js) - this can be removed after fully switching to ES modules
   try {
-    const gameweeksModule = require('./gameweeksService');
-    const predictionsModule = require('./predictionsService');
+    const gameweeksModule = await import('./gameweeksService.js'); // ES module import for gameweeksService
+    const predictionsModule = await import('./predictionsService.js'); // ES module import for predictionsService
     gameweeksService = gameweeksModule.gameweeksService;
     predictionsService = predictionsModule.predictionsService;
   } catch (err) {
@@ -60,10 +60,10 @@ const footballApiService = {
    */
   async getLeagues() {
     try {
-      const response = await fetch(`${BASE_URL}/competitions`);  
+      const response = await fetch(`${BASE_URL}/competitions`);
       const data = await response.json();
       const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224];
-      const leagueData = data.competitions.filter(({id}) => selectableLeagueIds.includes(id));
+      const leagueData = data.competitions.filter(({ id }) => selectableLeagueIds.includes(id));
 
       return { data: leagueData, error: null };
     } catch (error) {
@@ -81,11 +81,11 @@ const footballApiService = {
   async getMatches(leagueId, teamId) {
     try {
       let response = null;
-      
+
       if (leagueId) {
-        response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`);  
+        response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`);
       } else if (teamId) {
-        response = await fetch(`${BASE_URL}/teams/${teamId}/matches`);  
+        response = await fetch(`${BASE_URL}/teams/${teamId}/matches`);
       }
       const data = await response.json();
       return { data: data.matches, error: null };
@@ -102,7 +102,7 @@ const footballApiService = {
    */
   async getTeams(leagueId) {
     try {
-      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/teams`);  
+      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/teams`);
       const data = await response.json();
       return { data: data.teams, error: null };
     } catch (error) {
@@ -118,7 +118,7 @@ const footballApiService = {
    */
   async getMatchesForTeam(teamId) {
     try {
-      const response = await fetch(`${BASE_URL}/teams/${teamId}/matches`);  
+      const response = await fetch(`${BASE_URL}/teams/${teamId}/matches`);
       const data = await response.json();
       return { data: data.matches, error: null };
     } catch (error) {
@@ -139,31 +139,33 @@ const footballApiService = {
       const data = await response.json();
       return {
         homeScore: data.score.fullTime.home ?? null,
-        awayScore: data.score.fullTime.away ?? null
+        awayScore: data.score.fullTime.away ?? null,
       };
     } catch (error) {
-      console.error("Error fetching match score from API:", error);
+      console.error('Error fetching match score from API:', error);
       return { homeScore: null, awayScore: null };
     }
   },
 
   async updateMatchScores(gameweekId = null) {
-    console.log("Checking for finished matches...");
+    console.log('Checking for finished matches...');
 
     const finishedMatches = await gameweeksService.fetchFinishedMatches(gameweekId);
     const now = new Date();
 
-    const matches = finishedMatches.filter(x => x.api_match_id && new Date(x.match_time) < now);
-    
+    const matches = finishedMatches.filter(
+      (x) => x.api_match_id && new Date(x.match_time) < now
+    );
+
     if (!matches.length) {
-      console.log("No matches need updating.");
+      console.log('No matches need updating.');
       return;
     }
 
     for (const match of matches) {
       try {
         const { homeScore, awayScore } = await this.fetchMatchScore(match.api_match_id);
-        
+
         if (homeScore !== null && awayScore !== null) {
           await gameweeksService.updateMatchScore(match.id, homeScore, awayScore);
           await predictionsService.calculateMatchScores(match.id);

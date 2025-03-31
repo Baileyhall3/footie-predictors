@@ -1,7 +1,7 @@
-// Use CommonJS require instead of ES module import
-const { footballApiService, initDependencies } = require("../src/api/footballApiService.js");
+// Use ES module import instead of CommonJS require
+import { footballApiService, initDependencies } from "../src/api/footballApiService.js";
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
     try {
         console.log("Running scheduled job: Updating match scores...");
         
