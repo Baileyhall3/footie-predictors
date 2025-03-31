@@ -10,6 +10,9 @@ import { hasAuthState, getAuthState } from './utils/authPersistence';
 import VueToastify from "vue3-toastify";
 import PrimeVue from 'primevue/config';
 import DatePicker from 'primevue/datepicker';
+import '@primevue/themes/aura'
+import 'primeicons/primeicons.css';
+
 
 // Initialize the app
 const app = createApp(App);
@@ -68,7 +71,10 @@ app.use(VueToastify, {
   duration: 3000,
   theme: "light",
 });
-app.use(PrimeVue);
+app.use(PrimeVue, {
+  ripple: true,
+  unstyled: false
+});
 app.component('DatePicker', DatePicker);
 
 // Initialize auth and then mount the app

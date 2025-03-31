@@ -7,8 +7,19 @@
       <!-- Deadline Input -->
       <div class="mb-8 mt-4">
         <label class="block text-sm font-medium text-gray-700">Deadline</label>
-        <!-- <DatePicker v-model="deadline" showIcon fluid iconDisplay="input" class="appearance-none mt-1 p-2 w-full border rounded-md" /> -->
-        <input type="datetime-local" v-model="deadline" class="appearance-none mt-1 p-2 w-full border rounded-md" :min="minDateTime">
+        <div class="p-2 border border-gray-300 rounded-md">
+            <DatePicker 
+                v-model="deadline" 
+                showIcon 
+                showTime
+                hourFormat="24"
+                dateFormat="dd/mm/yy"
+                class="w-full"
+                :minDate="minDateTime"
+                fluid
+                hideOnDateTimeSelect
+            />
+        </div>
       </div>
 
       <!-- Active Gameweek Checkbox -->
@@ -61,9 +72,7 @@ const loading = ref(false);
 const errorMessage = ref();
 
 const minDateTime = computed(() => {
-    const now = new Date();
-    now.setHours(now.getHours() + 1); // Add 1 hour
-    return now.toISOString().slice(0, 16); // Format for datetime-local
+    return new Date();
 });
 
 onMounted(async () => {
@@ -135,5 +144,20 @@ const createGameweek = async () => {
 
   router.push(`/group/${groupId}`);
 };
-  
+
+function handleInput(event) {
+    console.log('hellooo', event)
+}
 </script>
+
+<style>
+:root {
+    --time-picker-padding: 1rem; /* 16px */
+    --time-picker-gap: 0.5rem; /* 8px */
+    --p-datepicker-time-picker-button-gap: 0.25rem;
+    --p-datepicker-time-picker-padding: 1rem;
+    --p-datepicker-time-picker-gap: 0.25rem;
+    --p-datepicker-title-gap: 0.5rem;
+    --p-datepicker-panel-padding: 0.5rem;
+}
+</style>

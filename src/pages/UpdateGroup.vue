@@ -48,13 +48,10 @@
                 </div>
 
                 <!-- Privacy Setting -->
-                <div>
-                    <label class="block font-medium">Group Privacy</label>
-                    <select v-model="group.is_public" class="w-full border p-2 rounded-md">
-                      <option :value="true">Public (Anyone can join)</option>
-                      <option :value="false">Private (Invite only)</option>
-                    </select>
-                </div>
+                <SelectInput selectLabel="Group Privacy" v-model="group.is_public" :options="[
+                    { value: true, label: 'Public (Anyone can join)' },
+                    { value: false, label: 'Private (Invite only)' }
+                  ]" />
 
                 <!-- PIN Input (Only Visible When Private) -->
                 <div v-if="!group.is_public" class="mt-4">
@@ -125,6 +122,7 @@ import LoadingScreen from "../components/LoadingScreen.vue";
 import { groupsService } from '../api/groupsService';
 import { supabase } from '../api/supabase';
 import DeleteConfirm from "../components/DeleteConfirm.vue";
+import SelectInput from "../components/UI/SelectInput.vue";
 
 const route = useRoute();
 const router = useRouter();

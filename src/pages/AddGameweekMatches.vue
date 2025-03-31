@@ -6,7 +6,18 @@
             <!-- <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p> -->
             <div class="mb-8 mt-4" v-if="gameweek">
                 <label class="block text-sm font-medium text-gray-700">Deadline</label>
-                <input type="datetime-local" v-model="gameweek.deadline" class="appearance-none mt-1 p-2 w-full border rounded-md" :min="minDateTime">
+                <div class="p-2 border border-gray-300 rounded-md">
+                    <DatePicker 
+                        v-model="gameweek.deadline" 
+                        showIcon 
+                        showTime
+                        hourFormat="24"
+                        dateFormat="dd/mm/yy"
+                        class="w-full"
+                        fluid
+                        type="datetime-local"
+                    />
+                </div>
             </div>
         </div>
 
@@ -68,9 +79,7 @@ watch(() => gameweek.value?.deadline, (newVal) => {
 });
 
 const minDateTime = computed(() => {
-    const now = new Date();
-    now.setHours(now.getHours() + 1); // Add 1 hour
-    return now.toISOString().slice(0, 16); // Format for datetime-local
+    return new Date(gameweek.value.deadline);
 });
 
 onMounted(async () => {

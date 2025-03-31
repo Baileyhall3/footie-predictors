@@ -16,13 +16,10 @@
       </div>
 
       <!-- Scoring System -->
-      <div>
-        <label class="block font-medium">Scoring System</label>
-        <select v-model="groupData.scoring_system" class="w-full border p-2 rounded-md">
-          <option value="classic">Classic (1 pt for correct result, 3 pts for exact score)</option>
-          <option value="custom">Custom (set below)</option>
-        </select>
-      </div>
+      <SelectInput selectLabel="Scoring System" v-model="groupData.scoring_system" :options="[
+          { value: 'classic', label: 'Classic (1 pt for correct result, 3 pts for exact score)' },
+          { value: 'custom', label: 'Custom (set below)' }
+        ]" />
 
       <!-- Custom Scoring -->
       <div v-if="groupData.scoring_system === 'custom'" class="grid grid-cols-2 gap-4">
@@ -41,13 +38,10 @@
       </div>
 
       <!-- Privacy Setting -->
-      <div>
-        <label class="block font-medium">Group Privacy</label>
-        <select v-model="groupData.is_public" class="w-full border p-2 rounded-md">
-          <option :value="true">Public (Anyone can join)</option>
-          <option :value="false">Private (Invite only)</option>
-        </select>
-      </div>
+      <SelectInput selectLabel="Group Privacy" v-model="groupData.is_public" :options="[
+          { value: true, label: 'Public (Anyone can join)' },
+          { value: false, label: 'Private (Invite only)' }
+        ]" />
 
       <!-- PIN Input (Only Visible When Private) -->
       <div v-if="!groupData.is_public" class="mt-4">
@@ -95,6 +89,7 @@ import { ref, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { groupsService } from '../api/groupsService';
 import { supabase } from '../api/supabase';
+import SelectInput from '../components/UI/SelectInput.vue';
 
 const router = useRouter();
 

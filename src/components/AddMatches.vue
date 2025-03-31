@@ -114,7 +114,18 @@
                 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Match Time</label>
-                <input type="datetime-local" v-model="manuallySelectedMatch.match_time" class="mt-1 p-2 w-full border rounded-md" :min="minDateTime">
+                <div class="p-2 border border-gray-300 rounded-md">
+                    <DatePicker 
+                        v-model="manuallySelectedMatch.match_time" 
+                        showIcon 
+                        showTime
+                        hourFormat="24"
+                        dateFormat="dd/mm/yy"
+                        class="w-full"
+                        :minDate="minDateTime"
+                        fluid
+                    />
+                </div>
             </div>                
             <button 
                 @click="addMatch" 
@@ -162,9 +173,7 @@ const setManually = ref(false);
 const isMounted = ref(false);
 
 const minDateTime = computed(() => {
-    const deadlineDate = new Date(props.deadline);
-    deadlineDate.setHours(deadlineDate.getHours() + 1); // Add 1 hour
-    return deadlineDate.toISOString().slice(0, 16); // Format for datetime-local
+    return new Date(props.deadline);
 });
 
 const manuallySelectedMatch = ref({
