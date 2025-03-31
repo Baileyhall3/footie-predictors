@@ -41,26 +41,59 @@ if (typeof window !== 'undefined') {
 // In Node.js, use process.env
 let BASE_URL;
 let API_KEY;
+let DIRECT_API_ACCESS = false;
 
 // Check if we're in a browser environment (Vite)
 if (typeof window !== 'undefined' && typeof import.meta !== 'undefined') {
+  // Browser environment - use the proxy
   BASE_URL = import.meta.env.VITE_API_BASE_URL;
   API_KEY = import.meta.env.VITE_API_KEY;
 } else {
-  // We're in Node.js
-  BASE_URL = process.env.VITE_API_BASE_URL || '/api';
+  // We're in Node.js (GitHub Actions, etc.)
   API_KEY = process.env.VITE_API_KEY || process.env.FOOTBALL_API_KEY;
+  
+  // Check if we're running in a GitHub Actions or other CI environment
+  // In these environments, we need to access the football-data API directly
+  if (process.env.CI || process.env.GITHUB_ACTIONS) {
+    console.log('Running in CI environment, using direct API access');
+    BASE_URL = 'https://api.football-data.org/v4';
+    DIRECT_API_ACCESS = true;
+  } else {
+    // Local Node.js environment, still use the proxy
+    BASE_URL = process.env.VITE_API_BASE_URL || '/api';
+  }
 }
+
+console.log(`API Base URL: ${BASE_URL}`);
+console.log(`Direct API Access: ${DIRECT_API_ACCESS}`);
 
 // Create the service object
 const footballApiService = {
+  /**
+   * Helper method to create fetch options with API key when needed
+   * @returns {Object} Fetch options
+   */
+  _getFetchOptions() {
+    // When accessing the API directly, we need to include the API key in the headers
+    if (DIRECT_API_ACCESS) {
+      return {
+        headers: {
+          'X-Auth-Token': API_KEY,
+          'Content-Type': 'application/json',
+        }
+      };
+    }
+    // When using the proxy, we don't need to include the API key
+    return {};
+  },
+
   /**
    * Fetch available leagues
    * @returns {Promise<{data: Array, error: Object}>}
    */
   async getLeagues() {
     try {
-      const response = await fetch(`${BASE_URL}/competitions`);
+      const response = await fetch(`${BASE_URL}/competitions`, this._getFetchOptions());
       const data = await response.json();
       const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224];
       const leagueData = data.competitions.filter(({ id }) => selectableLeagueIds.includes(id));
@@ -83,9 +116,9 @@ const footballApiService = {
       let response = null;
 
       if (leagueId) {
-        response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`);
+        response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`, this._getFetchOptions());
       } else if (teamId) {
-        response = await fetch(`${BASE_URL}/teams/${teamId}/matches`);
+        response = await fetch(`${BASE_URL}/teams/${teamId}/matches`, this._getFetchOptions());
       }
       const data = await response.json();
       return { data: data.matches, error: null };
@@ -102,7 +135,7 @@ const footballApiService = {
    */
   async getTeams(leagueId) {
     try {
-      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/teams`);
+      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/teams`, this._getFetchOptions());
       const data = await response.json();
       return { data: data.teams, error: null };
     } catch (error) {
@@ -118,7 +151,7 @@ const footballApiService = {
    */
   async getMatchesForTeam(teamId) {
     try {
-      const response = await fetch(`${BASE_URL}/teams/${teamId}/matches`);
+      const response = await fetch(`${BASE_URL}/teams/${teamId}/matches`, this._getFetchOptions());
       const data = await response.json();
       return { data: data.matches, error: null };
     } catch (error) {
@@ -134,7 +167,7 @@ const footballApiService = {
    */
   async fetchMatchScore(matchId) {
     try {
-      const response = await fetch(`${BASE_URL}/matches/${matchId}`);
+      const response = await fetch(`${BASE_URL}/matches/${matchId}`, this._getFetchOptions());
 
       const data = await response.json();
       return {
