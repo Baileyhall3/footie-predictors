@@ -3,8 +3,8 @@ import { predictionsService } from './predictionsService';
 
 // We don't need to use the API key directly in client requests
 // as the proxy will add it on the server side
-const BASE_URL = process.env.VITE_API_BASE_URL;
-// const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// In Vite, environment variables must be accessed using import.meta.env, not process.env
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const footballApiService = {
   /**

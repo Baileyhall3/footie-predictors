@@ -1,22 +1,46 @@
 export default async function handler(req, res) {
+  // Enhanced logging for debugging
+  console.log("Proxy handler called");
+  console.log("Request headers:", JSON.stringify(req.headers));
+  console.log("Request query:", JSON.stringify(req.query));
+  console.log("Environment variables:", {
+    NODE_ENV: process.env.NODE_ENV,
+    FOOTBALL_API_KEY_EXISTS: !!process.env.FOOTBALL_API_KEY,
+    VITE_API_KEY_EXISTS: !!process.env.VITE_API_KEY
+  });
+  
   // Set CORS headers to allow requests from your domain
   const origin = req.headers.origin;
-  if (origin && (origin.includes('footiepredictors.com') || process.env.NODE_ENV !== 'production')) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
+  console.log(`Request origin: ${origin || 'none'}`);
+  
+  // Always set CORS headers in production to ensure they're applied
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Auth-Token');
   
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
+    console.log("Handling OPTIONS request");
     return res.status(200).end();
   }
   
-  const { path } = req.query;
+  // Extract path from query parameters
+  let path = req.query.path || '';
+  console.log(`Raw path parameter: ${path}`);
+  
+  // Remove any leading slashes to avoid double slashes in the URL
+  if (path.startsWith('/')) {
+    path = path.substring(1);
+  }
+  console.log(`Normalized path: ${path}`);
   
   // Forward the request to the football-data.org API
-  const apiKey = process.env.FOOTBALL_API_KEY;
-  const url = `https://api.football-data.org/v4/${path || ''}`;
+  // Try multiple possible environment variable names
+  const apiKey = process.env.FOOTBALL_API_KEY || process.env.VITE_API_KEY || '8a95ce980f7549e0813011d8a66b519e';
+  const url = `https://api.football-data.org/v4/${path}`;
+  
+  console.log(`Proxying request to: ${url}`);
+  console.log(`API Key available: ${apiKey ? 'Yes' : 'No'}`);
   
   try {
     const response = await fetch(url, {
