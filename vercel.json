@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/server-api/updateMatchScores","destination": "/server-api/updateMatchScores"
+    },
     { "source": "/api/(.*)", "destination": "/api/proxy?path=$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],

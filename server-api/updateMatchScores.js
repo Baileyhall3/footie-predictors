@@ -1,5 +1,5 @@
-import { footballApiService } from "../src/api/footballApiService";
-
+// Import the footballApiService using a relative path that works in both development and production
+import { footballApiService } from "../src/api/footballApiService.js";
 export default async function handler(req, res) {
     try {
         console.log("Running scheduled job: Updating match scores...");
