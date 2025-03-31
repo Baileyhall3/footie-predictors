@@ -1,5 +1,40 @@
-import { gameweeksService } from './gameweeksService';
-import { predictionsService } from './predictionsService';
+// Support both ES modules and CommonJS
+let gameweeksService, predictionsService;
+
+// Function to initialize dependencies
+const initDependencies = async () => {
+  try {
+    // Try ES module import first (for browser/Vite)
+    if (typeof window !== 'undefined' && typeof import.meta !== 'undefined') {
+      // We're in a browser/Vite environment where dynamic imports work
+      const gameweeksImport = await import('./gameweeksService');
+      const predictionsImport = await import('./predictionsService');
+      gameweeksService = gameweeksImport.gameweeksService;
+      predictionsService = predictionsImport.predictionsService;
+      return;
+    }
+  } catch (e) {
+    console.log('ES module import failed, trying CommonJS');
+  }
+  
+  // Fall back to CommonJS require (for Node.js)
+  try {
+    const gameweeksModule = require('./gameweeksService');
+    const predictionsModule = require('./predictionsService');
+    gameweeksService = gameweeksModule.gameweeksService;
+    predictionsService = predictionsModule.predictionsService;
+  } catch (err) {
+    console.error('Failed to import dependencies:', err);
+    // Create empty placeholders if imports fail
+    gameweeksService = { fetchFinishedMatches: async () => [], updateMatchScore: async () => {} };
+    predictionsService = { calculateMatchScores: async () => {} };
+  }
+};
+
+// Initialize dependencies immediately in browser environments
+if (typeof window !== 'undefined') {
+  initDependencies();
+}
 
 // We need to handle both browser (Vite) and Node.js environments
 // In browser, use import.meta.env
@@ -8,7 +43,7 @@ let BASE_URL;
 let API_KEY;
 
 // Check if we're in a browser environment (Vite)
-if (typeof import.meta !== 'undefined') {
+if (typeof window !== 'undefined' && typeof import.meta !== 'undefined') {
   BASE_URL = import.meta.env.VITE_API_BASE_URL;
   API_KEY = import.meta.env.VITE_API_KEY;
 } else {
@@ -17,7 +52,8 @@ if (typeof import.meta !== 'undefined') {
   API_KEY = process.env.VITE_API_KEY || process.env.FOOTBALL_API_KEY;
 }
 
-export const footballApiService = {
+// Create the service object
+const footballApiService = {
   /**
    * Fetch available leagues
    * @returns {Promise<{data: Array, error: Object}>}
@@ -142,3 +178,8 @@ export const footballApiService = {
   },
   
 };
+
+// Add CommonJS module.exports for Node.js environments
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { footballApiService, initDependencies };
+}
