@@ -43,25 +43,28 @@ let BASE_URL;
 let API_KEY;
 let DIRECT_API_ACCESS = false;
 
-// Check if we're in a browser environment (Vite)
-if (typeof window !== 'undefined' && typeof import.meta !== 'undefined') {
+// Log environment information for debugging
+console.log('Environment detection:');
+console.log('- window defined:', typeof window !== 'undefined');
+console.log('- import.meta defined:', typeof import.meta !== 'undefined');
+console.log('- process.env.CI:', process.env?.CI);
+console.log('- process.env.GITHUB_ACTIONS:', process.env?.GITHUB_ACTIONS);
+console.log('- process.env.VERCEL:', process.env?.VERCEL);
+console.log('- process.env.NODE_ENV:', process.env?.NODE_ENV);
+
+// Always use direct API access in Node.js environments
+// This is the safest approach for serverless functions and GitHub Actions
+if (typeof window === 'undefined') {
+  console.log('Node.js environment detected, using direct API access');
+  BASE_URL = 'https://api.football-data.org/v4';
+  API_KEY = process.env.VITE_API_KEY || process.env.FOOTBALL_API_KEY;
+  DIRECT_API_ACCESS = true;
+} else {
   // Browser environment - use the proxy
+  console.log('Browser environment detected, using proxy');
   BASE_URL = import.meta.env.VITE_API_BASE_URL;
   API_KEY = import.meta.env.VITE_API_KEY;
-} else {
-  // We're in Node.js (GitHub Actions, etc.)
-  API_KEY = process.env.VITE_API_KEY || process.env.FOOTBALL_API_KEY;
-  
-  // Check if we're running in a GitHub Actions or other CI environment
-  // In these environments, we need to access the football-data API directly
-  if (process.env.CI || process.env.GITHUB_ACTIONS) {
-    console.log('Running in CI environment, using direct API access');
-    BASE_URL = 'https://api.football-data.org/v4';
-    DIRECT_API_ACCESS = true;
-  } else {
-    // Local Node.js environment, still use the proxy
-    BASE_URL = process.env.VITE_API_BASE_URL || '/api';
-  }
+  DIRECT_API_ACCESS = false;
 }
 
 console.log(`API Base URL: ${BASE_URL}`);

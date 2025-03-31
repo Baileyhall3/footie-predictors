@@ -4,9 +4,18 @@ import { footballApiService, initDependencies } from "../src/api/footballApiServ
 export default async function handler(req, res) {
     try {
         console.log("Running scheduled job: Updating match scores...");
+        console.log("Environment:", process.env.NODE_ENV);
+        console.log("Running in Vercel:", !!process.env.VERCEL);
+        
+        // Force Node.js environment detection
+        global.window = undefined;
         
         // Initialize dependencies before using the service
         await initDependencies();
+        
+        // Log the API base URL and direct access mode
+        console.log("API configuration after initialization:");
+        console.log("- Direct API access mode:", footballApiService._getFetchOptions().headers ? "Yes" : "No");
         
         // Now we can use the service
         await footballApiService.updateMatchScores();
