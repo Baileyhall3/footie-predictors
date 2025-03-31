@@ -17,8 +17,8 @@
         <h2 class="text-2xl font-bold mb-2">{{ group.name }}</h2>
         <p class="text-gray-500 mb-4">{{ group.description || 'No description available' }}</p>
         <p class="text-sm text-gray-600"><span class="font-semibold">Admin:</span> {{ adminName }}</p>
-        <p class="text-sm text-gray-600"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
-        <p class="text-sm text-gray-600"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
+        <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
+        <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
 
         <!-- Admin Controls (only visible to the admin) -->
         <div v-if="isAdmin" class="mt-4 flex flex-wrap gap-2">
@@ -135,7 +135,7 @@
             </button>
             <button 
               v-else
-              class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded hover:bg-red-200 transition"
+              class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded transition cursor-default"
             >
               Max Members Reached
             </button>
@@ -307,7 +307,7 @@ const fetchAllData = async () => {
       currentGameweekId.value = activeGameweek[0].id;
       gameweekIsLocked.value = activeGameweek[0].is_locked;
       mapPredictions();
-      await footballApiService.updateMatchScores(currentGameweekId.value);
+      // await footballApiService.updateMatchScores(currentGameweekId.value);
     }
 
   } catch (err) {
