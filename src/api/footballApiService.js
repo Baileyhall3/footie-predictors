@@ -62,7 +62,7 @@ const footballApiService = {
     try {
       const response = await fetch(`${BASE_URL}/competitions`);  
       const data = await response.json();
-      const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224]
+      const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224];
       const leagueData = data.competitions.filter(({id}) => selectableLeagueIds.includes(id));
 
       return { data: leagueData, error: null };
@@ -137,8 +137,6 @@ const footballApiService = {
       const response = await fetch(`${BASE_URL}/matches/${matchId}`);
 
       const data = await response.json();
-      // if (data.status != "FINISHED") { return; }
-  
       return {
         homeScore: data.score.fullTime.home ?? null,
         awayScore: data.score.fullTime.away ?? null
@@ -176,10 +174,7 @@ const footballApiService = {
       }
     }
   },
-  
 };
 
-// Add CommonJS module.exports for Node.js environments
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { footballApiService, initDependencies };
-}
+// Exporting using ES Module syntax
+export { footballApiService, initDependencies };
