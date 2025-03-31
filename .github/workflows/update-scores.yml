@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call API to update match scores
-        run: curl -X GET https://www.footiepredictors.com/server-api/updateMatchScores
+        run: curl -X GET https://www.footiepredictors.com/api/updateMatchScores
