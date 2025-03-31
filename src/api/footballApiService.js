@@ -1,32 +1,5 @@
-import axios from 'axios';
-// import cron from 'node-cron';
 import { gameweeksService } from './gameweeksService';
 import { predictionsService } from './predictionsService';
-
-// cron.schedule('*/30 * * * *', async () => {
-//   console.log("Checking for finished matches...");
-
-//   const matches = await fetchFinishedMatches();
-  
-//   if (!matches.length) {
-//     console.log("No matches need updating.");
-//     return;
-//   }
-
-//   for (const match of matches) {
-//     try {
-//       const { homeScore, awayScore } = await footballApiService.fetchMatchScore(match.api_match_id);
-      
-//       if (homeScore !== null && awayScore !== null) {
-//         await updateMatchScore(match.id, homeScore, awayScore);
-//         await calculateMatchScores(match.id);
-//         console.log(`Updated match ${match.id} with final scores.`);
-//       }
-//     } catch (error) {
-//       console.error(`Failed to update match ${match.id}:`, error);
-//     }
-//   }
-// });
 
 const API_KEY = process.env.VITE_API_KEY;
 const BASE_URL = process.env.VITE_API_BASE_URL;
