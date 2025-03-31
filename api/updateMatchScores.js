@@ -1,6 +1,7 @@
-// Import the footballApiService using a relative path that works in both development and production
-import { footballApiService } from "../src/api/footballApiService.js";
-export default async function handler(req, res) {
+// Use CommonJS require instead of ES module import
+const { footballApiService } = require("../src/api/footballApiService.js");
+
+module.exports = async function handler(req, res) {
     try {
         console.log("Running scheduled job: Updating match scores...");
         
