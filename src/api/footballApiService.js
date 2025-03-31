@@ -184,33 +184,40 @@ const footballApiService = {
   },
 
   async updateMatchScores(gameweekId = null) {
-    console.log('Checking for finished matches...');
+      console.log('Checking for finished matches...');
 
-    const finishedMatches = await gameweeksService.fetchFinishedMatches(gameweekId);
-    const now = new Date();
+      const finishedMatches = await gameweeksService.fetchFinishedMatches(gameweekId);
+      const now = new Date();
 
-    const matches = finishedMatches.filter(
-      (x) => x.api_match_id && new Date(x.match_time) < now
-    );
+      const matches = finishedMatches.filter(
+          (x) => x.api_match_id && new Date(x.match_time) < now
+      );
 
-    if (!matches.length) {
-      console.log('No matches need updating.');
-      return;
-    }
-
-    for (const match of matches) {
-      try {
-        const { homeScore, awayScore } = await this.fetchMatchScore(match.api_match_id);
-
-        if (homeScore !== null && awayScore !== null) {
-          await gameweeksService.updateMatchScore(match.id, homeScore, awayScore);
-          await predictionsService.calculateMatchScores(match.id);
-          console.log(`Updated match ${match.id} with final scores.`);
-        }
-      } catch (error) {
-        console.error(`Failed to update match ${match.id}:`, error);
+      if (!matches.length) {
+          console.log('No matches need updating.');
+          return;
       }
-    }
+
+      console.log(`Updating scores for ${matches.length} matches...`);
+
+      // Fetch all match scores in parallel
+      const matchUpdates = await Promise.allSettled(
+          matches.map(async (match) => {
+              try {
+                  const { homeScore, awayScore } = await footballApiService.fetchMatchScore(match.api_match_id);
+
+                  if (homeScore !== null && awayScore !== null) {
+                      await gameweeksService.updateMatchScore(match.id, homeScore, awayScore);
+                      await predictionsService.calculateMatchScores(match.id);
+                      console.log(`✅ Updated match ${match.id} with final scores.`);
+                  }
+              } catch (error) {
+                  console.error(`❌ Failed to update match ${match.id}:`, error);
+              }
+          })
+      );
+
+      console.log('Match score updates completed.');
   },
 };
 
