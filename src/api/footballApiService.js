@@ -208,7 +208,6 @@ const footballApiService = {
 
                   if (homeScore !== null && awayScore !== null) {
                       await gameweeksService.updateMatchScore(match.id, homeScore, awayScore);
-                      await predictionsService.calculateMatchScores(match.id);
                       console.log(`✅ Updated match ${match.id} with final scores.`);
                   }
               } catch (error) {

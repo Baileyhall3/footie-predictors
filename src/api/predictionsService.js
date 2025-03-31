@@ -282,6 +282,9 @@ export const predictionsService = {
  * @returns {Promise<{success: boolean, error: Object}>}
  */
 async calculateMatchScores(matchId) {
+
+  console.log(`Calculating scores for match: ${matchId}`);
+
   try {
     // Get the match
     const { data: match, error: matchError } = await supabaseDb.getById('matches', matchId);
@@ -289,7 +292,9 @@ async calculateMatchScores(matchId) {
 
     // If match doesn't have final scores, can't calculate
     if (match.final_home_score === null || match.final_away_score === null) {
-      throw new Error('Match does not have final scores');
+      // throw new Error('Match does not have final scores');
+      console.error(`Skipping match ${matchId}: Scores not updated yet.`);
+      return { success: false, error: 'Match does not have final scores' };
     }
 
     // Get the gameweek
