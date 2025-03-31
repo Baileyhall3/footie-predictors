@@ -1,7 +1,8 @@
 import { gameweeksService } from './gameweeksService';
 import { predictionsService } from './predictionsService';
 
-const API_KEY = process.env.VITE_API_KEY;
+// We don't need to use the API key directly in client requests
+// as the proxy will add it on the server side
 const BASE_URL = process.env.VITE_API_BASE_URL;
 
 export const footballApiService = {
@@ -11,9 +12,7 @@ export const footballApiService = {
    */
   async getLeagues() {
     try {
-      const response = await fetch(`${BASE_URL}/competitions`, {
-        headers: { 'X-Auth-Token': API_KEY }
-      });  
+      const response = await fetch(`${BASE_URL}/competitions`);  
       const data = await response.json();
       const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224]
       const leagueData = data.competitions.filter(({id}) => selectableLeagueIds.includes(id));
@@ -36,13 +35,9 @@ export const footballApiService = {
       let response = null;
       
       if (leagueId) {
-        response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`, {
-          headers: { 'X-Auth-Token': API_KEY }
-        });  
+        response = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`);  
       } else if (teamId) {
-        response = await fetch(`${BASE_URL}/teams/${teamId}/matches`, {
-          headers: { 'X-Auth-Token': API_KEY }
-        });  
+        response = await fetch(`${BASE_URL}/teams/${teamId}/matches`);  
       }
       const data = await response.json();
       return { data: data.matches, error: null };
@@ -59,9 +54,7 @@ export const footballApiService = {
    */
   async getTeams(leagueId) {
     try {
-      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/teams`, {
-        headers: { 'X-Auth-Token': API_KEY }
-      });  
+      const response = await fetch(`${BASE_URL}/competitions/${leagueId}/teams`);  
       const data = await response.json();
       return { data: data.teams, error: null };
     } catch (error) {
@@ -77,9 +70,7 @@ export const footballApiService = {
    */
   async getMatchesForTeam(teamId) {
     try {
-      const response = await fetch(`${BASE_URL}/teams/${teamId}/matches`, {
-        headers: { 'X-Auth-Token': API_KEY }
-      });  
+      const response = await fetch(`${BASE_URL}/teams/${teamId}/matches`);  
       const data = await response.json();
       return { data: data.matches, error: null };
     } catch (error) {
@@ -95,9 +86,7 @@ export const footballApiService = {
    */
   async fetchMatchScore(matchId) {
     try {
-      const response = await fetch(`${BASE_URL}/matches/${matchId}`, {
-        headers: { 'X-Auth-Token': API_KEY }
-      });
+      const response = await fetch(`${BASE_URL}/matches/${matchId}`);
 
       const data = await response.json();
       // if (data.status != "FINISHED") { return; }
