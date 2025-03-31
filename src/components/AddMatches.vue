@@ -114,7 +114,7 @@
                 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Match Time</label>
-                <input type="datetime-local" v-model="manuallySelectedMatch.match_time" class="mt-1 p-2 w-full border rounded-md">
+                <input type="datetime-local" v-model="manuallySelectedMatch.match_time" class="mt-1 p-2 w-full border rounded-md" :min="minDateTime">
             </div>                
             <button 
                 @click="addMatch" 
@@ -128,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, onUnmounted } from 'vue';
+import { ref, onMounted, watch, onUnmounted, computed } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { footballApiService } from '../api/footballApiService';
 
@@ -160,6 +160,12 @@ const selectedMatch = ref();
 const selectedTeam = ref();
 const setManually = ref(false);
 const isMounted = ref(false);
+
+const minDateTime = computed(() => {
+    const deadlineDate = new Date(props.deadline);
+    deadlineDate.setHours(deadlineDate.getHours() + 1); // Add 1 hour
+    return deadlineDate.toISOString().slice(0, 16); // Format for datetime-local
+});
 
 const manuallySelectedMatch = ref({
     id: crypto.randomUUID(),

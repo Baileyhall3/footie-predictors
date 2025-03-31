@@ -47,14 +47,14 @@ let DIRECT_API_ACCESS = false;
 console.log('Environment detection:');
 console.log('- window defined:', typeof window !== 'undefined');
 console.log('- import.meta defined:', typeof import.meta !== 'undefined');
-console.log('- process.env.CI:', process.env?.CI);
-console.log('- process.env.GITHUB_ACTIONS:', process.env?.GITHUB_ACTIONS);
-console.log('- process.env.VERCEL:', process.env?.VERCEL);
-console.log('- process.env.NODE_ENV:', process.env?.NODE_ENV);
 
 // Always use direct API access in Node.js environments
 // This is the safest approach for serverless functions and GitHub Actions
 if (typeof window === 'undefined') {
+  console.log('- process.env.CI:', process.env?.CI);
+  console.log('- process.env.GITHUB_ACTIONS:', process.env?.GITHUB_ACTIONS);
+  console.log('- process.env.VERCEL:', process.env?.VERCEL);
+  console.log('- process.env.NODE_ENV:', process.env?.NODE_ENV);
   console.log('Node.js environment detected, using direct API access');
   BASE_URL = 'https://api.football-data.org/v4';
   API_KEY = process.env.VITE_API_KEY || process.env.FOOTBALL_API_KEY;

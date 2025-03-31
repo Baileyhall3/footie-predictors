@@ -8,12 +8,14 @@ import { userStore } from './store/userStore';
 import { supabase } from './api/supabase';
 import { hasAuthState, getAuthState } from './utils/authPersistence';
 import VueToastify from "vue3-toastify";
+import PrimeVue from 'primevue/config';
+import DatePicker from 'primevue/datepicker';
 
 // Initialize the app
 const app = createApp(App);
 const head = createHead();
 
-// Create a global auth state flag
+// Create a global auth state flagd
 let authInitialized = false;
 
 // Add a global property to check if auth is initialized
@@ -66,6 +68,8 @@ app.use(VueToastify, {
   duration: 3000,
   theme: "light",
 });
+app.use(PrimeVue);
+app.component('DatePicker', DatePicker);
 
 // Initialize auth and then mount the app
 initializeAuth().then(() => {
