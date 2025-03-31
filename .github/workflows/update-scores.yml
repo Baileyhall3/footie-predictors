@@ -1,0 +1,12 @@
+name: Update Match Scores
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"  # Runs every 15 minutes
+
+jobs:
+  update-scores:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call API to update match scores
+        run: curl -X GET https://www.footiepredictors.com/api/updateMatchScores
