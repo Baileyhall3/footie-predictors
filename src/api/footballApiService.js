@@ -1,10 +1,21 @@
 import { gameweeksService } from './gameweeksService';
 import { predictionsService } from './predictionsService';
 
-// We don't need to use the API key directly in client requests
-// as the proxy will add it on the server side
-// In Vite, environment variables must be accessed using import.meta.env, not process.env
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// We need to handle both browser (Vite) and Node.js environments
+// In browser, use import.meta.env
+// In Node.js, use process.env
+let BASE_URL;
+let API_KEY;
+
+// Check if we're in a browser environment (Vite)
+if (typeof import.meta !== 'undefined') {
+  BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  API_KEY = import.meta.env.VITE_API_KEY;
+} else {
+  // We're in Node.js
+  BASE_URL = process.env.VITE_API_BASE_URL || '/api';
+  API_KEY = process.env.VITE_API_KEY || process.env.FOOTBALL_API_KEY;
+}
 
 export const footballApiService = {
   /**
