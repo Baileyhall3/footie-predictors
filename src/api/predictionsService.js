@@ -1,5 +1,5 @@
-import { supabase } from './supabase'
-import { supabaseDb } from './supabaseDb'
+import { supabase } from './supabase.js';
+import { supabaseDb } from './supabaseDb.js';
 
 /**
  * Service for managing predictions
