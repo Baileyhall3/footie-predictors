@@ -427,5 +427,50 @@ export const gameweeksService = {
       console.error('Error fetching user gameweek scores:', error)
       return { data: null, error }
     }
-  }
+  },
+
+  /**
+   * Gets gameweeks whose deadlines are in the past and locks them
+   * @param {string} gameweekId - Gameweek ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async updateGameweeksLockStatus(gameweekId = null) {
+    console.log("Checking gameweeks that need to be locked...");
+    try {      
+      const { data: gameweeks, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('gameweeks')
+          .select('*')
+          .lte('deadline', new Date().toISOString())  // Deadline has passed
+          .eq('is_locked', false)
+      )
+
+      if (error) {
+        console.error("❌ Error fetching gameweeks:", error);
+        return;
+      }
+    
+      if (!gameweeks.length) {
+        console.log("✅ No gameweeks need updating.");
+        return;
+      }
+
+      const updates = gameweeks.map((gw) =>
+        supabase
+          .from('gameweeks')
+          .update({ is_locked: true })
+          .eq('id', gw.id)
+          .then(response => {
+            if (response.error) throw response.error;
+          })
+      );
+      
+      await Promise.all(updates);
+      console.log(`✅ Successfully locked ${gameweeks.length} gameweeks.`);
+      
+    } catch (error) {
+      console.error('Error fetching unlocked gameweeks:', error)
+      return { data: null, error }
+    }
+  },
 }

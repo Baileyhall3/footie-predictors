@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/updateMatchScores","destination": "/api/updateMatchScores"},
+    { "source": "/api/updateGameweekLockStatus", "destination": "/api/updateGameweekLockStatus.js"},
     { "source": "/api/(.*)", "destination": "/api/proxy?path=$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
