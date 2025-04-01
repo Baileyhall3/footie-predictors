@@ -86,8 +86,11 @@ const footballApiService = {
         }
       };
     }
-    // When using the proxy, we don't need to include the API key
-    return {};
+    return {
+      headers: {
+        'X-Auth-Token': API_KEY,
+      }
+    };
   },
 
   /**
@@ -124,6 +127,7 @@ const footballApiService = {
         response = await fetch(`${BASE_URL}/teams/${teamId}/matches`, this._getFetchOptions());
       }
       const data = await response.json();
+
       return { data: data.matches, error: null };
     } catch (error) {
       console.error('Error fetching matches:', error);
@@ -173,10 +177,15 @@ const footballApiService = {
       const response = await fetch(`${BASE_URL}/matches/${matchId}`, this._getFetchOptions());
 
       const data = await response.json();
-      return {
-        homeScore: data.score.fullTime.home ?? null,
-        awayScore: data.score.fullTime.away ?? null,
-      };
+
+      if (data.status === "FINISHED") {
+        return {
+          homeScore: data.score.fullTime.home ?? null,
+          awayScore: data.score.fullTime.away ?? null,
+        };
+      } else {
+        return;
+      }
     } catch (error) {
       console.error('Error fetching match score from API:', error);
       return { homeScore: null, awayScore: null };
@@ -198,7 +207,7 @@ const footballApiService = {
           return;
       }
 
-      console.log(`Updating scores for ${matches.length} matches...`);
+      // console.log(`Updating scores for ${matches.length} matches...`);
 
       // Fetch all match scores in parallel
       const matchUpdates = await Promise.allSettled(
@@ -209,13 +218,14 @@ const footballApiService = {
                   if (homeScore !== null && awayScore !== null) {
                       await gameweeksService.updateMatchScore(match.id, homeScore, awayScore);
                       console.log(`✅ Updated match ${match.id} with final scores.`);
+                  } else {
+                    console.log(`Match ${match.id} is not finished yet.`)
                   }
               } catch (error) {
                   console.error(`❌ Failed to update match ${match.id}:`, error);
               }
           })
       );
-
       console.log('Match score updates completed.');
   },
 };
