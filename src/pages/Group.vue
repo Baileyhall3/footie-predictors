@@ -106,16 +106,8 @@
               :predictions="predictions"
               :locked="gameweekIsLocked"
               @update-prediction="handlePredictionUpdate"
+              @predictions-submitted="submitPredictions"
           />
-          <template v-if="!gameweekIsLocked">
-            <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
-              Predictions Saved ✅
-            </button>
-  
-            <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-              Submit Predictions
-            </button>
-          </template>
         </div>
 
         <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
@@ -254,15 +246,6 @@ const adminName = computed(() => {
   return admin ? admin.username : 'Unknown';
 });
 
-const predictionsChanged = ref(false);
-
-const allPredictionsSubmitted = computed(() => {
-  return matches.value.length > 0 && matches.value.every(match => {
-    const prediction = predictions.value[match.id];
-    return prediction?.predicted_home_score !== '' && prediction?.predicted_away_score !== '';
-  });
-});
-
 // Fetch all data for the group
 const fetchAllData = async () => {
   try {
@@ -364,7 +347,6 @@ const handlePredictionUpdate = ({ matchId, field, value }) => {
         predictions.value[matchId] = { predicted_home_score: 0, predicted_away_score: 0 };
     }
     predictions.value[matchId][field] = value;
-    predictionsChanged.value = true;
 };
 
 async function submitPredictions() {
@@ -384,7 +366,6 @@ async function submitPredictions() {
     "position": "top-center"
   });
 
-  predictionsChanged.value = false;
   loading.value = false;
 }
 

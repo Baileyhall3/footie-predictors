@@ -12,7 +12,7 @@
             <div class="flex items-center gap-2 mb-4">
                 <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
             </div>
-            <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
+            <p class="text-lg"><span class="font-semibold">Deadline:</span> {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
         
             <!-- Edit Mode Toggle (Admins Only) -->
             <div class="flex flex-wrap gap-2 mt-4">
@@ -32,21 +32,14 @@
                 :predictions="userData.predictions"
                 :locked="gameweek?.is_locked"
                 @update-prediction="(data) => handlePredictionUpdate({ ...data, userId })"
+                @predictions-submitted="submitPredictions(userId)"
             />
-            <template v-if="!gameweek?.is_locked">
-                <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
-                    Predictions Saved ✅
-                </button>
-                <button v-else @click="submitPredictions(userId)" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-                    Submit Predictions
-                </button>
-            </template>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService';
 import { predictionsService } from '../api/predictionsService';
@@ -70,13 +63,6 @@ const currentUserId = ref();
 
 // Group predictions by user
 const groupedPredictions = ref();
-
-const allPredictionsSubmitted = computed(() => {
-    return matches.value.length > 0 && matches.value.every(match => {
-        const prediction = predictions.value[match.id];
-        return prediction?.predicted_home_score !== '' && prediction?.predicted_away_score !== '';
-    });
-});
 
 watch(showAllUsers, (state) => {
     mapPredictions(false);
@@ -170,17 +156,19 @@ async function mapPredictions(skipLoad = true) {
 }
 
 const handlePredictionUpdate = ({ userId, matchId, field, value }) => {
-    if (!groupedPredictions.value[userId]) {
-        console.warn(`User ${userId} not found in groupedPredictions`);
-        return;
-    }
-
-    if (!groupedPredictions.value[userId].predictions[matchId]) {
-        groupedPredictions.value[userId].predictions[matchId] = { predicted_home_score: 0, predicted_away_score: 0 };
-    }
-
-    groupedPredictions.value[userId].predictions[matchId][field] = value;
-    predictionsChanged.value = true;
+    if (!groupedPredictions.value[userId]) return;
+    
+    // Ensure deep reactivity
+    groupedPredictions.value[userId] = {
+        ...groupedPredictions.value[userId],
+        predictions: {
+            ...groupedPredictions.value[userId].predictions,
+            [matchId]: {
+                ...groupedPredictions.value[userId].predictions[matchId],
+                [field]: value
+            }
+        }
+    };
 };
 
 async function submitPredictions(userId) {
@@ -204,7 +192,6 @@ async function submitPredictions(userId) {
     }
 
     loading.value = false;
-    predictionsChanged.value = false;
 
     toast(`Predictions for ${groupedPredictions.value[userId].username} have been saved!`, {
         "type": "success",

@@ -82,10 +82,19 @@
     </div>
 
     <h3 class="text-lg mt-2" v-if="props.totalPoints"><span class="font-medium">Total Points:</span> {{ props.totalPoints }}</h3>
+
+    <template v-if="props.includeSubmitBtn && !props.locked && props.predictions && Object.keys(props.predictions).length > 0">
+        <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
+            Predictions Saved ✅
+        </button>
+        <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+            Submit Predictions
+        </button>
+    </template>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import DateUtils from '../utils/dateUtils';
 
 export interface IProps {
@@ -96,15 +105,17 @@ export interface IProps {
     canRemove?: boolean;
     totalPoints?: number
     topMargin?: number;
+    includeSubmitBtn: boolean;
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
     locked: false, 
     isAdmin: false,
     canRemove: false,
-    topMargin: 6
+    topMargin: 6,
+    includeSubmitBtn: true
 });
-const emit = defineEmits(["update-prediction", "update-score", "match-removed"]);
+const emit = defineEmits(["update-prediction", "update-score", "match-removed", "predictions-submitted"]);
 
 const groupedMatches = computed(() => {
     return props.matches.reduce((acc, match) => {
@@ -115,11 +126,21 @@ const groupedMatches = computed(() => {
     }, {});
 });
 
+const allPredictionsSubmitted = computed(() => {
+    return props.matches.length > 0 && props.matches.every(match => {
+        const prediction = props.predictions[match.id];
+        return prediction?.predicted_home_score !== '' && prediction?.predicted_away_score !== '';
+    });
+});
+
+const predictionsChanged = ref(false);
+
 // Emit event when prediction changes (User Mode)
 const updatePrediction = (match: any, field: string, increment: number) => {
     const currentScore = Number(match[field]) || 0; // Ensure it's a number
     const newScore = Math.max(0, currentScore + increment); // Prevent negative values
     match[field] = newScore;
+    predictionsChanged.value = true;
     emit("update-prediction", { matchId: match.id, field, value: newScore });
 };
 
@@ -130,6 +151,11 @@ const updateScore = (match: any, field: string, increment: number) => {
     match[field] = newScore;
     emit("update-score", { matchId: match.id, field, value: newScore });
 };
+
+const submitPredictions = () => {
+    predictionsChanged.value = false;
+    emit("predictions-submitted");
+}
 
 // Emit event when final score changes (Admin Mode)
 const removeMatch = (matchId: string) => {

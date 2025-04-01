@@ -34,26 +34,10 @@
                                     :matches="group.matches"
                                     :predictions="group.predictions"
                                     :locked="group.gameweek.is_locked || !group.gameweek.is_active"
+                                    :includeSubmitBtn="!group.gameweek.is_locked && group.gameweek.is_active"
                                     @update-prediction="(data) => handlePredictionUpdate({ ...data, group })"
+                                    @predictions-submitted="submitPredictions(group)"
                                 />
-                        
-                                <template v-if="!group.gameweek.is_locked && group.gameweek.is_active">
-                                    <button 
-                                        v-if="group.allPredictionsSubmitted && !group.predictionsChanged" 
-                                        class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" 
-                                        disabled
-                                    >
-                                        Predictions Saved ✅
-                                    </button>
-                        
-                                    <button 
-                                        v-else 
-                                        @click="submitPredictions(group)" 
-                                        class="w-full bg-green-600 text-white py-2 rounded-md mt-4"
-                                    >
-                                        Submit Predictions
-                                    </button>
-                                </template>
                             </div>
                         </div>
                     </div>
@@ -175,27 +159,27 @@ async function fetchAllData() {
     }
 }
 
-
 const handlePredictionUpdate = ({ group, matchId, field, value }) => {
     group.predictions[matchId][field] = value;
     group.predictionsChanged = true;
 };
 
 async function submitPredictions(group) {
-  for (const [matchId, prediction] of Object.entries(group.predictions)) {
-    await predictionsService.savePrediction(
-      userStore.user?.id, 
-      matchId, 
-      prediction.predicted_home_score,
-      prediction.predicted_away_score 
-    );
-  }
+    isLoading.value = true;
+    for (const [matchId, prediction] of Object.entries(group.predictions)) {
+        await predictionsService.savePrediction(
+            userStore.user?.id, 
+            matchId, 
+            prediction.predicted_home_score,
+            prediction.predicted_away_score 
+        );
+    }
 
-  toast("Predictions have been saved!", {
-    "type": "success",
-    "position": "top-center"
-  });
-  
+    toast("Predictions have been saved!", {
+        "type": "success",
+        "position": "top-center"
+    });
+    isLoading.value = false;
 }
 
 </script>

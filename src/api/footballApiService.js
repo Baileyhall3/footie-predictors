@@ -207,7 +207,7 @@ const footballApiService = {
           return;
       }
 
-      // console.log(`Updating scores for ${matches.length} matches...`);
+      const unfinishedMatches = [];
 
       // Fetch all match scores in parallel
       const matchUpdates = await Promise.allSettled(
@@ -219,13 +219,18 @@ const footballApiService = {
                       await gameweeksService.updateMatchScore(match.id, homeScore, awayScore);
                       console.log(`✅ Updated match ${match.id} with final scores.`);
                   } else {
-                    console.log(`Match ${match.id} is not finished yet.`)
+                    unfinishedMatches.push(match.id);
                   }
               } catch (error) {
                   console.error(`❌ Failed to update match ${match.id}:`, error);
               }
           })
       );
+
+      if (unfinishedMatches.length) {
+        console.warn(`⚠️ The following matches are not finished yet: ${unfinishedMatches.join(', ')}`);
+      }
+      
       console.log('Match score updates completed.');
   },
 };

@@ -23,8 +23,12 @@
               Active
             </div>
           </div>
-          <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
-          <p class="text-lg" v-if="gameweek?.is_finished">Winner: {{ gameweekWinner }}</p>
+          <p class="text-lg"><span class="font-semibold">Deadline:</span> {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
+          <div class="items-center flex" v-if="gameweek?.is_finished">
+            <p class="text-lg"><span class="font-semibold">Winner:</span> {{ gameweekWinner }}</p>
+            <TrophyIcon class="size-5 ms-3" style="color: gold;" />
+          </div>
+
           <!-- <p class="text-sm text-gray-600"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p> -->
       
           <!-- Edit Mode Toggle (Admins Only) -->
@@ -43,7 +47,7 @@
                <button @click="changeGameWeekActiveStatus" class="px-3 py-1 bg-purple-600 text-white rounded-md">
                   {{ gameweek?.is_active ? 'Make inactive' : 'Make active' }}
                 </button>
-                <button @click="changeGameWeekLockedStatus" class="px-3 py-1 bg-gray-600 text-white rounded-md">
+                <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="px-3 py-1 bg-gray-600 text-white rounded-md">
                   {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                 </button>
                 <button @click="deleteGameweek" class="px-3 py-1 bg-red-600 text-white rounded-md">
@@ -75,7 +79,7 @@
           <template v-if="matches.length > 0 && !matchesCollapsed">
             <ScoreCard 
                 :matches="matches"
-                :isAdmin="editMode && gameweek?.is_active && !gameweek?.is_locked"
+                :isAdmin="editMode && gameweek?.is_active && gameweek?.is_locked"
                 :canRemove="editMode && gameweek?.is_active && !gameweek?.is_locked"
                 @update-score="handleScoreUpdate"
                 @match-removed="handleMatchRemoved"
@@ -111,18 +115,10 @@
                     :predictions="predictions"
                     :locked="gameweek?.is_locked || !gameweek?.is_active"
                     :totalPoints="userGameweekScore ?? null"
+                    :includeSubmitBtn="!gameweek?.is_locked && gameweek?.is_active"
                     @update-prediction="handlePredictionUpdate"
+                    @predictions-submitted="submitPredictions"
                 />
-      
-                <template v-if="!gameweek?.is_locked && gameweek?.is_active ">
-                  <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-4 flex items-center justify-center" disabled>
-                    Predictions Saved ✅
-                  </button>
-        
-                  <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-                    Submit Predictions
-                  </button>
-                </template>
               </template>
               <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
             </div>
@@ -172,6 +168,7 @@ import { leaderboardStore } from '../store/leaderboardStore';
 import LeaderboardCard from '../components/LeaderboardCard.vue';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { TrophyIcon } from '@heroicons/vue/24/solid';
 
 const route = useRoute();
 const router = useRouter();
@@ -193,14 +190,10 @@ const gameweekWinner = ref('');
 
 const isAdmin = ref(false);
 
-const predictionsChanged = ref(false);
 const matchesChanged = ref(false);
 
-const allPredictionsSubmitted = computed(() => {
-  return matches.value.length > 0 && matches.value.every(match => {
-    const prediction = predictions.value[match.id];
-    return prediction?.predicted_home_score !== '' && prediction?.predicted_away_score !== '';
-  });
+const canUnlockGameweek = computed(() => {
+  return new Date(gameweek.value.deadline) > new Date();
 });
   
 onMounted(async () => {
@@ -237,7 +230,6 @@ async function fetchGameweek() {
   if (leaderboard.value.length > 0) {
     userGameweekScore.value = leaderboard.value.find(x => x.user_id == userStore.user?.id).total_points;
     gameweekWinner.value = leaderboard.value.find(x => x.position == 1).username;
-    debugger
   }
 
   mapPredictions();
@@ -355,7 +347,6 @@ async function submitPredictions() {
     "position": "top-center"
   });
 
-  predictionsChanged.value = false;
   loading.value = false;
 }
 
@@ -402,7 +393,6 @@ const handlePredictionUpdate = ({ matchId, field, value }) => {
         predictions.value[matchId] = { predicted_home_score: 0, predicted_away_score: 0 };
     }
     predictions.value[matchId][field] = value;
-    predictionsChanged.value = true;
 };
 
 const handleScoreUpdate = ({ matchId, field, value }) => {
