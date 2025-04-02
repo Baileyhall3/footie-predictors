@@ -9,3 +9,7 @@ export function userIsAdmin(groupMembers) {
 export function userInGroup(groupMembers) {
     return groupMembers.some(member => member.id === userStore.user?.id);
 }
+
+export function userIsGroupOwner(group) {
+    return group.admin_id === userStore.user?.id;
+}

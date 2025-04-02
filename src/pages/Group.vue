@@ -16,13 +16,13 @@
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <h2 class="text-2xl font-bold mb-2">{{ group.name }}</h2>
         <p class="text-gray-500 mb-4">{{ group.description || 'No description available' }}</p>
-        <p class="text-sm text-gray-600"><span class="font-semibold">Admin:</span> {{ adminName }}</p>
+        <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
         <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
         <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
 
         <!-- Admin Controls (only visible to the admin) -->
-        <div v-if="isAdmin" class="mt-4 flex flex-wrap gap-2">
-          <router-link :to="`/group/${group.id}/update-group`">
+        <div class="mt-4 flex flex-wrap gap-2">
+          <router-link :to="`/group/${group.id}/update-group`" v-if="isGroupOwner">
             <button class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition">
               Edit
             </button>
@@ -33,14 +33,14 @@
               <ShareIcon class="text-white size-4 ms-2" />
             </div>
           </button>
-        </div>
-        <div v-else class="mt-4 flex flex-wrap gap-2">
-          <button v-if="notInGroup" @click="tryJoinGroup()" class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition">
-              Join
-          </button>
-          <button v-else @click="updateMemberStatus(false)" class="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition">
-              Leave
-          </button>
+          <template v-if="!isGroupOwner">
+            <button v-if="notInGroup" @click="tryJoinGroup()" class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition">
+                Join
+            </button>
+            <button v-else @click="updateMemberStatus(false)" class="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition">
+                Leave
+            </button>
+          </template>
         </div>
       </div>
     
@@ -101,7 +101,7 @@
         </div>
 
         <div v-if="Object.keys(predictions).length > 0">
-          <ScoreCard 
+          <ScoreCard2 
               :matches="matches"
               :predictions="predictions"
               :locked="gameweekIsLocked"
@@ -143,19 +143,42 @@
               <span v-if="member.is_admin" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>
             </div>
             
-            <div v-if="isAdmin && userStore.user.id !== member.id" class="flex items-center gap-2">
-              <router-link :to="`/admin-gameweek-predictions/${currentGameweekId}/${member.id}`" v-if="member.is_fake && !gameweekIsLocked" 
-                class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200"
-              >
-                Predict
-              </router-link>
-              
-              <button 
-                @click="confirmRemoveMember(member)" 
-                class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded hover:bg-red-200 transition"
-              >
-                Remove
-              </button>
+            <div v-if="isAdmin && userStore.user.id !== member.id" class="relative flex items-center gap-2">
+              <!-- Ellipsis Dropdown -->
+              <div class="relative">
+                <button @click="toggleDropdown(member.id)" class="p-1 rounded-md hover:bg-gray-200" :class="{'bg-gray-200': openMembersDropdown === member.id}">
+                  <EllipsisHorizontalIcon class="size-6 text-gray-500" />
+                </button>
+
+                <!-- Dropdown Menu -->
+                <Transition name="fade-slide">
+                  <div v-if="openMembersDropdown === member.id" 
+                    class="absolute right-0 w-32 bg-white shadow-lg rounded-md border z-50"
+                  >
+                    <button 
+                      @click="updateMemberAdminStatus(member)" 
+                      class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-200"
+                    >
+                      {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
+                    </button>
+
+                    <router-link 
+                      v-if="member.is_fake && !gameweekIsLocked" 
+                      :to="`/admin-gameweek-predictions/${currentGameweekId}/${member.id}`"
+                      class="block px-4 py-2 text-sm  hover:bg-gray-200"
+                    >
+                      Predict
+                    </router-link>
+
+                    <button 
+                      @click="confirmRemoveMember(member)" 
+                      class="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-200"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </Transition>
+              </div>
             </div>
           </div>
         </div>
@@ -199,11 +222,12 @@ import { groupsStore } from "../store/groupsStore";
 import { leaderboardStore } from "../store/leaderboardStore";
 import { userStore } from "../store/userStore";
 import { gameweeksService } from "../api/gameweeksService";
-import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
+import { userIsAdmin, userInGroup, userIsGroupOwner } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
-import { LockClosedIcon, ShareIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, ShareIcon, EllipsisHorizontalIcon } from "@heroicons/vue/24/solid";
 import ScoreCard from "../components/ScoreCard.vue";
+import ScoreCard2 from "../components/ScoreCard2.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
 import DeleteConfirm from "../components/DeleteConfirm.vue";
@@ -237,13 +261,24 @@ const deleteConfirmMsg = ref('');
 const deleteConfirmTitle = ref('');
 const deleteConfirmText = ref('Confirm');
 const leaderboardLastUpdated = ref();
-
-// Computed properties
+const openMembersDropdown = ref(null);
 const isAdmin = ref(false);
+const isGroupOwner = ref(false);
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
   return admin ? admin.username : 'Unknown';
+});
+
+const toggleDropdown = (memberId) => {
+  openMembersDropdown.value = openMembersDropdown.value === memberId ? null : memberId;
+};
+
+// Close dropdown when clicking outside
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".relative")) {
+    openMembersDropdown.value = null;
+  }
 });
 
 // Fetch all data for the group
@@ -276,6 +311,7 @@ const fetchAllData = async () => {
     }
 
     isAdmin.value = userIsAdmin(members.value);
+    isGroupOwner.value = userIsGroupOwner(group.value);
     
     // Fetch gameweeks
     const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getGameweeks(groupId.value);
@@ -367,6 +403,18 @@ async function submitPredictions() {
   });
 
   loading.value = false;
+}
+
+const updateMemberAdminStatus = async (member) => {
+  await groupsStore.updateMemberRole(member.membership_id, !member.is_admin, groupId.value);
+
+  toast("User admin status updated!", { // TODO: Make toast more intuitative
+    "type": "success",
+    "position": "top-center"
+  });
+
+  // Refresh members list
+  getGroupMembers();
 }
 
 const confirmRemoveMember = async (member) => {
@@ -523,5 +571,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Custom styles */
+/* Fade and slide-down effect */
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.fade-slide-enter-from, .fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
 </style>
+

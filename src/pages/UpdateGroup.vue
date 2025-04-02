@@ -10,7 +10,7 @@
         <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
           <h1 class="text-3xl font-bold">{{ group.name }}</h1>
           <p v-if="admin" class="mt-2 text-green-100">
-            Admin: {{ admin.username }}
+            Owner: {{ admin.username }}
           </p>
         </div>
   
