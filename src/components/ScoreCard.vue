@@ -107,7 +107,7 @@ export interface IProps {
     canRemove?: boolean;
     totalPoints?: number
     topMargin?: number;
-    includeSubmitBtn: boolean;
+    includeSubmitBtn?: boolean;
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
@@ -121,7 +121,7 @@ const emit = defineEmits(["update-prediction", "update-score", "match-removed", 
 
 const groupedMatches = computed(() => {
     return props.matches.reduce((acc, match) => {
-        const matchDay = DateUtils.toShortDayMonth(match.match_time);
+        const matchDay = DateUtils.toShortDayMonth(match.match_time, true);
         if (!acc[matchDay]) acc[matchDay] = [];
         acc[matchDay].push(match);
         return acc;

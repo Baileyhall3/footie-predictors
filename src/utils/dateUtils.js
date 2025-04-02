@@ -20,13 +20,33 @@ class DateUtils {
         }).replace(',', '');  // Example: Mon Dec 30 2024 15:00
     }    
 
-    static toShortDayMonth(date) {
+    static toShortDayMonth(date, dayContext = false) {
         const parsedDate = new Date(date);
         if (isNaN(parsedDate)) return 'Invalid Date';
-
+    
+        if (dayContext) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize to midnight
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+    
+            // Compare only the date part
+            const parsedDateStr = parsedDate.toDateString();
+            const todayStr = today.toDateString();
+            const yesterdayStr = yesterday.toDateString();
+            const tomorrowStr = tomorrow.toDateString();
+    
+            if (parsedDateStr === todayStr) return 'Today';
+            if (parsedDateStr === yesterdayStr) return 'Yesterday';
+            if (parsedDateStr === tomorrowStr) return 'Tomorrow';    
+        }
+    
         const options = { weekday: 'short', month: 'short', day: '2-digit' };
-        return parsedDate.toLocaleDateString('en-US', options); // Example: "Mon Dec 30"
+        return parsedDate.toLocaleDateString('en-US', options);
     }
+    
 
     static toShortDate(date) {
         const parsedDate = new Date(date);
@@ -53,11 +73,11 @@ class DateUtils {
     static toTime(date) {
         const parsedDate = new Date(date);
         if (isNaN(parsedDate)) return 'Invalid Date';
-
-        const hours = String(parsedDate.getHours()).padStart(2, '0');
-        const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
-
-        return `${hours}:${minutes}`; // Example: "15:45"
+    
+        // Get the local time with timezone conversion
+        const correctedDate = new Date(parsedDate.getTime() - parsedDate.getTimezoneOffset() * 60000);
+    
+        return correctedDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }); // Example: "15:45"
     }
 
     static toInputFormatDate(date) {

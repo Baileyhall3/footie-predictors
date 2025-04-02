@@ -25,7 +25,7 @@
           </div>
           <p class="text-lg"><span class="font-semibold">Deadline:</span> {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
           <div class="items-center flex" v-if="gameweek?.is_finished">
-            <p class="text-lg"><span class="font-semibold">Winner:</span> {{ gameweekWinner }}</p>
+            <p class="text-lg"><span class="font-semibold">Winner:</span> {{ userIsGameweekWinner ? 'You!' : gameweekWinner.username }}</p>
             <TrophyIcon class="size-5 ms-3" style="color: gold;" />
           </div>
 
@@ -55,6 +55,14 @@
                 </button>
              </template>
            </div>
+        </div>
+
+        <div v-if="userIsGameweekWinner" class="bg-white shadow-lg rounded-xl p-6 mb-8">
+          <div class="flex items-center justify-center gap-2">
+            <!-- <TrophyIcon class="size-5 me-1" style="color: gold;" /> -->
+            <h2 class="text-xl font-bold">Congratulations {{ gameweekWinner.username }}, you are the gameweek winner!</h2>
+            <!-- <TrophyIcon class="size-5 ms-1" style="color: gold;" /> -->
+          </div>
         </div>
 
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
@@ -169,6 +177,7 @@ import LeaderboardCard from '../components/LeaderboardCard.vue';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { TrophyIcon } from '@heroicons/vue/24/solid';
+import confetti from 'canvas-confetti';
 
 const route = useRoute();
 const router = useRouter();
@@ -186,7 +195,7 @@ const deleteConfirm = ref(null);
 const leaderboard = ref([]);
 const userGameweekScore = ref();
 const matchesCollapsed = ref(false);
-const gameweekWinner = ref('');
+const gameweekWinner = ref();
 
 const isAdmin = ref(false);
 
@@ -195,6 +204,10 @@ const matchesChanged = ref(false);
 const canUnlockGameweek = computed(() => {
   return new Date(gameweek.value.deadline) > new Date();
 });
+
+const userIsGameweekWinner = computed(() => {
+  return gameweek.value?.is_finished && gameweekWinner.value.user_id === userStore.user?.id;
+})
   
 onMounted(async () => {
   await fetchGameweek();
@@ -229,7 +242,7 @@ async function fetchGameweek() {
 
   if (leaderboard.value.length > 0) {
     userGameweekScore.value = leaderboard.value.find(x => x.user_id == userStore.user?.id).total_points;
-    gameweekWinner.value = leaderboard.value.find(x => x.position == 1).username;
+    gameweekWinner.value = leaderboard.value.find(x => x.position == 1);
   }
 
   mapPredictions();
@@ -271,6 +284,10 @@ async function mapPredictions() {
   }, {});
 
   loading.value = false;
+
+  if (userIsGameweekWinner && gameweek.value.is_finished) {
+    triggerConfetti();
+  }
 }
   
 function toggleEditMode() {
@@ -423,6 +440,14 @@ const handleMatchRemoved = async(matchId) => {
         console.error(`Match with ID ${matchId} not found.`);
     }
 }
+
+const triggerConfetti = () => {
+  confetti({
+    particleCount: 1000,
+    spread: 100,
+    origin: { y: 0.6 }, // Adjust origin for better effect
+  });
+};
 
 const toggleMatchesCollapse = () => {
   matchesCollapsed.value = !matchesCollapsed.value;

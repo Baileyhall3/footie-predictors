@@ -101,7 +101,7 @@
         </div>
 
         <div v-if="Object.keys(predictions).length > 0">
-          <ScoreCard2 
+          <ScoreCard
               :matches="matches"
               :predictions="predictions"
               :locked="gameweekIsLocked"
@@ -227,7 +227,6 @@ import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
 import { LockClosedIcon, ShareIcon, EllipsisHorizontalIcon } from "@heroicons/vue/24/solid";
 import ScoreCard from "../components/ScoreCard.vue";
-import ScoreCard2 from "../components/ScoreCard2.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
 import DeleteConfirm from "../components/DeleteConfirm.vue";
