@@ -166,5 +166,38 @@ export const supabaseDb = {
       console.error('Error executing custom query:', error)
       return { data: null, error }
     }
+  },
+
+  /**
+   * Upload a file to a Supabase storage bucket
+   * @param {string} bucket - The name of the bucket
+   * @param {string} path - The storage path (e.g. 'group-123.png')
+   * @param {File} file - The File object
+   * @param {Object} options - Upload options
+   * @returns {Promise<{url: string|null, error: Object|null}>}
+   */
+  async upload(bucket, path, file, options = {}) {
+    try {
+      const { data, error } = await supabase
+        .storage
+        .from(bucket)
+        .upload(path, file, {
+          upsert: true,
+          contentType: file.type,
+          ...options
+        });
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase
+        .storage
+        .from(bucket)
+        .getPublicUrl(path);
+
+      return { url: publicUrlData.publicUrl, error: null };
+    } catch (error) {
+      console.error(`Error uploading file to ${bucket}:`, error);
+      return { url: null, error };
+    }
   }
 }

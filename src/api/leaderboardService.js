@@ -12,6 +12,7 @@ export const leaderboardService = {
    */
   async getGroupLeaderboard(groupId) {
     try {
+      // Get current leaderboard
       const { data, error } = await supabaseDb.customQuery((supabase) =>
         supabase
           .from('leaderboard')
@@ -24,11 +25,10 @@ export const leaderboardService = {
           `)
           .eq('group_id', groupId)
           .order('total_points', { ascending: false })
-      )
-
-      if (error) throw error
-
-      // Transform the data to a more usable format
+      );
+  
+      if (error) throw error;
+  
       const leaderboard = data.map((entry, index) => ({
         position: index + 1,
         id: entry.id,
@@ -38,14 +38,67 @@ export const leaderboardService = {
         total_correct_scores: entry.total_correct_scores,
         total_correct_results: entry.total_correct_results,
         last_updated: entry.updated_at
-      }))
-
-      return { data: leaderboard, error: null }
+      }));
+  
+      // Fetch history for last TWO gameweeks
+      const { data: historyRows, error: historyError } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('leaderboard_history')
+          .select('*')
+          .eq('group_id', groupId)
+          .order('gameweek', { ascending: false })
+          .limit(100) // Increase this to ensure we catch at least 2 different gameweeks
+      );
+  
+      if (historyError) throw historyError;
+  
+      // Get latest two distinct gameweeks
+      const distinctGameweeks = [
+        ...new Set(historyRows.map((row) => row.gameweek))
+      ].sort((a, b) => b - a); // Descending order
+  
+      const [latest, previous] = distinctGameweeks;
+  
+      if (!latest || !previous) {
+        // Not enough history to calculate movement
+        return {
+          data: leaderboard.map((entry) => ({ ...entry, movement: 'same' })),
+          error: null
+        };
+      }
+  
+      // Map history data by user and gameweek
+      const historyMap = {};
+      for (const row of historyRows) {
+        if (!historyMap[row.user_id]) historyMap[row.user_id] = {};
+        historyMap[row.user_id][row.gameweek] = row.position;
+      }
+  
+      const leaderboardWithMovement = leaderboard.map((entry) => {
+        const userHistory = historyMap[entry.user_id] || {};
+        const current = userHistory[latest];
+        const prev = userHistory[previous];
+  
+        let movement = 'same';
+        if (current && prev) {
+          if (current < prev) movement = 'up';
+          else if (current > prev) movement = 'down';
+        }
+  
+        return {
+          ...entry,
+          movement
+        };
+      });
+  
+      return { data: leaderboardWithMovement, error: null };
+  
     } catch (error) {
-      console.error('Error fetching group leaderboard:', error)
-      return { data: null, error }
+      console.error('Error fetching group leaderboard:', error);
+      return { data: null, error };
     }
-  },
+  },  
+  
 
   /**
    * Get the gameweek scores for a group
@@ -89,7 +142,8 @@ export const leaderboardService = {
           user_id: member.user_id,
           username: member.users.username,
           total_points: userScore.total_points,
-          total_correct_scores: userScore.total_correct_scores
+          total_correct_scores: userScore.total_correct_scores,
+          updated_at: userScore.updated_at
         }
       })
 

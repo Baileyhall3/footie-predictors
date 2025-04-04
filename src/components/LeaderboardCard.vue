@@ -3,6 +3,8 @@
     <div class="flex items-center gap-2">
       <span class="font-medium w-6 text-center">{{ player.position }}.</span>
       <span>{{ player.username }}</span>
+      <ArrowUpIcon class="size-3 text-green-600" v-if="player.movement == 'up'" />
+      <ArrowDownIcon class="size-3 text-red-600" v-if="player.movement == 'down'" />
       <span v-if="player.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
     </div>
     
@@ -18,7 +20,7 @@
         <span class="text-green-600 font-semibold"> pts</span>
       </template>
       <div class="text-xs text-gray-500">
-        {{ player.total_correct_scores }} exact scores
+        {{ player.total_correct_scores ?? 0 }} exact scores
       </div>
     </div>
   </div>
@@ -26,6 +28,7 @@
   
 <script setup lang="ts">
 import { userStore } from "../store/userStore";
+import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/vue/24/solid";
   
 interface LeaderboardEntry {
   id: string;
@@ -35,6 +38,7 @@ interface LeaderboardEntry {
   total_points: number;
   user_id: string;
   username: string;
+  movement: string;
 }
   
 export interface IProps {

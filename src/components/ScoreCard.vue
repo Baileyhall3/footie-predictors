@@ -11,7 +11,7 @@
         <div v-for="(matchGroup, day) in groupedMatches" :key="day" :class="'mt-' + props.topMargin">
             <h3 class="text-lg mb-2">{{ day }}</h3>
     
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div :class="{ 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : !props.oneMatchPerRow }">
                 <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
                     <div class="flex items-center justify-center w-full max-w-lg">
                         <!-- Home Team and Score -->
@@ -122,6 +122,7 @@ export interface IProps {
     header?: string;
     allowCollapse?: boolean;
     showLockedIcon?: boolean;
+    oneMatchPerRow?: boolean;
 }
 
 const props = withDefaults(defineProps<IProps>(), { 

@@ -70,26 +70,26 @@ export const predictionsStore = {
     }
   },
 
-  async fetchUserPredictions(gameweekId) {
-    try {
-      state.loading = true
-      state.error = null
+  // async fetchUserPredictions(gameweekId) {
+  //   try {
+  //     state.loading = true
+  //     state.error = null
 
-      if (!userStore.user) throw new Error('User not authenticated')
+  //     if (!userStore.user) throw new Error('User not authenticated')
 
-      const { data, error } = await predictionsService.getUserPredictionsMatchesView(userStore.user.id, gameweekId)
+  //     const { data, error } = await predictionsService.getUserPredictionsMatchesView(userStore.user.id, gameweekId)
 
-      if (error) throw error
+  //     if (error) throw error
 
-      state.predictions = data || []
-      return { data, error: null }
-    } catch (error) {
-      state.error = error.message
-      return { data: null, error }
-    } finally {
-      state.loading = false
-    }
-  },
+  //     state.predictions = data || []
+  //     return { data, error: null }
+  //   } catch (error) {
+  //     state.error = error.message
+  //     return { data: null, error }
+  //   } finally {
+  //     state.loading = false
+  //   }
+  // },
 
   async savePrediction(matchId, homeScore, awayScore) {
     try {

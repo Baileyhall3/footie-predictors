@@ -279,7 +279,8 @@ export const userStore = {
               id,
               name,
               created_at,
-              group_members(count) 
+              group_members(count),
+              icon_url
             )
           `)
           .eq('user_id', state.user.id)

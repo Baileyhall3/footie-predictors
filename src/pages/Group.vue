@@ -14,8 +14,14 @@
     <div v-else>
       <!-- Group Info Section -->
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <h2 class="text-2xl font-bold mb-2">{{ group.name }}</h2>
-        <p class="text-gray-500 mb-4">{{ group.description || 'No description available' }}</p>
+        <div class="flex">
+          <img 
+          :src="group.icon_url ?? '/src/assets/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
+          <div class="self-end">
+            <h2 class="text-2xl font-bold">{{ group.name }}</h2>
+          </div>
+        </div>
+        <p class="text-gray-500 mb-4 mt-4">{{ group.description || 'No description available' }}</p>
         <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
         <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
         <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
@@ -83,12 +89,14 @@
       </div>
 
       <!-- Matches List -->
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
-          <ScoreCard 
-              :matches="matches"
-              allowCollapse
-              header="Match Results"
-          />
+      <div v-if="Object.keys(matches).length > 0">
+        <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
+            <ScoreCard 
+                :matches="matches"
+                allowCollapse
+                header="Matches"
+            />
+        </div>
       </div>
 
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
@@ -537,7 +545,7 @@ async function getLeaderboard() {
   leaderboard.value = leaderboardData || [];
 
   if (leaderboard.value.length > 0) {
-    leaderboardLastUpdated.value = new Date(leaderboard.value[0].last_updated);
+    leaderboardLastUpdated.value = leaderboard.value[0].last_updated ? new Date(leaderboard.value[0].last_updated) : null;
   }
 }
 

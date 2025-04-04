@@ -27,9 +27,10 @@ export const groupsService = {
    * Create a new group
    * @param {string} name - Group name
    * @param {string} adminId - User ID of the group admin
+   * @param {File} iconFile - File for group icon
    * @returns {Promise<{data: Object, error: Object}>}
    */
-  async createGroup(groupData, adminId) {
+  async createGroup(groupData, adminId, iconFile = null) {
     try {
       const { data: group, error } = await supabaseDb.create('groups', {
         name: groupData.name,
@@ -40,10 +41,16 @@ export const groupsService = {
         incorrect_points: groupData.incorrect_points,
         is_public: groupData.is_public,
         group_pin: groupData.group_pin,
-        max_members: groupData.max_members,
+        max_members: groupData.max_members
       });
   
       if (error) throw error;
+
+      if (iconFile) {
+        const { url, error: uploadError } = await this.uploadGroupIcon(iconFile, group.id);
+        if (uploadError) throw memberError;
+        // supabaseDb.update('groups', group.id, { icon_url: url });
+      }
   
       // Add creator as a group admin
       const { error: memberError } = await supabaseDb.create('group_members', {
@@ -298,7 +305,41 @@ export const groupsService = {
     }
 
     return { data: { memberData, leaderboardData }, error: null };
-
   },
+
+  /**
+   * Add an image to a group
+   * @param {File} file - File to use as group icon
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{url: string|null, error: any|null}>}
+   */
+  async uploadGroupIcon(file, groupId) {
+    if (!file || !groupId) return { error: 'Missing file or group ID' };
+  
+    const fileExt = file.name.split('.').pop();
+    const filePath = `group-${groupId}.${fileExt}`;
+  
+    const { data, error: uploadError } = await supabase.storage
+      .from('group-icons')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+  
+    if (uploadError) {
+      console.error('Upload error:', uploadError.message);
+      return { error: uploadError };
+    }
+  
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('group-icons')
+      .getPublicUrl(filePath);
+  
+    await supabaseDb.update('groups', groupId, { icon_url: publicUrlData.publicUrl });
+  
+    return { url: publicUrlData.publicUrl };
+  }
+  
 
 }
