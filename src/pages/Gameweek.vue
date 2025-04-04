@@ -285,7 +285,7 @@ async function mapPredictions() {
 
   loading.value = false;
 
-  if (userIsGameweekWinner && gameweek.value.is_finished) {
+  if (gameweekWinner.value.user_id === userStore.user?.id && gameweek.value.is_finished) {
     triggerConfetti();
   }
 }

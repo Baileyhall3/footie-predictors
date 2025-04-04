@@ -76,13 +76,19 @@
               <div v-if="gameweek.is_active" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
                 Active
               </div>
-              <!-- <div v-if="gameweek.is_locked" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full transition">
-                Locked
-              </div> -->
             </div>
           </div>
         </div>
         <p v-else class="text-gray-500 py-2">No gameweeks yet.</p>
+      </div>
+
+      <!-- Matches List -->
+      <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
+          <ScoreCard 
+              :matches="matches"
+              allowCollapse
+              header="Match Results"
+          />
       </div>
 
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
