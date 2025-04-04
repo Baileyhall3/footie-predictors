@@ -81,8 +81,8 @@ export const leaderboardService = {
   
         let movement = 'same';
         if (current && prev) {
-          if (current < prev) movement = 'up';
-          else if (current > prev) movement = 'down';
+          if (current > prev) movement = 'up';
+          else if (current < prev) movement = 'down';
         }
   
         return {

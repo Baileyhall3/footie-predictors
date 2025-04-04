@@ -16,7 +16,7 @@
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex">
           <img 
-          :src="group.icon_url ?? '/src/assets/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
+          :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
           <div class="self-end">
             <h2 class="text-2xl font-bold">{{ group.name }}</h2>
           </div>
@@ -543,7 +543,7 @@ async function getLeaderboard() {
   const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value);
   if (leaderboardError) throw new Error('Failed to load leaderboard');
   leaderboard.value = leaderboardData || [];
-
+  debugger
   if (leaderboard.value.length > 0) {
     leaderboardLastUpdated.value = leaderboard.value[0].last_updated ? new Date(leaderboard.value[0].last_updated) : null;
   }
