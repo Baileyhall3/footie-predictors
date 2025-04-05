@@ -24,30 +24,22 @@
 
         <!-- Matches List -->
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div class="items-center flex mb-4">
-                <h3 class="text-xl font-semibold">Match Results</h3>
-                <button type="button" @click="toggleMatchesCollapse">
-                    <ChevronDownIcon v-if="!matchesCollapsed" class="size-5 ms-2 transition-transform duration-300"  />
-                    <ChevronUpIcon v-else class="size-5 ms-2 transition-transform duration-300" />
-                </button>
-            </div>
-            <!-- <transition name="fade-slide"> -->
-                <div v-if="!matchesCollapsed">
-                    <ScoreCard 
-                        :matches="matches"
-                    />
-                </div>
-            <!-- </transition> -->
+            <ScoreCard 
+                :matches="matches"
+                allowCollapse
+                header="Match Results"
+            />
         </div>
 
         <!-- Predictions Section -->
         <div v-for="user in displayedUsers" :key="user" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <h3 class="text-xl font-semibold">{{ user.username }}'s Predictions</h3>
             <ScoreCard 
                 :matches="matches"
                 :predictions="groupedPredictions[user.username] || {}"
                 :locked="true"
                 :totalPoints="user.total_points"
+                :header="`${user.username}'s Predictions`"
+                allowCollapse
             />
         </div>
 
@@ -64,7 +56,6 @@ import { predictionsService } from '../api/predictionsService';
 import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from '../components/ScoreCard.vue';
 import SearchBar from '../components/UI/SearchBar.vue';
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { leaderboardService } from '../api/leaderboardService';
 
 const route = useRoute();
@@ -84,15 +75,6 @@ const matchesCollapsed = ref(false);
 const scores = ref([]);
 
 const displayedUsers = computed(() => usersList.value.slice(0, displayedUsersCount.value));
-
-function getTotalPoints(userPredictions) {
-    if (!userPredictions) return 0;
-    return scores.value.find(x => x.username)
-}
-
-const toggleMatchesCollapse = () => {
-  matchesCollapsed.value = !matchesCollapsed.value;
-}
 
 onMounted(async () => {
     await fetchGameweek();

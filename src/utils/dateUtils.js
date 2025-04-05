@@ -74,11 +74,12 @@ class DateUtils {
         const parsedDate = new Date(date);
         if (isNaN(parsedDate)) return 'Invalid Date';
     
-        // Get the local time with timezone conversion
-        const correctedDate = new Date(parsedDate.getTime() - parsedDate.getTimezoneOffset() * 60000);
-    
-        return correctedDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }); // Example: "15:45"
-    }
+        return parsedDate.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+    }     // Example: "15:45"
 
     static toInputFormatDate(date) {
         const parsedDate = new Date(date);

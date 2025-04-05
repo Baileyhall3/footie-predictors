@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto mt-6">
+    <div class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto mt-6 mb-6">
         <LoadingScreen v-if="loading" />
         <div class="mb-8">
             <h2 class="text-2xl font-semibold mb-4">Gameweek {{ gameweek?.week_number }} - Add Matches</h2>
@@ -34,6 +34,7 @@
             <ScoreCard 
                 :matches="matches"
                 canRemove
+                oneMatchPerRow
                 @match-removed="handleMatchRemoved"
             />
         </div>
@@ -58,7 +59,6 @@ import { gameweeksService } from '../api/gameweeksService';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import AddMatches from '../components/AddMatches.vue';
 import ScoreCard from '../components/ScoreCard.vue';
-import DateUtils from '../utils/dateUtils';
 
 const route = useRoute();
 const router = useRouter();

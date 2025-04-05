@@ -22,6 +22,8 @@ import GroupLeaderboards from '../pages/GroupLeaderboards.vue';
 
 import PrivacyPolicy from '../pages/PrivacyPolicy.vue';
 
+import NotFound from '../views/NotFound.vue';
+
 import { userStore } from '../store/userStore';
 import { hasAuthState } from '../utils/authPersistence';
 
@@ -198,6 +200,11 @@ const router = createRouter({
         title: 'Auth Test - Footie Predictors',
         requiresAuth: true
       }
+    },
+    {
+      path: '/:pathMatch(.*)*', // MUST be last in list
+      name: 'NotFound',
+      component: NotFound,
     },
   ],
   scrollBehavior(to, from, savedPosition) {

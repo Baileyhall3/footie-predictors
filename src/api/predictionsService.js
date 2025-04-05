@@ -32,26 +32,26 @@ export const predictionsService = {
       return { data: null, error }
     }
   },
-  async getUserPredictionsMatchesView(userId, gameweekId) {
-    try {
-      const { data, error } = await supabaseDb.customQuery((supabase) =>
-        supabase
-        .from("user_predictions_view")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("gameweek_id", gameweekId)
-      )
+  // async getUserPredictionsMatchesView(userId, gameweekId) {
+  //   try {
+  //     const { data, error } = await supabaseDb.customQuery((supabase) =>
+  //       supabase
+  //       .from("user_predictions_view")
+  //       .select("*")
+  //       .eq("user_id", userId)
+  //       .eq("gameweek_id", gameweekId)
+  //     )
 
-      if (error) {
-        console.error("Error fetching user predictions:", error);
-      }
+  //     if (error) {
+  //       console.error("Error fetching user predictions:", error);
+  //     }
 
-      return { data, error: null }
-    } catch (error) {
-      console.error('Error fetching user prediction:', error)
-      return { data: null, error }
-    }
-  },
+  //     return { data, error: null }
+  //   } catch (error) {
+  //     console.error('Error fetching user prediction:', error)
+  //     return { data: null, error }
+  //   }
+  // },
   /**
    * Get all predictions for a match
    * @param {string} matchId - Match ID

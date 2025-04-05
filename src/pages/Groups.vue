@@ -60,9 +60,8 @@ const fetchUserData = async () => {
   } catch (err) {
     console.error('Error fetching user data:', err);
     error.value = err.message || 'An error occurred while loading your data';
-  } finally {
-    isLoading.value = false;
   }
+  isLoading.value = false;
 };
 
 // Fetch data when component is mounted

@@ -44,9 +44,9 @@
                </div>
              </button>
              <template v-if="editMode">
-               <button @click="changeGameWeekActiveStatus" class="px-3 py-1 bg-purple-600 text-white rounded-md">
+               <!-- <button @click="changeGameWeekActiveStatus" class="px-3 py-1 bg-purple-600 text-white rounded-md">
                   {{ gameweek?.is_active ? 'Make inactive' : 'Make active' }}
-                </button>
+                </button> -->
                 <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="px-3 py-1 bg-gray-600 text-white rounded-md">
                   {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                 </button>
@@ -143,6 +143,8 @@
                 View Full Leaderboard →
               </router-link>
             </div>
+
+            <p v-if="leaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
             
             <div v-if="leaderboard.length">
               <LeaderboardCard 
@@ -196,6 +198,7 @@ const leaderboard = ref([]);
 const userGameweekScore = ref();
 const matchesCollapsed = ref(false);
 const gameweekWinner = ref();
+const leaderboardLastUpdated = ref();
 
 const isAdmin = ref(false);
 
@@ -239,6 +242,10 @@ async function fetchGameweek() {
   const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGameweekScores(gameweek.value.group_id, gameweek.value.id);
   if (leaderboardError) throw new Error('Failed to load leaderboard');
   leaderboard.value = leaderboardData || [];
+
+  if (leaderboard.value.length > 0) {
+    leaderboardLastUpdated.value = leaderboard.value[0].updated_at ? new Date(leaderboard.value[0].updated_at) : null;
+  }
 
   if (leaderboard.value.length > 0) {
     userGameweekScore.value = leaderboard.value.find(x => x.user_id == userStore.user?.id).total_points;
@@ -285,7 +292,7 @@ async function mapPredictions() {
 
   loading.value = false;
 
-  if (userIsGameweekWinner && gameweek.value.is_finished) {
+  if (gameweekWinner.value.user_id === userStore.user?.id && gameweek.value.is_finished) {
     triggerConfetti();
   }
 }
@@ -386,7 +393,7 @@ async function saveScores() {
         match.final_away_score !== match.previous_away_score
       ) {
         await predictionsStore.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
-        await predictionsService.calculateMatchScores(match.id);
+        // await predictionsService.calculateMatchScores(match.id);
       }
     } catch(err) {
       console.error(err);      

@@ -41,6 +41,7 @@
            <ScoreCard 
                 :matches="selectedMatches"
                 canRemove
+                oneMatchPerRow
                 @match-removed="handleMatchRemoved"
             />
          </div>
@@ -111,6 +112,8 @@ const createGameweek = async () => {
   }
 
   const hasInvalidMatchTime = selectedMatches.value.some(match => new Date(match.match_time) < new Date(deadline.value));
+
+  debugger
 
   if (hasInvalidMatchTime) {
       errorMessage.value = 'One or more matches have a match time before the gameweek deadline.';

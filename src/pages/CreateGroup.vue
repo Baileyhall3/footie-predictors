@@ -15,6 +15,23 @@
         />
       </div>
 
+      <!-- Group Icon -->
+      <div>
+        <label class="block font-medium">Group Icon</label>
+        <input
+          type="file"
+          accept="image/png, image/jpeg"
+          @change="handleFileChange"
+          class="mt-4"
+        />
+      </div>
+
+      <!-- Image Preview -->
+      <div v-if="previewUrl" class="mt-4">
+        <p class="text-sm text-gray-600">Preview:</p>
+        <img :src="previewUrl" alt="Preview" class="w-24 h-24 object-cover rounded border" />
+      </div>
+
       <!-- Scoring System -->
       <SelectInput selectLabel="Scoring System" v-model="groupData.scoring_system" :options="[
           { value: 'classic', label: 'Classic (1 pt for correct result, 3 pts for exact score)' },
@@ -97,6 +114,8 @@ const pin = ref(["", "", "", ""]);
 const pinInputs = ref([]);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
+const selectedFile = ref(null);
+const previewUrl = ref(null);
 
 // Reactive form data
 const groupData = ref({
@@ -110,6 +129,17 @@ const groupData = ref({
   max_members: 100, 
   description: ''
 });
+
+function handleFileChange(event) {
+  const file = event.target.files[0]
+  if (file && file.type.startsWith('image/')) {
+    selectedFile.value = file
+    previewUrl.value = URL.createObjectURL(file)
+  } else {
+    selectedFile.value = null
+    previewUrl.value = null
+  }
+}
 
 // Function to handle group creation with Supabase
 const createGroup = async () => {
@@ -145,7 +175,7 @@ const createGroup = async () => {
     const adminId = user.user.id;
 
     // Create the group in Supabase
-    const { data: newGroup, error } = await groupsService.createGroup(groupData.value, adminId);
+    const { data: newGroup, error } = await groupsService.createGroup(groupData.value, adminId, selectedFile.value);
 
     if (error) {
       throw error;

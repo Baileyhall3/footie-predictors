@@ -33,6 +33,23 @@
                     />
                 </div>
 
+                <!-- Group Icon -->
+                <div>
+                  <label class="block font-medium">Group Icon</label>
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg"
+                    @change="handleFileChange"
+                    class="mt-4"
+                  />
+                </div>
+
+                <!-- Image Preview -->
+                <div v-if="group.icon_url || previewUrl" class="mt-4">
+                  <p class="text-sm text-gray-600">Preview:</p>
+                  <img :src="group.icon_url ?? previewUrl" alt="Preview" class="w-24 h-24 object-cover rounded border" />
+                </div>
+
                 <!-- Scoring -->
                 <div>
                     <label class="block font-medium">Correct Result Points</label>
@@ -142,6 +159,7 @@ const group = ref<{
   group_pin?: number | String;
   max_members?: number;
   description?: string;
+  icon_url?: string;
 }>({});
 
 const pin = ref(["", "", "", ""]);
@@ -152,9 +170,22 @@ const errorMessage = ref('');
 const isSubmitting = ref(false);
 const admin = ref({});
 const numberOfMembers = ref();
+const selectedFile = ref(null);
+const previewUrl = ref(null);
 
 // Computed properties
 const isAdmin = ref(false);
+
+function handleFileChange(event) {
+  const file = event.target.files[0]
+  if (file && file.type.startsWith('image/')) {
+    selectedFile.value = file
+    previewUrl.value = URL.createObjectURL(file)
+  } else {
+    selectedFile.value = null
+    previewUrl.value = null
+  }
+}
 
 // Handle typing a digit
 const handleInput = (index, event) => {
@@ -268,6 +299,18 @@ const updateGroup = async () => {
 
     if (userError || !user?.user) {
       throw new Error('You must be logged in to create a group.');
+    }
+
+    let iconUrl = group.value.icon_url
+
+    if (selectedFile.value) {
+      const { url, error } = await groupsService.uploadGroupIcon(selectedFile.value, group.value.id)
+      if (error) {
+        console.error('Failed to upload icon:', error)
+        // optionally show user feedback
+      } else {
+        group.value.icon_url = url;
+      }
     }
 
     // Update the group in Supabase
