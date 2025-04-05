@@ -25,7 +25,7 @@
                                 <span 
                                     class="text-md font-bold" 
                                     :class="getPredictionColor(predictions[match.id], match)">
-                                    {{ predictions[match.id]?.predicted_home_score }}
+                                    {{ predictions[match.id]?.predicted_home_score ? predictions[match.id]?.predicted_home_score : 0 }}
                                 </span>
                             </template>
     
@@ -41,10 +41,9 @@
                         <!-- Away Team and Score -->
                         <div class="flex items-center space-x-2 justify-start" style="width: 100%;">
                             <template v-if="predictions && Object.keys(predictions).length > 0">
-                                <span 
-                                    class="text-md font-bold" 
+                                <span class="text-md font-bold" 
                                     :class="getPredictionColor(predictions[match.id], match)">
-                                    {{ predictions[match.id]?.predicted_away_score }}
+                                    {{ predictions[match.id]?.predicted_away_score ? predictions[match.id]?.predicted_away_score : 0 }}
                                 </span>
                             </template>
     
@@ -98,7 +97,7 @@
             <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-5 flex items-center justify-center" disabled>
                 Predictions Saved ✅
             </button>
-            <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-5">
+            <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-5 disabled:opacity-50" :disabled="isSubmitting">
                 Submit Predictions
             </button>
         </template>
@@ -152,6 +151,7 @@ const allPredictionsSubmitted = computed(() => {
 
 const predictionsChanged = ref(false);
 const matchesCollapsed = ref(false);
+const isSubmitting = ref(false);
 
 const toggleMatchesCollapse = () => {
   matchesCollapsed.value = !matchesCollapsed.value;
@@ -175,8 +175,15 @@ const updateScore = (match: any, field: string, increment: number) => {
 };
 
 const submitPredictions = () => {
+    if (isSubmitting.value) return;
+
+    isSubmitting.value = true;
     predictionsChanged.value = false;
     emit("predictions-submitted");
+
+    setTimeout(() => {
+        isSubmitting.value = false;
+    }, 1500);
 }
 
 // Emit event when final score changes (Admin Mode)
@@ -187,7 +194,7 @@ const removeMatch = (matchId: string) => {
 // Function to determine color based on prediction accuracy
 const getPredictionColor = (prediction, match) => {
     if (!prediction || match.final_home_score === null || match.final_away_score === null) {
-        return ""; // No color if match is not finished
+        return "test-gray-600"; // No color if match is not finished
     }
 
     const predictedHome = prediction.predicted_home_score;

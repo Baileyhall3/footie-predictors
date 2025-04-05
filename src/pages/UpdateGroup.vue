@@ -53,15 +53,15 @@
                 <!-- Scoring -->
                 <div>
                     <label class="block font-medium">Correct Result Points</label>
-                    <input v-model.number="group.correct_result_points" type="number" min="0" class="w-full border p-2 rounded-md" />
+                    <input v-model.number="group.correct_result_points" type="number" min="0" class="w-full border p-2 rounded-md" disabled />
                 </div>
                 <div>
                     <label class="block font-medium">Exact Score Points</label>
-                    <input v-model.number="group.exact_score_points" type="number" min="0" class="w-full border p-2 rounded-md" />
+                    <input v-model.number="group.exact_score_points" type="number" min="0" class="w-full border p-2 rounded-md" disabled />
                 </div>
                 <div>
                     <label class="block font-medium">Incorrect Result Points</label>
-                    <input v-model.number="group.incorrect_points" type="number" class="w-full border p-2 rounded-md" />
+                    <input v-model.number="group.incorrect_points" type="number" class="w-full border p-2 rounded-md" disabled />
                 </div>
 
                 <!-- Privacy Setting -->

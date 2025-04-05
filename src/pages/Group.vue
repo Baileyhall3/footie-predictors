@@ -157,7 +157,7 @@
               <span v-if="member.is_admin" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>
             </div>
             
-            <div v-if="isAdmin && userStore.user.id !== member.id" class="relative flex items-center gap-2">
+            <div v-if="isAdmin && userStore.user.id !== member.id && groupOwner.id != member.id" class="relative flex items-center gap-2">
               <!-- Ellipsis Dropdown -->
               <div class="relative">
                 <button @click="toggleDropdown(member.id)" class="p-1 rounded-md hover:bg-gray-200" :class="{'bg-gray-200': openMembersDropdown === member.id}">
@@ -171,7 +171,8 @@
                   >
                     <button 
                       @click="updateMemberAdminStatus(member)" 
-                      class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-200"
+                      :disabled="member.is_fake"
+                      class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-200 disabled:opacity-50"
                     >
                       {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
                     </button>
@@ -249,6 +250,7 @@ import LeaderboardCard from "../components/LeaderboardCard.vue";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { footballApiService } from "../api/footballApiService";
+import { groupsService } from "../api/groupsService";
 
 const route = useRoute();
 const router = useRouter();
@@ -277,6 +279,7 @@ const leaderboardLastUpdated = ref();
 const openMembersDropdown = ref(null);
 const isAdmin = ref(false);
 const isGroupOwner = ref(false);
+const groupOwner = ref({});
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
@@ -325,6 +328,9 @@ const fetchAllData = async () => {
 
     isAdmin.value = userIsAdmin(members.value);
     isGroupOwner.value = userIsGroupOwner(group.value);
+
+    const { data: adminData, error: adminError } = await groupsService.getGroupAdmin(groupId.value);
+    groupOwner.value = adminData;
     
     // Fetch gameweeks
     const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getGameweeks(groupId.value);
@@ -405,8 +411,8 @@ async function submitPredictions() {
     await predictionsService.savePrediction(
       userStore.user?.id, 
       matchId, 
-      prediction.predicted_home_score,
-      prediction.predicted_away_score 
+      prediction.predicted_home_score ? prediction.predicted_home_score : 0,
+      prediction.predicted_away_score ? prediction.predicted_away_score : 0
     );
   }
 
@@ -543,7 +549,7 @@ async function getLeaderboard() {
   const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value);
   if (leaderboardError) throw new Error('Failed to load leaderboard');
   leaderboard.value = leaderboardData || [];
-  debugger
+  
   if (leaderboard.value.length > 0) {
     leaderboardLastUpdated.value = leaderboard.value[0].last_updated ? new Date(leaderboard.value[0].last_updated) : null;
   }

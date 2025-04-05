@@ -152,6 +152,10 @@ async function doUpdates() {
     errorMessage.value = '';
     hasChanges.value = false;
     loading.value = false;
+
+    // redirect
+    router.push(`/group/${gameweek.value?.group_id}`);
+
 }
 
 const removeMatch = async(matchId: string) => {

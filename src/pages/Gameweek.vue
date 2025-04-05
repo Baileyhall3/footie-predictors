@@ -357,12 +357,14 @@ const deleteGameweek = async () => {
 async function submitPredictions() {
   loading.value = true;
 
+  console.log(predictions.value)
+
   for (const [matchId, prediction] of Object.entries(predictions.value)) {
     await predictionsService.savePrediction(
       userStore.user?.id, 
       matchId, 
-      prediction.predicted_home_score,
-      prediction.predicted_away_score 
+      prediction.predicted_home_score ? prediction.predicted_home_score : 0,
+      prediction.predicted_away_score ? prediction.predicted_away_score : 0
     );
   }
 
