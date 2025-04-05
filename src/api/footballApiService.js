@@ -184,7 +184,10 @@ const footballApiService = {
           awayScore: data.score.fullTime.away ?? null,
         };
       } else {
-        return;
+        return {
+          homeScore: null,
+          awayScore: null,
+        };
       }
     } catch (error) {
       console.error('Error fetching match score from API:', error);
