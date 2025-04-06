@@ -30,7 +30,7 @@
                         </button>
     
                         <router-link 
-                            v-if="member.is_fake && !props.gameweek?.is_locked" 
+                            v-if="member.is_fake && props.gameweek && !props.gameweek?.is_locked" 
                             :to="`/admin-gameweek-predictions/${props.gameweek?.id}/${member.id}`"
                             class="block px-4 py-2 text-sm  hover:bg-gray-200"
                         >

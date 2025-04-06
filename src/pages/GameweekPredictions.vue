@@ -1,5 +1,6 @@
 <template>
-    <div class="container mx-auto py-8">
+    <NoAccess v-if="!gameweekIsLocked" message="Gameweek is not locked yet." /> <!-- Add check to see if user is admin too? -->
+    <div v-else class="container mx-auto py-8">
         <LoadingScreen v-if="loading" />
 
         <div class="mb-1 ms-1">
@@ -57,6 +58,7 @@ import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from '../components/ScoreCard.vue';
 import SearchBar from '../components/UI/SearchBar.vue';
 import { leaderboardService } from '../api/leaderboardService';
+import NoAccess from '../components/NoAccess.vue';
 
 const route = useRoute();
 
@@ -73,6 +75,7 @@ const loadMoreTrigger = ref(null); // Observer target
 const groupedPredictions = ref({});
 const matchesCollapsed = ref(false);
 const scores = ref([]);
+const gameweekIsLocked = ref(false);
 
 const displayedUsers = computed(() => usersList.value.slice(0, displayedUsersCount.value));
 
@@ -88,6 +91,8 @@ async function fetchGameweek() {
     const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
     if (error) return console.error(error);
     gameweek.value = data;
+
+    gameweekIsLocked.value = gameweek.value.is_locked;
 
     await fetchPredictions();
 }

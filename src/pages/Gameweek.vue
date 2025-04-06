@@ -249,6 +249,7 @@ async function fetchGameweek() {
   if (leaderboardError) throw new Error('Failed to load leaderboard');
   leaderboard.value = leaderboardData || [];
 
+
   if (leaderboard.value.length > 0) {
     leaderboardLastUpdated.value = leaderboard.value[0].updated_at ? new Date(leaderboard.value[0].updated_at) : null;
   }

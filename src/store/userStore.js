@@ -227,10 +227,37 @@ export const userStore = {
         return;
       }
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email)
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://footiepredictors.com/reset-password',
+      });
       
       if (error) throw error
       
+      return { error: null }
+    } catch (error) {
+      state.error = error.message
+      return { error }
+    } finally {
+      state.loading = false
+    }
+  },
+
+  async updatePassword(newPassword) {
+    try {
+      state.loading = true;
+      state.err = null;
+
+      if (!newPassword) {
+        state.error = 'Please enter password';
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error
+
       return { error: null }
     } catch (error) {
       state.error = error.message

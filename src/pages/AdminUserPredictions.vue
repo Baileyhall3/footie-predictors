@@ -1,40 +1,45 @@
 <template>
     <div class="container mx-auto py-8">
         <LoadingScreen v-if="loading" />
-        
-        <div class="mb-1 ms-1">
-            <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 hover:underline font-medium">
-                ← Back to group
-            </router-link>
-        </div>
+        <template v-if="!isAdmin && !loading">
+            <NoAccess />
+        </template>
 
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div class="flex items-center gap-2 mb-4">
-                <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
+        <template v-else>
+            <div class="mb-1 ms-1">
+                <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 hover:underline font-medium">
+                    ← Back to group
+                </router-link>
             </div>
-            <p class="text-lg"><span class="font-semibold">Deadline:</span> {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
-        
-            <!-- Edit Mode Toggle (Admins Only) -->
-            <div class="flex flex-wrap gap-2 mt-4">
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" v-model="showAllUsers" class="sr-only peer">
-                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
-                    <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Show all fake users</span>
-                </label>
+    
+            <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
+                </div>
+                <p class="text-lg"><span class="font-semibold">Deadline:</span> {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p>
+            
+                <!-- Edit Mode Toggle (Admins Only) -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" v-model="showAllUsers" class="sr-only peer">
+                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Show all fake users</span>
+                    </label>
+                </div>
             </div>
-        </div>
-
-        <!-- Predictions Section -->
-        <div v-for="(userData, userId) in groupedPredictions" :key="userId" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <h3 class="text-xl font-semibold">{{ userData.username }}'s Predictions</h3>
-            <ScoreCard 
-                :matches="matches"
-                :predictions="userData.predictions"
-                :locked="gameweek?.is_locked"
-                @update-prediction="(data) => handlePredictionUpdate({ ...data, userId })"
-                @predictions-submitted="submitPredictions(userId)"
-            />
-        </div>
+    
+            <!-- Predictions Section -->
+            <div v-for="(userData, userId) in groupedPredictions" :key="userId" class="bg-white shadow-lg rounded-xl p-6 mb-8">
+                <h3 class="text-xl font-semibold">{{ userData.username }}'s Predictions</h3>
+                <ScoreCard 
+                    :matches="matches"
+                    :predictions="userData.predictions"
+                    :locked="gameweek?.is_locked"
+                    @update-prediction="(data) => handlePredictionUpdate({ ...data, userId })"
+                    @predictions-submitted="submitPredictions(userId)"
+                />
+            </div>
+        </template>
     </div>
 </template>
 
@@ -49,6 +54,8 @@ import { groupsStore } from '../store/groupsStore';
 import DateUtils from '../utils/dateUtils';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { userIsAdmin } from '../utils/checkPermissions';
+import NoAccess from '../components/NoAccess.vue';
 
 const route = useRoute();
 
@@ -56,10 +63,9 @@ const loading = ref(true);
 const matches = ref([]);
 const gameweekId = ref();
 const gameweek = ref([]);
-const predictions = ref([]);
-const predictionsChanged = ref(false);
 const showAllUsers = ref(false);
 const currentUserId = ref();
+const isAdmin = ref(false);
 
 // Group predictions by user
 const groupedPredictions = ref();
@@ -81,6 +87,11 @@ async function fetchGameweek() {
     const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
     if (error) return console.error(error);
     gameweek.value = data;
+
+    const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(gameweekId.value.group_id);
+    if (membersError) throw new Error('Failed to load group members');
+
+    isAdmin.value = userIsAdmin(membersData);
 
     mapPredictions();
 }

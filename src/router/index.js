@@ -15,6 +15,7 @@ import AppInfo from '../pages/AppInfo.vue';
 import Predictions from '../pages/Predictions.vue';
 import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
+import ResetPassword from '../pages/ResetPassword.vue';
 import Profile from '../pages/Profile.vue';
 import AuthTest from '../pages/AuthTest.vue';
 import Leaderboards from '../pages/Leaderboards.vue';
@@ -45,6 +46,15 @@ const router = createRouter({
       component: Register,
       meta: {
         title: 'Register - Footie Predictors',
+        requiresAuth: false
+      }
+    },
+    {
+      path: '/reset-password',
+      name: 'Reset Password',
+      component: ResetPassword,
+      meta: {
+        title: 'Reset Password - Footie Predictors',
         requiresAuth: false
       }
     },

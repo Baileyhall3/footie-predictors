@@ -1,11 +1,12 @@
 <template>
     <div class="container mx-auto px-4 py-8">
-      <div v-if="!isAdmin && !loading" class="bg-red-100 p-4 rounded-md text-red-600">
+      <!-- <div v-if="!isAdmin && !loading" class="bg-red-100 p-4 rounded-md text-red-600">
         <p>You must be an admin to update this group.</p>
         <button @click="redirectToGroup" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">
           Go to Group
         </button>
-      </div>
+      </div> -->
+      <NoAccess v-if="!isAdmin && !loading" />
       <div v-else class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
         <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
           <h1 class="text-3xl font-bold">{{ group.name }}</h1>
@@ -140,6 +141,7 @@ import { groupsService } from '../api/groupsService';
 import { supabase } from '../api/supabase';
 import DeleteConfirm from "../components/DeleteConfirm.vue";
 import SelectInput from "../components/UI/SelectInput.vue";
+import NoAccess from "../components/NoAccess.vue";
 
 const route = useRoute();
 const router = useRouter();
