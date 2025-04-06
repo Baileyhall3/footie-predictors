@@ -103,11 +103,11 @@
         <div class="flex justify-between items-center mb-4">
           <div class="items-center flex">
             <h3 class="text-xl font-semibold">Your Predictions</h3>
-            <LockClosedIcon class="size-5 ms-2" v-if="gameweekIsLocked" />
+            <LockClosedIcon class="size-5 ms-2" v-if="activeGameweek.is_locked" />
           </div>
           <router-link 
-            :to="`/gameweek-predictions/${currentGameweekId}`" 
-            v-if="gameweekIsLocked"
+            :to="`/gameweek-predictions/${activeGameweek.id}`" 
+            v-if="activeGameweek.is_locked"
             class="text-sm text-blue-600 hover:underline"
           >
             View All →
@@ -118,7 +118,7 @@
           <ScoreCard
               :matches="matches"
               :predictions="predictions"
-              :locked="gameweekIsLocked"
+              :locked="activeGameweek.is_locked"
               @update-prediction="handlePredictionUpdate"
               @predictions-submitted="submitPredictions"
           />
@@ -127,86 +127,14 @@
         <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
       </div>
     
-      <!-- Members Section -->
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">Members ({{ members.length }})</h3>
-          <template v-if="isAdmin">
-            <button 
-              v-if="members.length != group.max_members" 
-              @click="openCreateMemberDialog()"
-              class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-            >
-              + Add Member
-            </button>
-            <button 
-              v-else
-              class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded transition cursor-default"
-            >
-              Max Members Reached
-            </button>
-          </template>
-        </div>
-        
-        <div v-if="members.length">
-          <div v-for="member in members" :key="member.id" class="flex justify-between items-center border-b py-3">
-            <div class="flex items-center space-x-2">
-              <UserIcon class="text-gray-500 size-4" />
-              <span >{{ member.username }}</span>
-              <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
-              <span v-if="member.is_admin" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>
-            </div>
-            
-            <div v-if="isAdmin && userStore.user.id !== member.id && groupOwner.id != member.id" class="relative flex items-center gap-2">
-              <!-- Ellipsis Dropdown -->
-              <div class="relative">
-                <button @click="toggleDropdown(member.id)" class="p-1 rounded-md hover:bg-gray-200" :class="{'bg-gray-200': openMembersDropdown === member.id}">
-                  <EllipsisHorizontalIcon class="size-6 text-gray-500" />
-                </button>
-
-                <!-- Dropdown Menu -->
-                <Transition name="fade-slide">
-                  <div v-if="openMembersDropdown === member.id" 
-                    class="absolute right-0 w-32 bg-white shadow-lg rounded-md border z-50"
-                  >
-                    <button 
-                      @click="updateMemberAdminStatus(member)" 
-                      :disabled="member.is_fake"
-                      class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-200 disabled:opacity-50"
-                    >
-                      {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
-                    </button>
-
-                    <router-link 
-                      v-if="member.is_fake && !gameweekIsLocked" 
-                      :to="`/admin-gameweek-predictions/${currentGameweekId}/${member.id}`"
-                      class="block px-4 py-2 text-sm  hover:bg-gray-200"
-                    >
-                      Predict
-                    </router-link>
-
-                    <button 
-                      @click="confirmRemoveMember(member)" 
-                      class="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-200"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </Transition>
-              </div>
-            </div>
-          </div>
-        </div>
-        <p v-else class="text-gray-500 py-2">No members yet.</p>
-      </div>
-    
+      
       <!-- Leaderboard Section -->
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">Leaderboard</h3>
           <router-link 
-            :to="`/group/${groupId}/leaderboards`" 
-            class="text-sm text-blue-600 hover:underline"
+          :to="`/group/${groupId}/leaderboards`" 
+          class="text-sm text-blue-600 hover:underline"
           >
             View Full Leaderboard →
           </router-link>
@@ -216,12 +144,46 @@
 
         <div v-if="leaderboard.length">
           <LeaderboardCard 
-            :leaderboard="leaderboard"
+          :leaderboard="leaderboard"
+          previewOnly
           />
         </div>
         <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
       </div>
     </div>  
+
+    <!-- Members Section -->
+    <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold">Members ({{ members.length }})</h3>
+        <template v-if="isAdmin">
+          <button 
+            v-if="members.length != group.max_members" 
+            @click="openCreateMemberDialog()"
+            class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+          >
+            + Add Member
+          </button>
+          <button 
+            v-else
+            class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded transition cursor-default"
+          >
+            Max Members Reached
+          </button>
+        </template>
+      </div>
+      
+      <div v-if="members.length">
+        <MembersCard 
+          :members="members"
+          :groupOwner="groupOwner"
+          :gameweek="activeGameweek"
+          @update-admin-status="updateMemberAdminStatus"
+          @member-removed="confirmRemoveMember"
+        />
+      </div>
+      <p v-else class="text-gray-500 py-2">No members yet.</p>
+    </div>
   </div>
 
   <PinDialog ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
@@ -232,7 +194,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { UserIcon } from "@heroicons/vue/24/outline";
 import { groupsStore } from "../store/groupsStore";
 import { leaderboardStore } from "../store/leaderboardStore";
 import { userStore } from "../store/userStore";
@@ -240,7 +201,7 @@ import { gameweeksService } from "../api/gameweeksService";
 import { userIsAdmin, userInGroup, userIsGroupOwner } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
-import { LockClosedIcon, ShareIcon, EllipsisHorizontalIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, ShareIcon } from "@heroicons/vue/24/solid";
 import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
@@ -251,6 +212,7 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { footballApiService } from "../api/footballApiService";
 import { groupsService } from "../api/groupsService";
+import MembersCard from "../components/MembersCard.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -269,32 +231,19 @@ const gameweeks = ref([]);
 const leaderboard = ref([]);
 const predictions = ref({});
 const matches = ref([]);
-const gameweekIsLocked = ref(false);
-const currentGameweekId = ref();
 const notInGroup = ref(false);
 const deleteConfirmMsg = ref('');
 const deleteConfirmTitle = ref('');
 const deleteConfirmText = ref('Confirm');
 const leaderboardLastUpdated = ref();
-const openMembersDropdown = ref(null);
 const isAdmin = ref(false);
 const isGroupOwner = ref(false);
 const groupOwner = ref({});
+const activeGameweek = ref({});
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
   return admin ? admin.username : 'Unknown';
-});
-
-const toggleDropdown = (memberId) => {
-  openMembersDropdown.value = openMembersDropdown.value === memberId ? null : memberId;
-};
-
-// Close dropdown when clicking outside
-document.addEventListener("click", (event) => {
-  if (!event.target.closest(".relative")) {
-    openMembersDropdown.value = null;
-  }
 });
 
 // Fetch all data for the group
@@ -340,12 +289,9 @@ const fetchAllData = async () => {
     // Fetch leaderboard
     await getLeaderboard();
 
-    const activeGameweek = gameweeksData.filter(x => x.is_active);
-    if (activeGameweek.length > 0) {
-      currentGameweekId.value = activeGameweek[0].id;
-      gameweekIsLocked.value = activeGameweek[0].is_locked;
+    activeGameweek.value = gameweeksData.filter(x => x.is_active)[0];
+    if (Object.keys(activeGameweek.value).length > 0) {
       mapPredictions();
-      // await footballApiService.updateMatchScores(currentGameweekId.value);
     }
 
   } catch (err) {
@@ -359,8 +305,8 @@ const fetchAllData = async () => {
 async function mapPredictions() {
   // Fetch both matches and predictions
   const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
-    gameweeksService.getMatches(currentGameweekId.value),
-    predictionsService.getUserGameweekPredictions(userStore.user?.id, currentGameweekId.value)
+    gameweeksService.getMatches(activeGameweek.value.id),
+    predictionsService.getUserGameweekPredictions(userStore.user?.id, activeGameweek.value.id)
   ]);
 
   // if (predictionsData.length === 0) { return; }

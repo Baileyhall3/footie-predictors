@@ -65,10 +65,14 @@ const confirm = async() => {
   else {
     try {
       const { data: createdUser, error: createdUserError } = await groupsService.addFakeUserToGroup(props.groupId, username.value);
-      if (createdUserError) throw new Error('Failed to create user');
+      if (createdUserError) {
+        errorMessage.value = createdUserError;
+        throw new Error('Failed to create user');
+      }
       emit("user-created", createdUser);
       isVisible.value = false;
     } catch (err) {
+      errorMessage.value = err;
       console.error(err);
     }
   }

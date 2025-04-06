@@ -1,5 +1,5 @@
 <template>
-  <div v-for="player in leaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
+  <div v-for="player in visibleLeaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
     <div class="flex items-center gap-2">
       <span class="font-medium w-6 text-center">{{ player.position }}.</span>
       <span>{{ player.username }}</span>
@@ -27,6 +27,7 @@
 </template>
   
 <script setup lang="ts">
+import { computed } from 'vue';
 import { userStore } from "../store/userStore";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/vue/24/solid";
   
@@ -44,13 +45,35 @@ interface LeaderboardEntry {
 export interface IProps {
   leaderboard: LeaderboardEntry[];
   editable?: boolean;
+  previewOnly?: boolean
 }
-  
 const props = defineProps<IProps>();
 const emit = defineEmits(["update-leaderboard-entry"]);
 
 const updateScore = (leaderboardId: string, userId: string, value: string) => {
     emit("update-leaderboard-entry", { leaderboardId, userId, value: parseInt(value) || 0 });
 };
+
+const currentUserId = userStore.user?.id;
+
+const visibleLeaderboard = computed(() => {
+  if (!props.previewOnly) return props.leaderboard;
+
+  const index = props.leaderboard.findIndex(entry => entry.user_id === currentUserId);
+  if (index === -1) return [];
+
+  const totalEntries = props.leaderboard.length;
+  let start = Math.max(index - 2, 0);
+  let end = Math.min(index + 3, totalEntries); // non-inclusive end index
+
+  // Adjust the window if we're near the start or end
+  if (index < 2) {
+    end = Math.min(5, totalEntries);
+  } else if (index > totalEntries - 3) {
+    start = Math.max(totalEntries - 5, 0);
+  }
+
+  return props.leaderboard.slice(start, end);
+});
 
 </script>  
