@@ -19,7 +19,7 @@
                             <img :src="selectedLeague.emblem" alt="League Emblem" class="w-6 h-6 inline-block mr-2">
                             {{ selectedLeague.name }}
                         </span>
-                        <span v-else>Select a league</span>
+                        <span v-else>Select...</span>
                     </button>
                     
                     <ul v-if="leagueDropdownOpen" class="absolute left-0 right-0 bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto z-20">
@@ -44,7 +44,7 @@
                             <img :src="selectedTeam.crest" alt="Team Crest" class="w-6 h-6 inline-block mr-2">
                             {{ selectedTeam.shortName }}
                         </span>
-                        <span v-else>Select a team</span>
+                        <span v-else>Select...</span>
                     </button>
                     
                     <ul v-if="teamsDropdownOpen" class="absolute left-0 right-0 bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto z-20">
@@ -67,12 +67,7 @@
                         @click="toggleMatchesDropdown"
                         class="mt-1 p-2 w-full border rounded-md flex justify-between items-center"
                     >
-                        <span v-if="selectedMatch">
-                            <img :src="selectedMatch.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block mr-2">
-                            {{ selectedMatch.home_team }} vs {{ selectedMatch.away_team }}
-                            <img :src="selectedMatch.away_team_crest" alt="Away Team" class="w-6 h-6 inline-block ml-2">
-                        </span>
-                        <span v-else>Select a match</span>
+                        <span>Select...</span>
                     </button>
 
                     <!-- Dropdown -->
@@ -145,6 +140,7 @@ import { footballApiService } from '../api/footballApiService';
 
 interface MatchItem {
     id: string;
+    isNew: boolean;
     api_match_id?: string | null;
     home_team: string;
     away_team: string;
@@ -170,7 +166,6 @@ const selectedLeague = ref();
 const selectedMatch = ref();
 const selectedTeam = ref();
 const setManually = ref(false);
-const isMounted = ref(false);
 
 const minDateTime = computed(() => {
     return new Date(props.deadline);
@@ -291,18 +286,19 @@ async function fetchMatches(leagueId: string | null, teamId: string | null) {
 }
 
 const addMatch = () => {
-  if (selectedMatch.value) {
-      props.selectedMatches.push({ ...selectedMatch.value })
-      selectedMatch.value = null;
-      return;
-  }
+//   if (selectedMatch.value) {
+//       props.selectedMatches.push({ ...selectedMatch.value })
+//       selectedMatch.value = null;
+//       return;
+//   }
   if (manuallySelectedMatch.value.home_team != '' && manuallySelectedMatch.value.away_team != '' && manuallySelectedMatch.value.match_time) {
     if (manuallySelectedMatch.value.match_time && new Date(manuallySelectedMatch.value.match_time) < new Date(props.deadline)) {
       emit("error-message", 'Match time cannot be earlier than the deadline.');
       return;
     }
     emit("error-message", '');
-    props.selectedMatches.push({ ...manuallySelectedMatch.value, id: crypto.randomUUID() })
+    props.selectedMatches.push({ ...manuallySelectedMatch.value, id: crypto.randomUUID(), isNew: true });
+    emit("match-added", manuallySelectedMatch.value);
     manuallySelectedMatch.value = { id: crypto.randomUUID(), home_team: '', away_team: '', match_time: null }; 
   }
 };

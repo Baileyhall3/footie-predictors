@@ -153,6 +153,10 @@ const createGroup = async () => {
     errorMessage.value = 'You are missing values for one or more of your scoring system options.';
     return;
   }
+  if (groupData.value.incorrect_points > 0) {
+    errorMessage.value = 'Incorrect result points must be 0 or below.';
+    return;
+  }
   if (!groupData.value.is_public && !groupData.value.group_pin) {
     errorMessage.value = 'Please enter a PIN for your private group.';
     return;

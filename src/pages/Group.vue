@@ -99,15 +99,15 @@
         </div>
       </div>
 
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
+      <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup && activeGameweek">
         <div class="flex justify-between items-center mb-4">
           <div class="items-center flex">
             <h3 class="text-xl font-semibold">Your Predictions</h3>
-            <LockClosedIcon class="size-5 ms-2" v-if="activeGameweek.is_locked" />
+            <LockClosedIcon class="size-5 ms-2" v-if="activeGameweek?.is_locked" />
           </div>
           <router-link 
-            :to="`/gameweek-predictions/${activeGameweek.id}`" 
-            v-if="activeGameweek.is_locked"
+            :to="`/gameweek-predictions/${activeGameweek?.id}`" 
+            v-if="activeGameweek?.is_locked"
             class="text-sm text-blue-600 hover:underline"
           >
             View All →
@@ -118,7 +118,7 @@
           <ScoreCard
               :matches="matches"
               :predictions="predictions"
-              :locked="activeGameweek.is_locked"
+              :locked="activeGameweek?.is_locked"
               @update-prediction="handlePredictionUpdate"
               @predictions-submitted="submitPredictions"
           />
@@ -290,7 +290,7 @@ const fetchAllData = async () => {
     await getLeaderboard();
 
     activeGameweek.value = gameweeksData.filter(x => x.is_active)[0];
-    if (Object.keys(activeGameweek.value).length > 0) {
+    if (activeGameweek.value && Object.keys(activeGameweek.value).length > 0) {
       mapPredictions();
     }
 

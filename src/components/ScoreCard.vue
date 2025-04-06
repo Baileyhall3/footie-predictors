@@ -18,7 +18,7 @@
                         <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
                             <span class="font-medium text-sm">
                                 {{ match.home_team }}
-                                <img v-if="match.home_team_crest" :src="match.home_team_crest" alt="Home Team" class="w-6 h-6 inline-block ms-2">
+                                <img :src="match.home_team_crest ?? '/images/default_club_badge.png'" alt="Home Team" class="w-6 h-6 inline-block ms-2">
                             </span>
                             
                             <template v-if="predictions && Object.keys(predictions).length > 0">
@@ -54,7 +54,7 @@
                             </template>
     
                             <span class="font-medium text-sm">
-                                <img v-if="match.away_team_crest" :src="match.away_team_crest" alt="Away Team" class="w-6 h-6 inline-block mr-2">
+                                <img :src="match.away_team_crest ?? '/images/default_club_badge.png'" alt="Away Team" class="w-6 h-6 inline-block mr-2">
                                 {{ match.away_team }}
                             </span>
                         </div>
