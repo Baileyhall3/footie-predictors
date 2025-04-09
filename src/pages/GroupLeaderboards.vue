@@ -117,15 +117,15 @@ async function fetchAllData() {
     if (leaderboard.value.length > 0) {
         leaderboardLastUpdated.value = new Date(leaderboard.value[0].last_updated);
     }
+    debugger
 
-    // Fetch gameweeks
-    const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getGameweeks(groupId.value);
-    if (gameweeksError) throw new Error('Failed to load gameweeks');
     
-    if (gameweeksData.length > 0) {
-        const activeGameweek = gameweeksData.filter(x => x.is_active);
-        currentGameweek.value = activeGameweek.length > 0 ? activeGameweek[0] : {};
-        
+    // Fetch gameweeks
+    const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getActiveGameweek(groupId.value);
+    if (gameweeksError) throw new Error('Failed to load gameweeks');
+    currentGameweek.value = Object.keys(gameweeksData).length > 0 ? gameweeksData : {};
+    
+    if (Object.keys(currentGameweek.value).length) {        
         // Fetch gameweek leaderboard
         const { data: scoresData, error: scoresError } = await leaderboardStore.fetchGameweekScores(currentGameweek.value.group_id, currentGameweek.value.id);
         if (scoresError) throw new Error('Failed to load gameweek leaderboard');

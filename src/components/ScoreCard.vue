@@ -98,7 +98,8 @@
                 <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-5 flex items-center justify-center" disabled>
                     Predictions Saved ✅
                 </button>
-                <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-5 disabled:opacity-50" :disabled="isSubmitting">
+                <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-5 disabled:opacity-50" 
+                    :disabled="isSubmitting || (allPredictionsSubmitted && !predictionsChanged)">
                     Submit Predictions
                 </button>
             </template>

@@ -74,11 +74,18 @@ async function fetchAllData() {
     isLoading.value = true;
 
     try {
-        const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups(userStore.user?.id);
-        if (groupsError) throw new Error("Failed to load user groups");
+        let loadedGroups = []
+        if (groupsStore.groups.length === 0) {
+            const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
+            if (groupsError) throw new Error('Failed to load your groups');
+            loadedGroups = groups;
+        } else {
+            console.log('Using stored groups')
+            loadedGroups = groupsStore.groups;
+        }
 
         // Fetch active gameweeks for each group
-        const gameweekPromises = groups.map(group =>
+        const gameweekPromises = loadedGroups.map(group =>
             gameweeksService.getActiveGameweek(group.id)
         );
 
@@ -107,7 +114,7 @@ async function fetchAllData() {
         const predictionsResults = await Promise.all(predictionPromises);
 
         // Create a mapping of groups to their active gameweek
-        const activeGroups = groups.filter(group => 
+        const activeGroups = loadedGroups.filter(group => 
             activeGameweeks.some(gameweek => gameweek.group_id === group.id)
         );
 

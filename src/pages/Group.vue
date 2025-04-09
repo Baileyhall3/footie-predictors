@@ -153,7 +153,7 @@
     </div>  
 
     <!-- Members Section -->
-    <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+    <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup || (notInGroup && group.is_public)">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-semibold">Members ({{ members.length }})</h3>
         <template v-if="isAdmin">
@@ -231,7 +231,7 @@ const gameweeks = ref([]);
 const leaderboard = ref([]);
 const predictions = ref({});
 const matches = ref([]);
-const notInGroup = ref(false);
+const notInGroup = ref(true);
 const deleteConfirmMsg = ref('');
 const deleteConfirmTitle = ref('');
 const deleteConfirmText = ref('Confirm');
@@ -263,6 +263,11 @@ const fetchAllData = async () => {
     const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(groupId.value);
     if (groupError) throw new Error('Failed to load group details');
     group.value = groupData;
+    // if (groupsStore.groups.length === 0) {
+    // } else {
+    //     console.log('Using stored groups')
+    //     group.value = groupsStore.groups.filter(x => x.id === groupId.value)[0];
+    // }
     
     // Fetch group members
     await getGroupMembers();
@@ -273,6 +278,8 @@ const fetchAllData = async () => {
       loading.value = false;
       notInGroup.value = true;
       return;
+    } else {
+      notInGroup.value = false;
     }
 
     isAdmin.value = userIsAdmin(members.value);

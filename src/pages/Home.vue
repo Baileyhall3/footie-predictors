@@ -134,10 +134,16 @@ const fetchUserData = async () => {
     
     // Only fetch data if user is authenticated
     if (userStore.isAuthenticated) {
+
       // Fetch user's groups
-      const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
-      if (groupsError) throw new Error('Failed to load your groups');
-      userGroups.value = groups || [];
+      if (groupsStore.groups.length === 0) {
+        const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
+        if (groupsError) throw new Error('Failed to load your groups');
+        userGroups.value = groups || [];
+      } else {
+        console.log('using group store groups')
+        userGroups.value = groupsStore.groups || [];
+      }
       
       // Fetch upcoming matches for predictions
       upcomingMatches.value = [];

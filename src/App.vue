@@ -26,6 +26,7 @@ import LoadingScreen from "./components/LoadingScreen.vue";
 import mobileNavControls from './shared';
 import { userStore } from './store/userStore';
 import { footballApiService } from "./api/footballApiService";
+import { groupsStore } from "./store/groupsStore";
 
 const isVisible = ref(false);
 const authInitialized = ref(false);
@@ -58,6 +59,8 @@ onMounted(async () => {
     
     // Start checking auth state
     checkAuth();
+
+    await groupsStore.fetchUserGroups();
     
     // Make content visible with a slight delay for smoother transitions
     setTimeout(() => {

@@ -307,7 +307,16 @@ export const userStore = {
               name,
               created_at,
               group_members(count),
-              icon_url
+              icon_url,
+              description,
+              admin_id,
+              description,
+              exact_score_points,
+              correct_result_points,
+              incorrect_points,
+              is_public,
+              max_members,
+              group_pin
             )
           `)
           .eq('user_id', state.user.id)

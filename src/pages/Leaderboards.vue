@@ -70,11 +70,18 @@ async function fetchAllData() {
         
         if (userStore.isAuthenticated) {
             // Fetch user's groups
-            const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
-            if (groupsError) throw new Error('Failed to load your groups');
+            let loadedGroups = []
+            if (groupsStore.groups.length === 0) {
+                const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
+                if (groupsError) throw new Error('Failed to load your groups');
+                loadedGroups = groups;
+            } else {
+                console.log('Using stored groups')
+                loadedGroups = groupsStore.groups;
+            }
             
             // Attach leaderboards to groups and filter out empty ones
-            const groupsWithLeaderboards = await Promise.all(groups.map(async (group) => {
+            const groupsWithLeaderboards = await Promise.all(loadedGroups.map(async (group) => {
                 const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(group.id);
                 
                 if (leaderboardError) {
