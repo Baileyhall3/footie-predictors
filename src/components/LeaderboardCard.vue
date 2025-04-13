@@ -33,15 +33,16 @@
 
   <p v-if="props.lastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(props.lastUpdated) }}</p>
 
-  <template v-if="props.includeSearchBar">
-    <div class="justify-start flex">
-        <SearchBar class="mt-2 mb-2" searchBasis="players" @search-entered="handleSearchQuery" />
-    </div>
-    <p class="mt-2" style="align-self: end;" v-if="searchString">Showing results for "{{ searchString }}"</p>
-  </template>
-
+  
   <TransitionGroup name="leaderboard" tag="div">
     <template v-if="(!leaderboardCollapsed && props.allowCollapse) || !props.allowCollapse">
+      <template v-if="props.includeSearchBar">
+        <div class="justify-start flex">
+            <SearchBar class="mt-2 mb-2" searchBasis="players" @search-entered="handleSearchQuery" />
+        </div>
+        <p class="mt-2" style="align-self: end;" v-if="searchString">Showing results for "{{ searchString }}"</p>
+      </template>
+      
       <div v-for="player in visibleLeaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
         <div class="flex items-center gap-2">
           <span class="font-medium w-6 text-center">{{ player.position }}.</span>

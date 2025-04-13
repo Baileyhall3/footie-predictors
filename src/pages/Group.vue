@@ -96,6 +96,7 @@
                 :matches="matches"
                 allowCollapse
                 header="Matches"
+                :matchesClickable="activeGameweek?.is_locked"
             />
         </div>
       </div>
@@ -110,6 +111,7 @@
               header="Your Predictions"
               showLockedIcon
               allowCollapse
+              :matchesClickable="activeGameweek?.is_locked"
               @update-prediction="handlePredictionUpdate"
               @predictions-submitted="submitPredictions"
           />

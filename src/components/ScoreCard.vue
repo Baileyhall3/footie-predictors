@@ -19,97 +19,103 @@
     <TransitionGroup name="scores" tag="div">
         <template v-if="(!matchesCollapsed && props.allowCollapse) || !props.allowCollapse">
             <div v-for="(matchGroup, day) in groupedMatches" :key="day" :class="'mt-' + props.topMargin">
-                <h3 class="text-lg mb-2">{{ day }}</h3>
+                <h3 class="text-lg mb-2" v-if="!props.disableTimeHeader">{{ day }}</h3>
         
                 <div :class="{ 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : !props.oneMatchPerRow }">
-                    <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md px-2">
-                        <div class="flex items-center justify-center w-full max-w-lg">
-                            <!-- Home Team and Score -->
-                            <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
-                                <span class="font-medium text-sm flex items-center overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
-                                    <span class="truncate">
-                                        {{ match.home_team }}
+                    <component
+                        :is="props.matchesClickable ? 'router-link' : 'div'"
+                        :to="props.matchesClickable ? `/match/${match.id}` : undefined"
+                        :key="match.id"
+                        class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md px-2"
+                        v-for="match in matchGroup"
+                    >
+                            <div class="flex items-center justify-center w-full max-w-lg">
+                                <!-- Home Team and Score -->
+                                <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
+                                    <span class="font-medium text-sm flex items-center overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                                        <span class="truncate">
+                                            {{ match.home_team }}
+                                        </span>
+                                        <img :src="match.home_team_crest ?? '/images/default_club_badge.png'"
+                                            alt="Away Team"
+                                            class="w-6 h-6 inline-block ms-2 flex-shrink-0">
                                     </span>
-                                    <img :src="match.home_team_crest ?? '/images/default_club_badge.png'"
-                                        alt="Away Team"
-                                        class="w-6 h-6 inline-block ms-2 flex-shrink-0">
-                                </span>
-
-                                <template v-if="predictions && Object.keys(predictions).length > 0">
-                                    <span 
-                                        class="text-md font-bold" 
-                                        :class="getPredictionColor(predictions[match.id], match)">
-                                        {{ predictions[match.id]?.predicted_home_score ? predictions[match.id]?.predicted_home_score : 0 }}
+    
+                                    <template v-if="predictions && Object.keys(predictions).length > 0">
+                                        <span 
+                                            class="text-md font-bold" 
+                                            :class="getPredictionColor(predictions[match.id], match)">
+                                            {{ predictions[match.id]?.predicted_home_score ? predictions[match.id]?.predicted_home_score : 0 }}
+                                        </span>
+                                    </template>
+            
+                                    <template v-else>
+                                        <span class="text-md font-bold">
+                                            {{ match.final_home_score === null && !match.api_match_id && props.isAdmin ? 0 : match.final_home_score }}
+                                        </span>
+                                    </template>
+                                </div>
+            
+                                <div class="border-l border-gray-300 h-5 mx-2"></div>
+            
+                                <!-- Away Team and Score -->
+                                <div class="flex items-center space-x-2 justify-start" style="width: 100%;">
+                                    <template v-if="predictions && Object.keys(predictions).length > 0">
+                                        <span class="text-md font-bold" 
+                                            :class="getPredictionColor(predictions[match.id], match)">
+                                            {{ predictions[match.id]?.predicted_away_score ? predictions[match.id]?.predicted_away_score : 0 }}
+                                        </span>
+                                    </template>
+            
+                                    <template v-else>
+                                        <span class="text-md font-bold">
+                                            {{ match.final_away_score === null && !match.api_match_id && props.isAdmin ? 0 : match.final_away_score }}
+                                        </span>
+                                    </template>
+    
+                                    <span class="font-medium text-sm flex items-center overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                                        <img :src="match.away_team_crest ?? '/images/default_club_badge.png'"
+                                            alt="Away Team"
+                                            class="w-6 h-6 inline-block mr-2 flex-shrink-0">
+                                        <span class="truncate">
+                                            {{ match.away_team }}
+                                        </span>
                                     </span>
-                                </template>
-        
-                                <template v-else>
-                                    <span class="text-md font-bold">
-                                        {{ match.final_home_score === null && !match.api_match_id && props.isAdmin ? 0 : match.final_home_score }}
-                                    </span>
-                                </template>
+                                </div>
                             </div>
-        
-                            <div class="border-l border-gray-300 h-5 mx-2"></div>
-        
-                            <!-- Away Team and Score -->
-                            <div class="flex items-center space-x-2 justify-start" style="width: 100%;">
-                                <template v-if="predictions && Object.keys(predictions).length > 0">
-                                    <span class="text-md font-bold" 
-                                        :class="getPredictionColor(predictions[match.id], match)">
-                                        {{ predictions[match.id]?.predicted_away_score ? predictions[match.id]?.predicted_away_score : 0 }}
-                                    </span>
-                                </template>
-        
-                                <template v-else>
-                                    <span class="text-md font-bold">
-                                        {{ match.final_away_score === null && !match.api_match_id && props.isAdmin ? 0 : match.final_away_score }}
-                                    </span>
-                                </template>
-
-                                <span class="font-medium text-sm flex items-center overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
-                                    <img :src="match.away_team_crest ?? '/images/default_club_badge.png'"
-                                        alt="Away Team"
-                                        class="w-6 h-6 inline-block mr-2 flex-shrink-0">
-                                    <span class="truncate">
-                                        {{ match.away_team }}
-                                    </span>
-                                </span>
+                            
+                            <div class="text-gray-500 text-sm mt-1" v-if="!props.disableMatchTime">
+                                {{ DateUtils.toTime(match.match_time) }}
                             </div>
-                        </div>
-                        
-                        <div class="text-gray-500 text-sm mt-1">
-                            {{ DateUtils.toTime(match.match_time) }}
-                        </div>
-                        
-                        <div class="justify-between flex gap-8 h-5" v-if="!props.locked && props.predictions && Object.keys(props.predictions).length > 0">
-                            <div class="flex rounded overflow-hidden items-center flex-start">
-                                <button @click="updatePrediction(match, 'predicted_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
-                                <button @click="updatePrediction(match, 'predicted_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
+                            
+                            <div class="justify-between flex gap-8 h-5" v-if="!props.locked && props.predictions && Object.keys(props.predictions).length > 0">
+                                <div class="flex rounded overflow-hidden items-center flex-start">
+                                    <button @click="updatePrediction(match, 'predicted_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
+                                    <button @click="updatePrediction(match, 'predicted_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
+                                </div>
+                                <div class="flex rounded overflow-hidden items-center">
+                                    <button @click="updatePrediction(match, 'predicted_away_score', -1)" class="bg-gray-400 text-white px-2 py-1">-</button>
+                                    <button @click="updatePrediction(match, 'predicted_away_score', 1)" class="bg-blue-500 text-white px-2 py-1">+</button>
+                                </div>
                             </div>
-                            <div class="flex rounded overflow-hidden items-center">
-                                <button @click="updatePrediction(match, 'predicted_away_score', -1)" class="bg-gray-400 text-white px-2 py-1">-</button>
-                                <button @click="updatePrediction(match, 'predicted_away_score', 1)" class="bg-blue-500 text-white px-2 py-1">+</button>
+            
+                            <div class="justify-between flex gap-8 h-5" v-if="props.isAdmin && !match.api_match_id">
+                                <div class="flex rounded overflow-hidden items-center flex-start">
+                                    <button @click="updateScore(match, 'final_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
+                                    <button @click="updateScore(match, 'final_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
+                                </div>
+                                <div class="flex rounded overflow-hidden items-center">
+                                    <button @click="updateScore(match, 'final_away_score', -1)" class="bg-gray-400 text-white px-2 py-1">-</button>
+                                    <button @click="updateScore(match, 'final_away_score', 1)" class="bg-blue-500 text-white px-2 py-1">+</button>
+                                </div>
                             </div>
-                        </div>
-        
-                        <div class="justify-between flex gap-8 h-5" v-if="props.isAdmin && !match.api_match_id">
-                            <div class="flex rounded overflow-hidden items-center flex-start">
-                                <button @click="updateScore(match, 'final_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
-                                <button @click="updateScore(match, 'final_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
-                            </div>
-                            <div class="flex rounded overflow-hidden items-center">
-                                <button @click="updateScore(match, 'final_away_score', -1)" class="bg-gray-400 text-white px-2 py-1">-</button>
-                                <button @click="updateScore(match, 'final_away_score', 1)" class="bg-blue-500 text-white px-2 py-1">+</button>
-                            </div>
-                        </div>
-        
-                        <button v-if="props.canRemove && !props.locked" @click="removeMatch(match.id)" class="text-red-500">Remove</button>
-                    </div>
+            
+                            <button v-if="props.canRemove && !props.locked" @click="removeMatch(match.id)" class="text-red-500">Remove</button>
+                    </component>
                 </div>
             </div>
         
-            <h3 class="text-lg mt-2" v-if="props.totalPoints"><span class="font-medium">Total Points:</span> {{ props.totalPoints }}</h3>
+            <h3 class="text-lg mt-4" v-if="props.totalPoints"><span class="font-medium">Total Points:</span> {{ props.totalPoints }}</h3>
         
             <template v-if="props.includeSubmitBtn && !props.locked && props.predictions && Object.keys(props.predictions).length > 0">
                 <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-5 flex items-center justify-center" disabled>
@@ -143,6 +149,9 @@ export interface IProps {
     showLockedIcon?: boolean;
     oneMatchPerRow?: boolean;
     gameweekId?: string
+    matchesClickable?: boolean
+    disableTimeHeader?: boolean
+    disableMatchTime?: boolean
 }
 
 const props = withDefaults(defineProps<IProps>(), { 

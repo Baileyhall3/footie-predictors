@@ -135,7 +135,32 @@ export const gameweeksService = {
    * @returns {Promise<{data: Object, error: Object}>}
    */
   async getMatchById(id) {
-    return supabaseDb.getById('matches', id)
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('matches')
+          .select(`
+            *,
+            homeClub:clubs!home_team_api_id(api_club_id, crest_url),
+            awayClub:clubs!away_team_api_id(api_club_id, crest_url)
+          `)
+          .eq('id', id)
+      );
+
+      if (error) throw error;
+
+      // Map the data to include crest URLs
+      const formattedData = data.map((match) => ({
+        ...match,
+        home_team_crest: match.homeClub?.crest_url || null,
+        away_team_crest: match.awayClub?.crest_url || null,
+      }));
+
+      return { data: formattedData, error: null };
+    } catch (error) {
+      console.error('Error fetching match:', error);
+      return { data: null, error };
+    }
   },
 
   /**

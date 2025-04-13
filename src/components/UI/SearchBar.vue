@@ -21,8 +21,8 @@
         </div>
     </div> -->
 
-    <div class="w-full max-w-xl">
-        <div class="relative flex items-center w-full bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <div class=" max-w-xl">
+        <div class="relative flex items-center bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <svg class="w-5 h-5 text-gray-400 ml-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <MagnifyingGlassIcon />
             </svg>

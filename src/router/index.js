@@ -20,6 +20,7 @@ import Profile from '../pages/Profile.vue';
 import AuthTest from '../pages/AuthTest.vue';
 import Leaderboards from '../pages/Leaderboards.vue';
 import GroupLeaderboards from '../pages/GroupLeaderboards.vue';
+import MatchPredictions from '../pages/MatchPredictions.vue';
 
 import PrivacyPolicy from '../pages/PrivacyPolicy.vue';
 
@@ -154,6 +155,15 @@ const router = createRouter({
       component: GameweekPredictions,
       meta: {
         title: 'Gameweek Predictions - Footie Predictors',
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/match/:id',
+      name: 'Match Predictions',
+      component: MatchPredictions,
+      meta: {
+        title: 'Match Predictions - Footie Predictors',
         requiresAuth: true
       }
     },

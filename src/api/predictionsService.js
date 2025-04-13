@@ -52,6 +52,7 @@ export const predictionsService = {
   //     return { data: null, error }
   //   }
   // },
+  
   /**
    * Get all predictions for a match
    * @param {string} matchId - Match ID
@@ -64,9 +65,19 @@ export const predictionsService = {
           .from('predictions')
           .select(`
             *,
-            users (
+            users!inner (
               id,
-              username
+              username,
+              is_fake
+            ),
+            matches (
+              id,
+              gameweek_id,
+              home_team,
+              away_team,
+              match_time,
+              final_home_score,
+              final_away_score
             )
           `)
           .eq('match_id', matchId)
@@ -77,10 +88,13 @@ export const predictionsService = {
       // Transform the data to a more usable format
       const predictions = data.map(prediction => ({
         id: prediction.id,
+        match_id: prediction.matches.id,
         user_id: prediction.user_id,
         username: prediction.users.username,
         predicted_home_score: prediction.predicted_home_score,
         predicted_away_score: prediction.predicted_away_score,
+        final_home_score: prediction.matches.final_home_score,
+        final_away_score: prediction.matches.final_away_score,
         is_locked: prediction.is_locked,
         created_at: prediction.created_at
       }))
@@ -180,7 +194,6 @@ export const predictionsService = {
       return { data: null, error }
     }
   },
-
 
   /**
    * Create or update a prediction

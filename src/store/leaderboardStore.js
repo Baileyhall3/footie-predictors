@@ -1,6 +1,8 @@
 import { reactive } from 'vue'
 import { leaderboardService } from '../api/leaderboardService'
 import { userStore } from './userStore'
+import { groupsStore } from './groupsStore'
+import { predictionsStore } from './predictionsStore'
 
 // Create a reactive state object
 const state = reactive({
@@ -44,6 +46,12 @@ export const leaderboardStore = {
       state.loading = true
       state.error = null
 
+      // const currentGroup = groupsStore.currentGroup
+
+      // if (currentGroup?.id === groupId && state.leaderboard.length > 0) {
+      //   return { data: state.leaderboard, error: null }
+      // }
+
       const { data, error } = await leaderboardService.getGroupLeaderboard(groupId)
 
       if (error) throw error
@@ -62,6 +70,15 @@ export const leaderboardStore = {
     try {
       state.loading = true
       state.error = null
+
+      // const currentGroup = groupsStore.currentGroup
+      // const currentGameweek = predictionsStore.currentGameweek
+
+      // if (currentGroup?.id === groupId && 
+      //   currentGameweek?.id === gameweekId && 
+      //   state.gameweekScores.length > 0) {
+      //   return { data: state.gameweekScores, error: null }
+      // }
 
       const { data, error } = await leaderboardService.getGameweekScores(groupId, gameweekId)
 
