@@ -107,20 +107,6 @@
           <!-- Predictions -->
           <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
             <div>
-              <div class="flex justify-between items-center mb-4">
-                <div class="items-center flex">
-                  <h3 class="text-xl font-semibold">Your Predictions</h3>
-                  <LockClosedIcon class="size-5 ms-2" v-if="gameweek?.is_locked" />
-                </div>
-                <router-link 
-                  :to="`/gameweek-predictions/${gameweekId}`" 
-                  v-if="gameweek?.is_locked"
-                  class="text-sm text-blue-600 hover:underline"
-                >
-                  View All →
-                </router-link>
-              </div>
-              
               <template v-if="Object.keys(predictions).length > 0">
                 <ScoreCard 
                     :matches="matches"
@@ -128,6 +114,9 @@
                     :locked="gameweek?.is_locked || !gameweek?.is_active"
                     :totalPoints="userGameweekScore ?? null"
                     :includeSubmitBtn="!gameweek?.is_locked && gameweek?.is_active"
+                    allowCollapse
+                    header="Your Predictions"
+                    :gameweekId="gameweekId"
                     @update-prediction="handlePredictionUpdate"
                     @predictions-submitted="submitPredictions"
                 />

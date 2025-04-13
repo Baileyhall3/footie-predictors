@@ -1,5 +1,5 @@
 <template>
-    <NoAccess v-if="!gameweekIsLocked" message="Gameweek is not locked yet." /> <!-- Add check to see if user is admin too? -->
+    <NoAccess v-if="!gameweekIsLocked && !loading" message="Gameweek is not locked yet." /> <!-- Add check to see if user is admin too? -->
     <div v-else class="container mx-auto py-8">
         <LoadingScreen v-if="loading" />
 
@@ -16,11 +16,10 @@
                     Active
                 </div>
             </div>     
-            <label for="predictionSearchBar">Search for User's Predictions</label>
-            <div class="mb-8 justify-start flex" id="predictionSearchBar">
-                <SearchBar @search-entered="handleSearchQuery" />
+            <div class="justify-start flex">
+                <SearchBar searchBasis="user predictions" @search-entered="handleSearchQuery" />
             </div>
-            <p class="ms-3 mb-3" style="align-self: end;" v-if="searchString">Showing predictions for "{{ searchString }}"</p>
+            <p class="mt-2" style="align-self: end;" v-if="searchString">Showing predictions for "{{ searchString }}"</p>
         </div>
 
         <!-- Matches List -->
@@ -93,6 +92,10 @@ async function fetchGameweek() {
     gameweek.value = data;
 
     gameweekIsLocked.value = gameweek.value.is_locked;
+    if (!gameweekIsLocked.value) {
+        loading.value = false;
+        return;
+    }
 
     await fetchPredictions();
 }
@@ -114,8 +117,6 @@ async function fetchPredictions(searchQuery: string = null) {
     }
 
     scores.value = scoresData || [];
-
-    debugger
 
     await mapPredictions();
     

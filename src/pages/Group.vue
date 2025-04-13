@@ -1,7 +1,8 @@
 <template>
-  <div class="container mx-auto py-8">
-    <!-- Loading State -->
-    <LoadingScreen v-if="loading" />
+  <DoesNotExist v-if="!groupExists && !loading" />
+  <!-- Loading State -->
+  <LoadingScreen v-if="loading" />
+  <div class="container mx-auto py-8" v-else>
 
     <!-- Error State -->
     <div v-if="error" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
@@ -11,7 +12,7 @@
     </div>
 
     <!-- Content (only shown when not loading and no error) -->
-    <div v-else>
+    <div v-if="!error && !loading && groupExists">
       <!-- Group Info Section -->
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex">
@@ -33,7 +34,7 @@
               Edit
             </button>
           </router-link>
-          <button @click="copyGroupLink" class="px-3 py-1 bg-blue-500 text-white rounded-md">
+          <button @click="copyGroupLink" class="px-3 py-1 bg-blue-500 text-white rounded-md" v-if="!notInGroup">
             <div class="justify-between items-center flex">
               Share
               <ShareIcon class="text-white size-4 ms-2" />
@@ -100,25 +101,15 @@
       </div>
 
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup && activeGameweek">
-        <div class="flex justify-between items-center mb-4">
-          <div class="items-center flex">
-            <h3 class="text-xl font-semibold">Your Predictions</h3>
-            <LockClosedIcon class="size-5 ms-2" v-if="activeGameweek?.is_locked" />
-          </div>
-          <router-link 
-            :to="`/gameweek-predictions/${activeGameweek?.id}`" 
-            v-if="activeGameweek?.is_locked"
-            class="text-sm text-blue-600 hover:underline"
-          >
-            View All →
-          </router-link>
-        </div>
-
         <div v-if="Object.keys(predictions).length > 0">
           <ScoreCard
               :matches="matches"
               :predictions="predictions"
               :locked="activeGameweek?.is_locked"
+              :gameweekId="activeGameweek?.id"
+              header="Your Predictions"
+              showLockedIcon
+              allowCollapse
               @update-prediction="handlePredictionUpdate"
               @predictions-submitted="submitPredictions"
           />
@@ -213,6 +204,7 @@ import "vue3-toastify/dist/index.css";
 import { footballApiService } from "../api/footballApiService";
 import { groupsService } from "../api/groupsService";
 import MembersCard from "../components/MembersCard.vue";
+import DoesNotExist from "../components/DoesNotExist.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -240,6 +232,7 @@ const isAdmin = ref(false);
 const isGroupOwner = ref(false);
 const groupOwner = ref({});
 const activeGameweek = ref({});
+const groupExists = ref(true);
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
@@ -261,13 +254,14 @@ const fetchAllData = async () => {
     
     // Fetch group details
     const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(groupId.value);
+    console.log(groupError)
+    if (groupError && groupError.code === "PGRST116") {
+      groupExists.value = false;
+      loading.value = false;
+      return;
+    }
     if (groupError) throw new Error('Failed to load group details');
     group.value = groupData;
-    // if (groupsStore.groups.length === 0) {
-    // } else {
-    //     console.log('Using stored groups')
-    //     group.value = groupsStore.groups.filter(x => x.id === groupId.value)[0];
-    // }
     
     // Fetch group members
     await getGroupMembers();

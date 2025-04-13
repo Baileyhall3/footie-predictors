@@ -33,6 +33,13 @@
 
   <p v-if="props.lastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(props.lastUpdated) }}</p>
 
+  <template v-if="props.includeSearchBar">
+    <div class="justify-start flex">
+        <SearchBar class="mt-2 mb-2" searchBasis="players" @search-entered="handleSearchQuery" />
+    </div>
+    <p class="mt-2" style="align-self: end;" v-if="searchString">Showing results for "{{ searchString }}"</p>
+  </template>
+
   <TransitionGroup name="leaderboard" tag="div">
     <template v-if="(!leaderboardCollapsed && props.allowCollapse) || !props.allowCollapse">
       <div v-for="player in visibleLeaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
@@ -69,6 +76,7 @@ import { computed, ref } from 'vue';
 import { userStore } from "../store/userStore";
 import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import DateUtils from '../utils/dateUtils';
+import SearchBar from './UI/SearchBar.vue';
   
 interface LeaderboardEntry {
   id: string;
@@ -90,6 +98,7 @@ export interface IProps {
   includeHeader?: boolean;
   headerText?: string;
   allowCollapse?: boolean;
+  includeSearchBar?: boolean;
 }
 const props = withDefaults(defineProps<IProps>(), {
   headerText: 'All-Time',
@@ -105,26 +114,37 @@ const currentUserId = userStore.user?.id;
 const isEditing = ref(false);
 const hasLeaderboardChanges = ref(false);
 const leaderboardCollapsed = ref(false);
+const searchString = ref('');
 
 const visibleLeaderboard = computed(() => {
-  if (!props.previewOnly) return props.leaderboard;
+  let list = props.leaderboard;
 
-  const index = props.leaderboard.findIndex(entry => entry.user_id === currentUserId);
-  if (index === -1) return [];
+  if (props.previewOnly) {
+    const index = list.findIndex(entry => entry.user_id === currentUserId);
+    if (index === -1) return [];
 
-  const totalEntries = props.leaderboard.length;
-  let start = Math.max(index - 2, 0);
-  let end = Math.min(index + 3, totalEntries); // non-inclusive end index
+    const totalEntries = list.length;
+    let start = Math.max(index - 2, 0);
+    let end = Math.min(index + 3, totalEntries); // non-inclusive end index
 
-  // Adjust the window if we're near the start or end
-  if (index < 2) {
-    end = Math.min(5, totalEntries);
-  } else if (index > totalEntries - 3) {
-    start = Math.max(totalEntries - 5, 0);
+    if (index < 2) {
+      end = Math.min(5, totalEntries);
+    } else if (index > totalEntries - 3) {
+      start = Math.max(totalEntries - 5, 0);
+    }
+
+    list = list.slice(start, end);
   }
 
-  return props.leaderboard.slice(start, end);
+  // Filter by search string if one is present
+  if (searchString.value.trim() !== '') {
+    const lower = searchString.value.toLowerCase();
+    list = list.filter(player => player.username.toLowerCase().includes(lower));
+  }
+
+  return list;
 });
+
 
 const toggleLeaderboardCollapse = () => {
   leaderboardCollapsed.value = !leaderboardCollapsed.value;
@@ -144,6 +164,11 @@ const saveChanges = () => {
   isEditing.value = false;
   hasLeaderboardChanges.value = false;
   emit("changes-saved");
+}
+
+async function handleSearchQuery(searchQuery: string) {
+    searchString.value = searchQuery;
+    leaderboardCollapsed.value = false;
 }
 
 </script>  

@@ -1,11 +1,20 @@
 <template>
-    <div class="items-center flex mb-4" v-if="props.header">
-        <h3 class="text-xl font-semibold">{{ props.header }}</h3>
-        <LockClosedIcon class="size-5 ms-2" v-if="props.locked && props.showLockedIcon" />
-        <button type="button" @click="toggleMatchesCollapse" v-if="props.allowCollapse">
-            <ChevronDownIcon v-if="!matchesCollapsed" class="size-5 ms-2 transition-transform duration-300"  />
-            <ChevronUpIcon v-else class="size-5 ms-2 transition-transform duration-300" />
-        </button>
+    <div class="flex justify-between items-center mb-4" v-if="props.header">
+        <div class="items-center flex">
+            <h3 class="text-xl font-semibold">{{ props.header }}</h3>
+            <LockClosedIcon class="size-5 ms-2" v-if="props.locked && props.showLockedIcon" />
+            <button type="button" @click="toggleMatchesCollapse" v-if="props.allowCollapse">
+                <ChevronDownIcon v-if="!matchesCollapsed" class="size-5 ms-2 transition-transform duration-300"  />
+                <ChevronUpIcon v-else class="size-5 ms-2 transition-transform duration-300" />
+            </button>
+        </div>
+        <router-link 
+            :to="`/gameweek-predictions/${props.gameweekId}`" 
+            v-if="props.locked && props.gameweekId"
+            class="text-sm text-blue-600 hover:underline"
+          >
+            View All →
+        </router-link>
     </div>
     <TransitionGroup name="scores" tag="div">
         <template v-if="(!matchesCollapsed && props.allowCollapse) || !props.allowCollapse">
@@ -13,15 +22,19 @@
                 <h3 class="text-lg mb-2">{{ day }}</h3>
         
                 <div :class="{ 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : !props.oneMatchPerRow }">
-                    <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md">
+                    <div v-for="match in matchGroup" :key="match.id" class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md px-2">
                         <div class="flex items-center justify-center w-full max-w-lg">
                             <!-- Home Team and Score -->
                             <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
-                                <span class="font-medium text-sm">
-                                    {{ match.home_team }}
-                                    <img :src="match.home_team_crest ?? '/images/default_club_badge.png'" alt="Home Team" class="w-6 h-6 inline-block ms-2">
+                                <span class="font-medium text-sm flex items-center overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                                    <span class="truncate">
+                                        {{ match.home_team }}
+                                    </span>
+                                    <img :src="match.home_team_crest ?? '/images/default_club_badge.png'"
+                                        alt="Away Team"
+                                        class="w-6 h-6 inline-block ms-2 flex-shrink-0">
                                 </span>
-                                
+
                                 <template v-if="predictions && Object.keys(predictions).length > 0">
                                     <span 
                                         class="text-md font-bold" 
@@ -53,10 +66,14 @@
                                         {{ match.final_away_score === null && !match.api_match_id && props.isAdmin ? 0 : match.final_away_score }}
                                     </span>
                                 </template>
-        
-                                <span class="font-medium text-sm">
-                                    <img :src="match.away_team_crest ?? '/images/default_club_badge.png'" alt="Away Team" class="w-6 h-6 inline-block mr-2">
-                                    {{ match.away_team }}
+
+                                <span class="font-medium text-sm flex items-center overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                                    <img :src="match.away_team_crest ?? '/images/default_club_badge.png'"
+                                        alt="Away Team"
+                                        class="w-6 h-6 inline-block mr-2 flex-shrink-0">
+                                    <span class="truncate">
+                                        {{ match.away_team }}
+                                    </span>
                                 </span>
                             </div>
                         </div>
@@ -125,6 +142,7 @@ export interface IProps {
     allowCollapse?: boolean;
     showLockedIcon?: boolean;
     oneMatchPerRow?: boolean;
+    gameweekId?: string
 }
 
 const props = withDefaults(defineProps<IProps>(), { 

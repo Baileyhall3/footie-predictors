@@ -1,13 +1,6 @@
 <template>
     <div class="container mx-auto py-8">
         <LoadingScreen v-if="loading" />
-        <!-- Not in group message -->
-        <!-- <div v-if="notInGroup" class="bg-red-100 p-4 rounded-md text-red-600">
-            <p>You are not a member of this group.</p>
-            <button @click="redirectToGroup" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">
-                Go to Group
-            </button>
-        </div> -->
         <NoAccess v-if="notInGroup" message="You are not a member of this group." />
 
         <template v-else>
@@ -16,39 +9,40 @@
                     ← Back to group
                 </router-link>
             </div>
+            
+            <!-- All time leaderboard -->
+            <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+                <div v-if="leaderboard.length">
+                    <LeaderboardCard 
+                        :leaderboard="leaderboard"
+                        :editable="isAdmin"
+                        includeHeader
+                        :lastUpdated="leaderboardLastUpdated"
+                        allowCollapse
+                        includeSearchBar
+                        @update-leaderboard-entry="handleLeaderboardUpdate"
+                        @changes-saved="saveChanges"
+                        @changes-cancelled="cancelChanges"
+                    />
+                </div>
+                <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
+            </div>
+
+            <!-- Current gameweek leaderboard -->
+            <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="Object.keys(currentGameweek).length > 0">
+                <div v-if="scores.length">
+                    <LeaderboardCard 
+                        :leaderboard="scores"
+                        includeHeader
+                        allowCollapse
+                        includeSearchBar
+                        :gameweekId="currentGameweek.id"
+                        :lastUpdated="scoresLastUpdated"
+                        />
+                </div>
+                <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
+            </div>
         </template>
-
-        <!-- All time leaderboard -->
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div v-if="leaderboard.length">
-                <LeaderboardCard 
-                    :leaderboard="leaderboard"
-                    :editable="isAdmin"
-                    includeHeader
-                    :lastUpdated="leaderboardLastUpdated"
-                    allowCollapse
-                    @update-leaderboard-entry="handleLeaderboardUpdate"
-                    @changes-saved="saveChanges"
-                    @changes-cancelled="cancelChanges"
-                />
-            </div>
-            <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-        </div>
-
-        <!-- Current gameweek leaderboard -->
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="Object.keys(currentGameweek).length > 0">
-            <div v-if="scores.length">
-                <LeaderboardCard 
-                    :leaderboard="scores"
-                    includeHeader
-                    allowCollapse
-                    :gameweekId="currentGameweek.id"
-                    :lastUpdated="scoresLastUpdated"
-                />
-            </div>
-            <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-        </div>
-
     </div>
 </template>
 
