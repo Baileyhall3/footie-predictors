@@ -117,8 +117,6 @@ async function fetchAllData() {
     if (leaderboard.value.length > 0) {
         leaderboardLastUpdated.value = new Date(leaderboard.value[0].last_updated);
     }
-    debugger
-
     
     // Fetch gameweeks
     const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getActiveGameweek(groupId.value);
@@ -135,6 +133,8 @@ async function fetchAllData() {
             scoresLastUpdated.value = leaderboard.value[0].updated_at ? new Date(leaderboard.value[0].updated_at) : null;
         }
     }
+
+    debugger
 
     loading.value = false;
 }
