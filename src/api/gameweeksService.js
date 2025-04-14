@@ -142,7 +142,8 @@ export const gameweeksService = {
           .select(`
             *,
             homeClub:clubs!home_team_api_id(api_club_id, crest_url),
-            awayClub:clubs!away_team_api_id(api_club_id, crest_url)
+            awayClub:clubs!away_team_api_id(api_club_id, crest_url),
+            gameweek:gameweeks(id, group_id)
           `)
           .eq('id', id)
       );
@@ -152,6 +153,7 @@ export const gameweeksService = {
       // Map the data to include crest URLs
       const formattedData = data.map((match) => ({
         ...match,
+        group_id: match.gameweek.group_id,
         home_team_crest: match.homeClub?.crest_url || null,
         away_team_crest: match.awayClub?.crest_url || null,
       }));

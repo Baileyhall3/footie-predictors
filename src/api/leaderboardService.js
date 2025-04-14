@@ -25,6 +25,7 @@ export const leaderboardService = {
           `)
           .eq('group_id', groupId)
           .order('total_points', { ascending: false })
+          .order('total_correct_scores', { ascending: false })
       );
   
       if (error) throw error;
@@ -149,6 +150,7 @@ export const leaderboardService = {
 
       // Sort by points (highest first)
       gameweekScores.sort((a, b) => b.total_points - a.total_points)
+      gameweekScores.sort((a, b) => b.total_correct_scores - a.total_correct_scores)
 
       // Add position
       gameweekScores.forEach((score, index) => {

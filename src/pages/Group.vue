@@ -137,8 +137,8 @@
 
         <div v-if="leaderboard.length">
           <LeaderboardCard 
-          :leaderboard="leaderboard"
-          previewOnly
+            :leaderboard="leaderboard"
+            previewOnly
           />
         </div>
         <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
