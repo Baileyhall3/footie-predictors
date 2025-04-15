@@ -44,16 +44,12 @@ export const leaderboardService = {
       // Fetch history for last TWO gameweeks
       const { data: historyRows, error: historyError } = await supabaseDb.customQuery((supabase) =>
         supabase
-          .from('leaderboard_history')
-          .select('*')
-          .eq('group_id', groupId)
-          .order('gameweek', { ascending: false })
-          .limit(100) // Increase this to ensure we catch at least 2 different gameweeks
-      );
-  
+        .from('leaderboard_history_latest_view')
+        .select('*')
+        .eq('group_id', groupId));
+
       if (historyError) throw historyError;
-  
-      // Get latest two distinct gameweeks
+
       const distinctGameweeks = [
         ...new Set(historyRows.map((row) => row.gameweek))
       ].sort((a, b) => b - a); // Descending order
@@ -61,20 +57,19 @@ export const leaderboardService = {
       const [latest, previous] = distinctGameweeks;
   
       if (!latest || !previous) {
-        // Not enough history to calculate movement
         return {
           data: leaderboard.map((entry) => ({ ...entry, movement: 'same' })),
           error: null
         };
       }
-  
+      
       // Map history data by user and gameweek
       const historyMap = {};
       for (const row of historyRows) {
         if (!historyMap[row.user_id]) historyMap[row.user_id] = {};
         historyMap[row.user_id][row.gameweek] = row.position;
       }
-  
+
       const leaderboardWithMovement = leaderboard.map((entry) => {
         const userHistory = historyMap[entry.user_id] || {};
         const current = userHistory[latest];
@@ -82,8 +77,8 @@ export const leaderboardService = {
   
         let movement = 'same';
         if (current && prev) {
-          if (current > prev) movement = 'up';
-          else if (current < prev) movement = 'down';
+          if (current > prev) movement = 'down';
+          else if (current < prev) movement = 'up';
         }
   
         return {
