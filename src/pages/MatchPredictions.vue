@@ -41,7 +41,7 @@
           </div>
 
           <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div class="flex flex-wrap justify-between gap-4">
+            <div class="flex flex-wrap gap-4">
               <div class="justify-start flex">
                 <SearchBar searchBasis="user predictions" @search-entered="handleSearchQuery" />
               </div>

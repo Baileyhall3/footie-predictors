@@ -115,7 +115,9 @@
                 </div>
             </div>
         
-            <h3 class="text-lg mt-4" v-if="props.totalPoints"><span class="font-medium">Total Points:</span> {{ props.totalPoints }}</h3>
+            <h3 class="text-lg mt-4" v-if="props.totalPoints !== null && props.totalPoints !== undefined">
+                <span class="font-medium">Total Points:</span> {{ props.totalPoints }}
+            </h3>
         
             <template v-if="props.includeSubmitBtn && !props.locked && props.predictions && Object.keys(props.predictions).length > 0">
                 <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-5 flex items-center justify-center" disabled>

@@ -42,6 +42,7 @@
                     <router-link to="/groups" @click="mobileNavControls.close" class="hover:underline">Groups</router-link>
                     <router-link to="/predictions" @click="mobileNavControls.close" class="hover:underline">Predictions</router-link>
                     <router-link to="/leaderboards" @click="mobileNavControls.close" class="hover:underline">Leaderboards</router-link>
+                    <router-link to="/user-stats" @click="mobileNavControls.close" class="hover:underline">Stats</router-link>
                     <router-link to="/profile" @click="mobileNavControls.close" class="hover:underline">Profile</router-link>
                 </div>
             </nav>

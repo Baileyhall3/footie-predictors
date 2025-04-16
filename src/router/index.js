@@ -11,6 +11,7 @@ import GameweekPredictions from '../pages/GameweekPredictions.vue';
 import AdminUserPredictions from '../pages/AdminUserPredictions.vue';
 import AddGameweekMatches from '../pages/AddGameweekMatches.vue';
 import AppInfo from '../pages/AppInfo.vue';
+import UserStats from '../pages/UserStats.vue';
 
 import Predictions from '../pages/Predictions.vue';
 import Login from '../pages/Login.vue';
@@ -209,6 +210,15 @@ const router = createRouter({
       component: Profile,
       meta: {
         title: 'My Profile - Footie Predictors',
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/user-stats',
+      name: 'User Stats',
+      component: UserStats,
+      meta: {
+        title: 'User Stats - Footie Predictors',
         requiresAuth: true
       }
     },

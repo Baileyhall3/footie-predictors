@@ -12,8 +12,18 @@
             <div v-if="userGroups.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <GroupCard v-for="group in userGroups" :key="group.id" :group="group" />
             </div>
-            <div v-else class="bg-white rounded-lg shadow p-6 text-center">
+            <!-- <div v-else class="bg-white rounded-lg shadow p-6 text-center">
               <p class="text-gray-500">You are not a member of any groups.</p>
+            </div> -->
+            <div v-else class="bg-white rounded-xl shadow p-10 text-center text-gray-500 mt-4 border border-dashed border-gray-300">
+                <div class="text-4xl mb-4">🤷‍♂️</div>
+                <p class="text-lg font-medium mb-2">You're not part of any groups yet!</p>
+                <p class="text-sm text-gray-400">Join or 
+                    <router-link to="/create-group" class="text-blue-600 hover:underline">
+                        create a group
+                    </router-link> 
+                    to start tracking your stats.
+                </p>
             </div>
         </div>
 

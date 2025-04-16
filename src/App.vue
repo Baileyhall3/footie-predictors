@@ -89,6 +89,10 @@ const navItems = [
     href: "/leaderboards",
   },
   {
+    name: "Stats",
+    href: "/user-stats",
+  },
+  {
     name: "Profile",
     href: "/profile",
   },

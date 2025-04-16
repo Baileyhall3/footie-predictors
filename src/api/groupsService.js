@@ -339,7 +339,33 @@ export const groupsService = {
     await supabaseDb.update('groups', groupId, { icon_url: publicUrlData.publicUrl });
   
     return { url: publicUrlData.publicUrl };
-  }
+  },
+
+  /**
+   * Get user stats across groups
+   * @param {string | null} groupId - Group ID
+   * @param {string} userId - user ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getGroupLeaderboardHistory(groupId = null, userId = null) {
+    try {
+      // Get current leaderboard
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('user_group_stats')
+          .select(`*`)
+          // .eq('group_id', groupId)
+          .eq('user_id', userId)
+      );
+  
+      if (error) throw error;
+
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error fetching group stats:', error)
+      return { data: null, error }
+    }
+  },
   
 
 }
