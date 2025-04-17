@@ -145,6 +145,27 @@
       </div>
     </div>  
 
+    <!-- Stats Section -->
+    <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">Group Stats</h3>
+          <!-- <router-link 
+          :to="`/group/${groupId}/leaderboards`" 
+          class="text-sm text-blue-600 hover:underline"
+          >
+            View All →
+          </router-link> -->
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" v-if="Object.keys(groupStats).length > 0">
+          <StatRow icon="🔥" label="Avg. Points / Gameweek" :value="groupStats.avg_points_per_gameweek" />
+          <StatRow icon="🎯" label="Correct Scores" :value="groupStats.total_correct_scores" />
+          <StatRow icon="✅" label="Correct Results" :value="groupStats.total_correct_results" />
+          <StatRow icon="📈" label="Score Accuracy" :value="groupStats.correct_score_ratio_percent + '%'" />
+        </div>
+        <p v-else class="text-gray-500 py-2">No stats data available.</p>
+    </div> 
+
     <!-- Members Section -->
     <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup || (notInGroup && group.is_public)">
       <div class="flex justify-between items-center mb-4">
@@ -207,6 +228,7 @@ import { footballApiService } from "../api/footballApiService";
 import { groupsService } from "../api/groupsService";
 import MembersCard from "../components/MembersCard.vue";
 import DoesNotExist from "../components/DoesNotExist.vue";
+import StatRow from "../components/StatRow.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -235,6 +257,7 @@ const isGroupOwner = ref(false);
 const groupOwner = ref({});
 const activeGameweek = ref({});
 const groupExists = ref(true);
+const groupStats = ref([]);
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
@@ -296,6 +319,11 @@ const fetchAllData = async () => {
     if (activeGameweek.value && Object.keys(activeGameweek.value).length > 0) {
       mapPredictions();
     }
+
+    const { data: statsData, error: statsError } = await groupsService.getGroupStats(groupId.value, userStore.user?.id);
+    if (statsError) throw new Error('Failed to load user stats');
+    debugger
+    groupStats.value = statsData[0] || [];
 
   } catch (err) {
     console.error('Error fetching group data:', err);

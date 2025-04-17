@@ -57,9 +57,10 @@ async function fetchAllData() {
     try {
         loading.value = true;
 
-        const { data, error } = await groupsService.getGroupLeaderboardHistory(null, userStore.user?.id);
-        const statsData = data || [];
-        groupStats.value = statsData;
+        const { data, error } = await groupsService.getGroupStats(null, userStore.user?.id);
+        if (error) throw new Error('Failed to load user stats');
+        debugger
+        groupStats.value = data || [];
 
     } catch(err) {
         console.error(err);

@@ -347,20 +347,33 @@ export const groupsService = {
    * @param {string} userId - user ID
    * @returns {Promise<{data: Array, error: Object}>}
    */
-  async getGroupLeaderboardHistory(groupId = null, userId = null) {
+  async getGroupStats(groupId = null, userId = null) {
     try {
-      // Get current leaderboard
-      const { data, error } = await supabaseDb.customQuery((supabase) =>
-        supabase
-          .from('user_group_stats')
-          .select(`*`)
-          // .eq('group_id', groupId)
-          .eq('user_id', userId)
-      );
+      
+      if (!groupId) {
+        const { data, error } = await supabaseDb.customQuery((supabase) =>
+          supabase
+            .from('user_group_stats')
+            .select(`*`)
+            .eq('user_id', userId)
+        );
+    
+        if (error) throw error;
   
-      if (error) throw error;
-
-      return { data, error: null }
+        return { data, error: null }
+      } else {
+        const { data, error } = await supabaseDb.customQuery((supabase) =>
+          supabase
+            .from('user_group_stats')
+            .select(`*`)
+            .eq('group_id', groupId)
+            .eq('user_id', userId)
+        );
+    
+        if (error) throw error;
+  
+        return { data, error: null }
+      }
     } catch (error) {
       console.error('Error fetching group stats:', error)
       return { data: null, error }
