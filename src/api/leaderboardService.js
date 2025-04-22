@@ -144,8 +144,12 @@ export const leaderboardService = {
       })
 
       // Sort by points (highest first)
-      gameweekScores.sort((a, b) => b.total_points - a.total_points)
-      gameweekScores.sort((a, b) => b.total_correct_scores - a.total_correct_scores)
+      gameweekScores.sort((a, b) => {
+        if (b.total_points !== a.total_points) {
+          return b.total_points - a.total_points
+        }
+        return b.total_correct_scores - a.total_correct_scores
+      })
 
       // Add position
       gameweekScores.forEach((score, index) => {

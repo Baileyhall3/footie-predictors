@@ -28,6 +28,7 @@
                 :matches="matches"
                 allowCollapse
                 header="Match Results"
+                matchesClickable
             />
         </div>
 
@@ -40,6 +41,7 @@
                 :totalPoints="user.total_points"
                 :header="`${user.username}'s Predictions`"
                 allowCollapse
+                matchesClickable
             />
         </div>
 

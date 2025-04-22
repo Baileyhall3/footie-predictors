@@ -93,7 +93,7 @@
                 :matches="matches"
                 :isAdmin="editMode && gameweek?.is_active && gameweek?.is_locked"
                 :canRemove="editMode && gameweek?.is_active && !gameweek?.is_locked"
-                :matchesClickable="gameweek?.is_locked"
+                :matchesClickable="gameweek?.is_locked && !editMode"
                 @update-score="handleScoreUpdate"
                 @match-removed="handleMatchRemoved"
             />
