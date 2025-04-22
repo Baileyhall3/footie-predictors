@@ -361,13 +361,24 @@ export const groupsService = {
         if (error) throw error;
   
         return { data, error: null }
-      } else {
+      } else if (groupId && userId) {
         const { data, error } = await supabaseDb.customQuery((supabase) =>
           supabase
             .from('user_group_stats')
             .select(`*`)
             .eq('group_id', groupId)
             .eq('user_id', userId)
+        );
+    
+        if (error) throw error;
+  
+        return { data, error: null }
+      } else {
+        const { data, error } = await supabaseDb.customQuery((supabase) =>
+          supabase
+            .from('user_group_stats')
+            .select(`*`)
+            .eq('group_id', groupId)
         );
     
         if (error) throw error;

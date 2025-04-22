@@ -1,6 +1,6 @@
 <template>
     <div class="relative w-full">
-        <label class="block font-medium">{{ selectLabel }}</label>
+        <label class="block font-medium" v-if="props.selectLabel">{{ props.selectLabel }}</label>
         <div class="w-full border p-2 rounded-md cursor-pointer bg-white" 
             @click="toggleDropdown"
             @keydown.down.prevent="navigate(1)"
@@ -29,16 +29,22 @@
     </div>
 </template>
   
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { ChevronDownIcon } from "@heroicons/vue/24/solid";
 
-  
-const props = defineProps({
-    modelValue: String | Boolean,
-    options: Array,
-    selectLabel: String
-});
+export interface SelectOption {
+    value: any,
+    label: String
+}
+
+export interface Iprops {
+    modelValue: any,
+    options: SelectOption[],
+    selectLabel?: string
+}
+
+const props = defineProps<Iprops>();
 const emit = defineEmits(['update:modelValue']);
   
 const isOpen = ref(false);

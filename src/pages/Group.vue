@@ -148,13 +148,13 @@
     <!-- Stats Section -->
     <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">Group Stats</h3>
-          <!-- <router-link 
-          :to="`/group/${groupId}/leaderboards`" 
-          class="text-sm text-blue-600 hover:underline"
+          <h3 class="text-xl font-semibold">Your Stats</h3>
+          <router-link 
+            :to="`/group/${groupId}/stats`" 
+            class="text-sm text-blue-600 hover:underline"
           >
             View All →
-          </router-link> -->
+          </router-link>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" v-if="Object.keys(groupStats).length > 0">

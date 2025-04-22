@@ -2,8 +2,35 @@
     <div class="container mx-auto px-6 py-8">
         <LoadingScreen v-if="loading" />
         <template v-else>
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Your Group Stats</h2>
+            <div class="flex items-center mb-4">
+                <h2 class="text-2xl font-bold">Your Stats</h2>
+                <!-- <div class="relative flex items-center ms-4">
+                    <button
+                    class="flex items-center justify-between bg-white border border-gray-300 rounded-full px-4 py-2 text-sm shadow-sm hover:border-gray-400 transition-all w-64"
+                    @click="toggleSortSelect"
+                    >
+                    <span>{{ selectedLabel }}</span>
+                    <ArrowsUpDownIcon class="size-4 text-gray-500 ml-2" />
+                    </button>
+
+                    <transition name="fade-slide">
+                    <div
+                        v-if="showSortSelect"
+                        class="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-20"
+                    >
+                        <ul>
+                        <li
+                            v-for="option in sortOptions"
+                            :key="option.value"
+                            @click="selectOption(option)"
+                            class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        >
+                            {{ option.label }}
+                        </li>
+                        </ul>
+                    </div>
+                    </transition>
+                </div> -->
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" v-if="groupStats.length > 0">
@@ -40,18 +67,30 @@
 
 <script setup lang="ts">
 import LoadingScreen from '../components/LoadingScreen.vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { groupsService } from '../api/groupsService';
 import { userStore } from '../store/userStore';
 import StatRow from '../components/StatRow.vue';
 import GroupCard from '../components/GroupCard.vue';
+import { ArrowsUpDownIcon } from '@heroicons/vue/24/outline';
+import SelectInput from '../components/UI/SelectInput.vue';
 
 const loading = ref(false);
 const groupStats = ref([]);
+const sortField = ref(null);
+const showSortSelect = ref(false);
+
+const sortOptions = [
+  { value: null, label: 'Select Sort' },
+  { value: 'avg_points_per_gameweek', label: 'Avg. Points / Gameweek' },
+  { value: 'total_correct_scores', label: 'Correct Scores' },
+  { value: 'total_correct_results', label: 'Correct Results' },
+  { value: 'correct_score_ratio_percent', label: 'Score Accuracy' },
+]
 
 onMounted(() => {
     fetchAllData();
-})
+});
 
 async function fetchAllData() {
     try {
@@ -59,7 +98,6 @@ async function fetchAllData() {
 
         const { data, error } = await groupsService.getGroupStats(null, userStore.user?.id);
         if (error) throw new Error('Failed to load user stats');
-        debugger
         groupStats.value = data || [];
 
     } catch(err) {
@@ -68,4 +106,40 @@ async function fetchAllData() {
         loading.value = false;
     }
 }
+
+const selectOption = (value) => {
+    sortField.value = value
+    showSortSelect.value = false
+}
+
+const toggleSortSelect = () => {
+    showSortSelect.value = !showSortSelect.value;
+}
+
+const selectedLabel = computed(() => {
+  return sortOptions.find(opt => opt.value === sortField.value)?.label || 'Select Sort'
+})
 </script>
+
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.2s ease;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.fade-slide-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+</style>
