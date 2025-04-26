@@ -15,13 +15,9 @@ export const leaderboardService = {
       // Get current leaderboard
       const { data, error } = await supabaseDb.customQuery((supabase) =>
         supabase
-          .from('leaderboard')
+          .from('group_members_and_leaderboard')
           .select(`
-            *,
-            users (
-              id,
-              username
-            )
+            *
           `)
           .eq('group_id', groupId)
           .order('total_points', { ascending: false })
@@ -31,14 +27,8 @@ export const leaderboardService = {
       if (error) throw error;
   
       const leaderboard = data.map((entry, index) => ({
-        position: index + 1,
-        id: entry.id,
-        user_id: entry.user_id,
-        username: entry.users.username,
-        total_points: entry.total_points,
-        total_correct_scores: entry.total_correct_scores,
-        total_correct_results: entry.total_correct_results,
-        last_updated: entry.updated_at
+        ...entry,
+        position: index + 1
       }));
   
       // Fetch history for last TWO gameweeks
@@ -321,5 +311,36 @@ export const leaderboardService = {
       return { data: null, error }
     }
   },
+
+  /**
+   * Get the leaderboard and members list for a group
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getGroupLeaderboardAndMembers(groupId) {
+    try {
+      // Get current leaderboard
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('group_members_and_leaderboard')
+          .select(`*`)
+          .eq('group_id', groupId)
+          .order('total_points', { ascending: false })
+          .order('total_correct_scores', { ascending: false })
+      );
+  
+      if (error) throw error;
+  
+      const leaderboard = data.map((entry, index) => ({
+        position: index + 1
+      }));
+
+      return { data: leaderboard, error: null };
+
+    } catch (error) {
+      console.error('Error fetching group leaderboard:', error);
+      return { data: null, error };
+    }
+  }
 
 }

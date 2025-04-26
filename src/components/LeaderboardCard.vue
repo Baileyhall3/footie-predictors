@@ -33,7 +33,6 @@
 
   <p v-if="props.lastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(props.lastUpdated) }}</p>
 
-  
   <TransitionGroup name="leaderboard" tag="div">
     <template v-if="(!leaderboardCollapsed && props.allowCollapse) || !props.allowCollapse">
       <template v-if="props.includeSearchBar">

@@ -112,6 +112,7 @@
               showLockedIcon
               allowCollapse
               :matchesClickable="activeGameweek?.is_locked"
+              :totalPoints="currentGameweekUserScore"
               @update-prediction="handlePredictionUpdate"
               @predictions-submitted="submitPredictions"
           />
@@ -258,6 +259,7 @@ const groupOwner = ref({});
 const activeGameweek = ref({});
 const groupExists = ref(true);
 const groupStats = ref([]);
+const currentGameweekUserScore = ref();
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
@@ -322,7 +324,6 @@ const fetchAllData = async () => {
 
     const { data: statsData, error: statsError } = await groupsService.getGroupStats(groupId.value, userStore.user?.id);
     if (statsError) throw new Error('Failed to load user stats');
-    debugger
     groupStats.value = statsData[0] || [];
 
   } catch (err) {
@@ -528,8 +529,10 @@ async function getLeaderboard() {
   leaderboard.value = leaderboardData || [];
   
   if (leaderboard.value.length > 0) {
-    leaderboardLastUpdated.value = leaderboard.value[0].last_updated ? new Date(leaderboard.value[0].last_updated) : null;
+    leaderboardLastUpdated.value = leaderboard.value[0].leaderboard_last_updated ? new Date(leaderboard.value[0].leaderboard_last_updated) : null;
   }
+
+  currentGameweekUserScore.value = leaderboard.value.filter(x => x.user_id === userStore.user?.id)[0].active_gameweek_user_points;
 }
 
 const openCreateMemberDialog = async() => {

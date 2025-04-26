@@ -144,7 +144,7 @@
             <div v-if="leaderboard.length">
               <LeaderboardCard 
                 :leaderboard="leaderboard"
-                previewOnly
+                
               />
             </div>
             <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
@@ -239,7 +239,6 @@ async function fetchGameweek() {
   const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGameweekScores(gameweek.value.group_id, gameweek.value.id);
   if (leaderboardError) throw new Error('Failed to load leaderboard');
   leaderboard.value = leaderboardData || [];
-
 
   if (leaderboard.value.length > 0) {
     leaderboardLastUpdated.value = leaderboard.value[0].updated_at ? new Date(leaderboard.value[0].updated_at) : null;

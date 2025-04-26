@@ -146,7 +146,7 @@ async function fetchAllData() {
         leaderboard.value = leaderboardData || [];
     
         if (leaderboard.value.length > 0) {
-            leaderboardLastUpdated.value = new Date(leaderboard.value[0].last_updated);
+            leaderboardLastUpdated.value = new Date(leaderboard.value[0].leaderboard_last_updated);
         }
         
         // Fetch gameweeks

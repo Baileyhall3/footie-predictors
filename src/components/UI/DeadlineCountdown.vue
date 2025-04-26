@@ -7,9 +7,10 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import DateUtils from '../../utils/dateUtils';
 
-const props = defineProps({
-    deadline: String
-});
+export interface IProps {
+    deadline: string | Date
+}
+const props = defineProps<IProps>();
 
 const countdown = ref('');
 let countdownInterval: ReturnType<typeof setInterval> | null = null;
