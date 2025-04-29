@@ -17,6 +17,7 @@
       </transition>
     </template>
   </div>
+  <Analytics mode="production" />
 </template>
 
 <script setup>
@@ -27,6 +28,7 @@ import mobileNavControls from './shared';
 import { userStore } from './store/userStore';
 import { footballApiService } from "./api/footballApiService";
 import { groupsStore } from "./store/groupsStore";
+import { Analytics } from '@vercel/analytics/vue';
 
 const isVisible = ref(false);
 const authInitialized = ref(false);
