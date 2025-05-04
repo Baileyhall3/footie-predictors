@@ -392,6 +392,7 @@ async function saveScores() {
         match.final_away_score !== match.previous_away_score
       ) {
         await predictionsStore.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
+        debugger
         // await predictionsService.calculateMatchScores(match.id);
       }
     } catch(err) {
