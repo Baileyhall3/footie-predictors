@@ -341,8 +341,6 @@ async function mapPredictions() {
     predictionsService.getUserGameweekPredictions(userStore.user?.id, activeGameweek.value.id)
   ]);
 
-  // if (predictionsData.length === 0) { return; }
-
   // Map predictions by match_id for quick lookup
   const predictionsMap = predictionsData.reduce((acc, prediction) => {
     acc[prediction.match_id] = prediction;

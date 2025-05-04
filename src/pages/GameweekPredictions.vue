@@ -71,7 +71,7 @@ const predictions = ref([]);
 const totalPoints = ref();
 const searchString = ref('');
 const usersList = ref([]); 
-const displayedUsersCount = ref(5); // Initial users to display
+const displayedUsersCount = ref(25); // Initial users to display
 const loadMoreTrigger = ref(null); // Observer target
 const groupedPredictions = ref({});
 const matchesCollapsed = ref(false);
@@ -156,6 +156,8 @@ async function mapPredictions() {
             total_correct_scores: userScore.total_correct_scores ?? 0,
         };
     });
+
+    debugger
 }
 
 
