@@ -23,6 +23,7 @@ import AuthTest from '../pages/AuthTest.vue';
 import Leaderboards from '../pages/Leaderboards.vue';
 import GroupLeaderboards from '../pages/GroupLeaderboards.vue';
 import MatchPredictions from '../pages/MatchPredictions.vue';
+import UserGameweekPredictions from '../pages/UserGameweekPredictions.vue';
 
 import PrivacyPolicy from '../pages/PrivacyPolicy.vue';
 
@@ -184,6 +185,15 @@ const router = createRouter({
       component: AdminUserPredictions,
       meta: {
         title: 'Admin Gameweek Predictions - Footie Predictors',
+        requiresAuth: true
+      }
+    }, 
+    {
+      path: '/user-gameweek-predictions/:gameweek_id/:user_id',
+      name: 'User Gameweek Predictions',
+      component: UserGameweekPredictions,
+      meta: {
+        title: 'User Gameweek Predictions - Footie Predictors',
         requiresAuth: true
       }
     }, 

@@ -50,6 +50,15 @@
           </template>
         </div>
       </div>
+
+      <template v-if="activeGameweek && activeGameweek?.is_finished">
+          <GameweekWinnerCard 
+            :username="gameweekWinner.username"
+            :totalPoints="gameweekWinner.total_points"
+            :isCurrentUser="gameweekWinner.userIsGameweekWinner"
+            :weekNumber="activeGameweek?.week_number"
+          />
+      </template>
     
       <!-- Gameweeks Section -->
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
@@ -93,10 +102,10 @@
       <div v-if="Object.keys(matches).length > 0">
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
             <ScoreCard 
-                :matches="matches"
-                allowCollapse
-                header="Matches"
-                :matchesClickable="activeGameweek?.is_locked"
+              :matches="matches"
+              allowCollapse
+              header="Matches"
+              :matchesClickable="activeGameweek?.is_locked"
             />
         </div>
       </div>
@@ -120,7 +129,6 @@
 
         <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
       </div>
-    
       
       <!-- Leaderboard Section -->
       <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup">
@@ -139,7 +147,10 @@
         <div v-if="leaderboard.length">
           <LeaderboardCard 
             :leaderboard="leaderboard"
+            headerText="All-Time"
             previewOnly
+            :gameweekId="activeGameweek?.id"
+            includeUserPredictionLink
           />
         </div>
         <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
@@ -230,6 +241,7 @@ import { groupsService } from "../api/groupsService";
 import MembersCard from "../components/MembersCard.vue";
 import DoesNotExist from "../components/DoesNotExist.vue";
 import StatRow from "../components/StatRow.vue";
+import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -260,6 +272,7 @@ const activeGameweek = ref({});
 const groupExists = ref(true);
 const groupStats = ref([]);
 const currentGameweekUserScore = ref();
+const gameweekWinner = ref({});
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
@@ -320,6 +333,15 @@ const fetchAllData = async () => {
     activeGameweek.value = gameweeksData.filter(x => x.is_active)[0];
     if (activeGameweek.value && Object.keys(activeGameweek.value).length > 0) {
       mapPredictions();
+    }
+
+    if (activeGameweek.value && activeGameweek.value.is_finished) {
+      const { data: winnerData, error: winnerError } = await gameweeksService.getGameweekWinner(activeGameweek.value.id);
+      if (winnerError) throw new Error('Failed to load gameweek winner');
+      if (Object.keys(winnerData).length > 0) {
+        const userIsGameweekWinner = winnerData.user_id === userStore.user?.id;
+        gameweekWinner.value = { ...winnerData, userIsGameweekWinner: userIsGameweekWinner }
+      }
     }
 
     const { data: statsData, error: statsError } = await groupsService.getGroupStats(groupId.value, userStore.user?.id);

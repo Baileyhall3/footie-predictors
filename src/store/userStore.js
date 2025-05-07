@@ -384,6 +384,23 @@ export const userStore = {
       return { data: null, error };
     }
   },
+
+  async getUser(userId) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) => 
+        supabase
+          .from('users')
+          .select(`*`)
+          .eq('id', userId)
+      );
+  
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      return { data: null, error };
+    }
+  },
   
   clearError() {
     state.error = null

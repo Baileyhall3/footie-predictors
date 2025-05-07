@@ -26,14 +26,7 @@
           <p class="text-lg">
             <span class="font-semibold">Deadline: </span>
             <DeadlineCountdown :deadline="new Date(gameweek?.deadline)" v-if="gameweek?.deadline" />
-            <!-- {{ DateUtils.toFullDateTime(gameweek?.deadline) }} -->
           </p>
-          <div class="items-center flex" v-if="gameweek?.is_finished">
-            <p class="text-lg"><span class="font-semibold">Winner:</span> {{ userIsGameweekWinner ? 'You!' : gameweekWinner.username }}</p>
-            <TrophyIcon class="size-5 ms-3" style="color: gold;" />
-          </div>
-
-          <!-- <p class="text-sm text-gray-600"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p> -->
       
           <!-- Edit Mode Toggle (Admins Only) -->
            <div class="flex flex-wrap gap-2 mt-3" v-if="isAdmin">
@@ -60,14 +53,15 @@
              </template>
            </div>
         </div>
-
-        <div v-if="userIsGameweekWinner" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-          <div class="flex items-center justify-center gap-2">
-            <!-- <TrophyIcon class="size-5 me-1" style="color: gold;" /> -->
-            <h2 class="text-xl font-bold">Congratulations {{ gameweekWinner.username }}, you are the gameweek winner!</h2>
-            <!-- <TrophyIcon class="size-5 ms-1" style="color: gold;" /> -->
-          </div>
-        </div>
+        
+        <template v-if="gameweek?.is_finished">
+          <GameweekWinnerCard 
+            :username="gameweekWinner.username"
+            :totalPoints="gameweekWinner.total_points"
+            :isCurrentUser="userIsGameweekWinner"
+            :weekNumber="gameweek?.week_number"
+          />
+        </template>
 
         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
           <!-- Matches List -->
@@ -144,7 +138,8 @@
             <div v-if="leaderboard.length">
               <LeaderboardCard 
                 :leaderboard="leaderboard"
-                
+                :gameweekId="gameweekId"
+                includeUserPredictionLink
               />
             </div>
             <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
@@ -177,6 +172,7 @@ import "vue3-toastify/dist/index.css";
 import { TrophyIcon } from '@heroicons/vue/24/solid';
 import confetti from 'canvas-confetti';
 import DeadlineCountdown from '../components/UI/DeadlineCountdown.vue';
+import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
 
 const route = useRoute();
 const router = useRouter();

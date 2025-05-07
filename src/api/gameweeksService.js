@@ -500,4 +500,41 @@ export const gameweeksService = {
       return { data: null, error }
     }
   },
+
+  /**
+   * Get the winner of a gameweek
+   * @param {string} gameweekId - Gameweek ID
+   * @returns {Promise<{data: Object | null, error: Object | null}>}
+   */
+  async getGameweekWinner(gameweekId) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('scores')
+          .select(`
+            *,
+            users!inner (
+              id,
+              username
+            )
+          `)
+          .eq('gameweek_id', gameweekId)
+          .order('total_points', { ascending: false })
+          .limit(1)
+      )
+
+      if (error) throw error;
+      
+      const mappedUser = {
+        total_points: data[0].total_points,
+        user_id: data[0].user_id,
+        username: data[0].users?.username
+      }
+
+      return { data: mappedUser, error: null };
+    } catch (error) {
+      console.error('Error fetching gameweek winner:', error)
+      return { data: null, error }
+    }
+  },
 }

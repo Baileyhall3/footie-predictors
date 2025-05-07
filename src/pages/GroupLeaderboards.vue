@@ -18,12 +18,15 @@
             <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
                 <div v-if="leaderboard.length">
                     <LeaderboardCard 
+                        headerText="All-Time"
                         :leaderboard="leaderboard"
                         :editable="isAdmin"
                         includeHeader
                         :lastUpdated="leaderboardLastUpdated"
                         allowCollapse
                         includeSearchBar
+                        :gameweekId="currentGameweek.id"
+                        includeUserPredictionLink
                         @update-leaderboard-entry="handleLeaderboardUpdate"
                         @changes-saved="saveChanges"
                         @changes-cancelled="cancelChanges"
@@ -42,7 +45,8 @@
                         includeSearchBar
                         :gameweekId="currentGameweek.id"
                         :lastUpdated="scoresLastUpdated"
-                        />
+                        includeUserPredictionLink
+                    />
                 </div>
                 <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
             </div>

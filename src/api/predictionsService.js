@@ -408,4 +408,31 @@ async calculateMatchScores(matchId) {
   }
 },
 
+/**
+   * Get all predictions for a user in a gameweek
+   * @param {string} userId - User ID
+   * @param {string} gameweekId - Gameweek ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+async getUserGameweekPredictionsUsingView(userId, gameweekId) {
+  try {
+    const { data, error } = await supabaseDb.customQuery((supabase) =>
+      supabase
+        .from('match_predictions')
+        .select(`*`)
+        .eq('user_id', userId)
+        .eq('gameweek_id', gameweekId)
+    )
+
+    if (error) throw error
+
+    const mappedData = { predictions: data, totalPoints: data[0]?.total_points }
+
+    return { data: mappedData, error: null }
+  } catch (error) {
+    console.error('Error fetching user gameweek predictions:', error)
+    return { data: null, error }
+  }
+},
+
 }

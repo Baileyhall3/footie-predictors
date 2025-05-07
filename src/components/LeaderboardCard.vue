@@ -1,33 +1,19 @@
 <template>
   <div class="flex justify-between items-center mb-4" v-if="props.includeHeader">
       <div class="items-center flex">
-        <h3 class="text-xl font-semibold" v-if="props.gameweekId">                    
-            <router-link 
-                :to="`/gameweek/${props.gameweekId}`" 
-                class="text-blue-600 hover:underline"
-            >
-                Current Gameweek
-            </router-link>
+        <h3 v-if="props.headerText" class="text-xl font-semibold">{{ props.headerText }}</h3>
+        <h3 class="text-xl font-semibold" v-else-if="props.gameweekId">                    
+          <router-link 
+              :to="`/gameweek/${props.gameweekId}`" 
+              class="text-blue-600 hover:underline"
+          >
+              Current Gameweek
+          </router-link>
         </h3>
-        <h3 v-else class="text-xl font-semibold">{{ props.headerText }}</h3>
         <button type="button" @click="toggleLeaderboardCollapse" v-if="props.allowCollapse">
             <ChevronDownIcon v-if="!leaderboardCollapsed" class="size-5 ms-2 transition-transform duration-300"  />
             <ChevronUpIcon v-else class="size-5 ms-2 transition-transform duration-300" />
         </button>
-      </div>
-      <div v-if="props.editable" class="mt-4 flex flex-wrap gap-2">
-          <button v-if="!isEditing" @click="toggleEditMode" 
-            class="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition">
-              Edit
-          </button>
-          <button v-if="isEditing" @click="cancelChanges" 
-            class="px-3 py-1 bg-gray-300 text-gray-800 rounded-md text-sm hover:bg-gray-400">
-              Cancel
-          </button>
-          <button v-if="isEditing" @click="saveChanges" :disabled="!hasLeaderboardChanges" 
-            class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm disabled:opacity-50">
-              Save
-          </button>
       </div>
   </div>
 
@@ -45,9 +31,15 @@
       <div v-for="player in visibleLeaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
         <div class="flex items-center gap-2">
           <span class="font-medium w-6 text-center">{{ player.position }}.</span>
-          <span>{{ player.username }}</span>
           <ArrowUpIcon class="size-3 text-green-600" v-if="player.movement == 'up'" />
-          <ArrowDownIcon class="size-3 text-red-600" v-if="player.movement == 'down'" />
+          <ArrowDownIcon class="size-3 text-red-600" v-else-if="player.movement == 'down'" />
+          <EqualsIcon class="size-3 text-gray-600" v-else />
+          <component
+            :is="props.includeUserPredictionLink && props.gameweekId ? 'router-link' : 'span'"
+            :to="props.includeUserPredictionLink && props.gameweekId ? `/user-gameweek-predictions/${props.gameweekId}/${player.user_id}` : undefined"
+          >
+            {{ player.username }}
+          </component>
           <span v-if="player.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
         </div>
         
@@ -74,7 +66,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { userStore } from "../store/userStore";
-import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
+import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon, EqualsIcon } from "@heroicons/vue/24/solid";
 import DateUtils from '../utils/dateUtils';
 import SearchBar from './UI/SearchBar.vue';
   
@@ -99,10 +91,9 @@ export interface IProps {
   headerText?: string;
   allowCollapse?: boolean;
   includeSearchBar?: boolean;
+  includeUserPredictionLink?: boolean;
 }
-const props = withDefaults(defineProps<IProps>(), {
-  headerText: 'All-Time',
-})
+const props = defineProps<IProps>();
 const emit = defineEmits(["update-leaderboard-entry", "changes-saved", "changes-cancelled"]);
 
 const updateScore = (leaderboardId: string, userId: string, value: string) => {
