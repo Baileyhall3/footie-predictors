@@ -1,4 +1,5 @@
 <template>
+    <NoAccess v-if="!gameweek?.is_locked && !loading" message="Gameweek is not locked yet." />
     <div class="container mx-auto py-8">
         <LoadingScreen v-if="loading" />
         <template v-else>
@@ -13,12 +14,9 @@
             </template>
             <template v-if="predictions.length === 0 && user?.username">
                 <div class="min-h-screen flex flex-col items-center bg-gray-100 text-center px-4">
-                    <!-- Icon or code -->
                     <h1 class="text-7xl font-extrabold text-gray-800 mb-4 animate-pulse">
                         😞
-                    </h1>
-                    
-                    <!-- Message text -->
+                    </h1>                    
                     <p class="text-xl text-gray-600 mb-6">
                         {{ user?.username }} has not made any predictions for gameweek {{ gameweek?.week_number }} yet.
                     </p>
@@ -40,6 +38,7 @@ import { userStore } from '../store/userStore';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import ScoreCard2 from '../components/ScoreCard2.vue';
 import DoesNotExist from '../components/DoesNotExist.vue';
+import NoAccess from '../components/NoAccess.vue';
 
 const route = useRoute();
 

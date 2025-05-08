@@ -1,15 +1,19 @@
 <template>
   <div class="flex justify-between items-center mb-4" v-if="props.includeHeader">
       <div class="items-center flex">
-        <h3 v-if="props.headerText" class="text-xl font-semibold">{{ props.headerText }}</h3>
-        <h3 class="text-xl font-semibold" v-else-if="props.gameweekId">                    
-          <router-link 
-              :to="`/gameweek/${props.gameweekId}`" 
-              class="text-blue-600 hover:underline"
-          >
-              Current Gameweek
-          </router-link>
-        </h3>
+        <slot name="filter"></slot>
+        <slot name="header"></slot>
+        <template v-if="!slots.header">
+          <h3 v-if="props.headerText" class="text-xl font-semibold">{{ props.headerText }}</h3>
+          <h3 class="text-xl font-semibold" v-else-if="props.gameweekId">                    
+            <router-link 
+                :to="`/gameweek/${props.gameweekId}`" 
+                class="text-blue-600 hover:underline"
+            >
+                Current Gameweek
+            </router-link>
+          </h3>
+        </template>
         <button type="button" @click="toggleLeaderboardCollapse" v-if="props.allowCollapse">
             <ChevronDownIcon v-if="!leaderboardCollapsed" class="size-5 ms-2 transition-transform duration-300"  />
             <ChevronUpIcon v-else class="size-5 ms-2 transition-transform duration-300" />
@@ -33,7 +37,7 @@
           <span class="font-medium w-6 text-center">{{ player.position }}.</span>
           <ArrowUpIcon class="size-3 text-green-600" v-if="player.movement == 'up'" />
           <ArrowDownIcon class="size-3 text-red-600" v-else-if="player.movement == 'down'" />
-          <EqualsIcon class="size-3 text-gray-600" v-else />
+          <EqualsIcon class="size-3 text-gray-600" v-else-if="player.movement == 'same'" />
           <component
             :is="props.includeUserPredictionLink && props.gameweekId ? 'router-link' : 'span'"
             :to="props.includeUserPredictionLink && props.gameweekId ? `/user-gameweek-predictions/${props.gameweekId}/${player.user_id}` : undefined"
@@ -64,7 +68,7 @@
 </template>
   
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useSlots } from 'vue';
 import { userStore } from "../store/userStore";
 import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon, EqualsIcon } from "@heroicons/vue/24/solid";
 import DateUtils from '../utils/dateUtils';
@@ -95,6 +99,7 @@ export interface IProps {
 }
 const props = defineProps<IProps>();
 const emit = defineEmits(["update-leaderboard-entry", "changes-saved", "changes-cancelled"]);
+const slots = useSlots();
 
 const updateScore = (leaderboardId: string, userId: string, value: string) => {
   hasLeaderboardChanges.value = true;
