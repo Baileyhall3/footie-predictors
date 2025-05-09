@@ -1,30 +1,28 @@
 <template>
-    <NoAccess v-if="!gameweek?.is_locked && !loading" message="Gameweek is not locked yet." />
-    <div class="container mx-auto py-8">
-        <LoadingScreen v-if="loading" />
-        <template v-else>
-            <template v-if="predictions.length > 0">
-                <ScoreCard2
-                    :matches="predictions"
-                    :header="`${user?.username}'s Gameweek ${gameweek?.week_number} Predictions`"
-                    :totalPoints="totalPoints"
-                    matchesClickable
-                >
-                </ScoreCard2>
-            </template>
-            <template v-if="predictions.length === 0 && user?.username">
-                <div class="min-h-screen flex flex-col items-center bg-gray-100 text-center px-4">
-                    <h1 class="text-7xl font-extrabold text-gray-800 mb-4 animate-pulse">
-                        😞
-                    </h1>                    
-                    <p class="text-xl text-gray-600 mb-6">
-                        {{ user?.username }} has not made any predictions for gameweek {{ gameweek?.week_number }} yet.
-                    </p>
-                </div>
-            </template>
-            <template v-if="predictions.length === 0 && !user?.username">
-                <DoesNotExist entity="user's gameweek predictions" />
-            </template>
+    <LoadingScreen v-if="loading" />
+    <NoAccess v-else-if="!gameweek?.is_locked" message="Gameweek is not locked yet." />
+    <div class="container mx-auto py-8" v-else>
+        <template v-if="predictions.length > 0">
+            <ScoreCard2
+                :matches="predictions"
+                :header="`${user?.username}'s Gameweek ${gameweek?.week_number} Predictions`"
+                :totalPoints="totalPoints"
+                matchesClickable
+            >
+            </ScoreCard2>
+        </template>
+        <template v-if="predictions.length === 0 && user?.username">
+            <div class="min-h-screen flex flex-col items-center bg-gray-100 text-center px-4">
+                <h1 class="text-7xl font-extrabold text-gray-800 mb-4 animate-pulse">
+                    😞
+                </h1>                    
+                <p class="text-xl text-gray-600 mb-6">
+                    {{ user?.username }} has not made any predictions for gameweek {{ gameweek?.week_number }} yet.
+                </p>
+            </div>
+        </template>
+        <template v-if="predictions.length === 0 && !user?.username">
+            <DoesNotExist entity="user's gameweek predictions" />
         </template>
     </div>
 </template>
@@ -64,6 +62,16 @@ async function fetchAllData() {
             throw new Error('User ID or gameweek ID is missing');
         }
 
+        const { data: gameweekData, error: gameweekError } = await predictionsStore.fetchGameweek(gameweekId.value);
+        if (gameweekError) {
+            throw new Error(`Gameweek error: ${gameweekError}`)
+        }
+        gameweek.value = gameweekData;
+
+        if (!gameweek.value.is_locked) {
+            return
+        }
+
         const { data: predictionsData, error: predictionsError } = await predictionsService.getUserGameweekPredictionsUsingView(userId.value, gameweekId.value)
         if (predictionsError) {
             throw new Error(`Predictions error: ${predictionsError}`)
@@ -80,14 +88,6 @@ async function fetchAllData() {
         }
 
         user.value = userData[0];
-
-        const { data: gameweekData, error: gameweekError } = await predictionsStore.fetchGameweek(gameweekId.value);
-        if (gameweekError) {
-            throw new Error(`Gameweek error: ${gameweekError}`)
-        }
-        gameweek.value = gameweekData;
-
-        debugger
 
     } catch(err) {
         console.error(err);
