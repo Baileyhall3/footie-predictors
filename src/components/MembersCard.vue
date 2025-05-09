@@ -2,7 +2,12 @@
     <TransitionGroup name="member-list" tag="div">
         <div v-for="member in visibleMembers" :key="member.id" class="flex justify-between items-center border-b py-3">
             <div class="flex items-center space-x-2">
-                <UserIcon class="text-gray-500 size-4" />
+                <div
+                    class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium"
+                    :style="{ backgroundColor: member.bg_colour || '#ccc' }"
+                >
+                    {{ member.username.charAt(0).toUpperCase() }}
+                </div>
                 <span >{{ member.username }}</span>
                 <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
                 <span v-if="member.is_admin && groupOwner.id != member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>
@@ -74,6 +79,7 @@ interface Member {
   joined_at: Date | string;
   membership_id: string;
   username: string;
+  bg_colour?: string
 }
 
 interface Owner {

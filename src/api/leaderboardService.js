@@ -102,7 +102,8 @@ export const leaderboardService = {
             user_id,
             users (
               id,
-              username
+              username,
+              bg_colour
             )
           `)
           .eq('group_id', groupId)
@@ -129,7 +130,8 @@ export const leaderboardService = {
           username: member.users.username,
           total_points: userScore.total_points,
           total_correct_scores: userScore.total_correct_scores,
-          updated_at: userScore.updated_at
+          updated_at: userScore.updated_at,
+          bg_colour: member.users.bg_colour
         }
       })
 

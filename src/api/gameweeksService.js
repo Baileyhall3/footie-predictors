@@ -525,10 +525,13 @@ export const gameweeksService = {
 
       if (error) throw error;
       
-      const mappedUser = {
-        total_points: data[0].total_points,
-        user_id: data[0].user_id,
-        username: data[0].users?.username
+      let mappedUser = {}
+      if (data.length > 0) {
+        mappedUser = {
+          total_points: data[0].total_points,
+          user_id: data[0].user_id,
+          username: data[0].users?.username
+        }
       }
 
       return { data: mappedUser, error: null };

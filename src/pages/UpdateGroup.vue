@@ -35,20 +35,15 @@
                 </div>
 
                 <!-- Group Icon -->
-                <div>
+                <div class="mt-4">
                   <label class="block font-medium">Group Icon</label>
-                  <input
-                    type="file"
-                    accept="image/png, image/jpeg"
-                    @change="handleFileChange"
-                    class="mt-4"
+                  <FileUpload 
+                    :fileTypes="['image/png', 'image/jpeg']" 
+                    :maxFileSizeMB="8" 
+                    :modelValue="selectedFile" 
+                    :currentFileUrl="group.icon_url"
+                    @update:modelValue="handleFileChange" 
                   />
-                </div>
-
-                <!-- Image Preview -->
-                <div v-if="group.icon_url || previewUrl" class="mt-4">
-                  <p class="text-sm text-gray-600">Preview:</p>
-                  <img :src="group.icon_url ?? previewUrl" alt="Preview" class="w-24 h-24 object-cover rounded border" />
                 </div>
 
                 <!-- Scoring -->
@@ -142,6 +137,7 @@ import { supabase } from '../api/supabase';
 import DeleteConfirm from "../components/DeleteConfirm.vue";
 import SelectInput from "../components/UI/SelectInput.vue";
 import NoAccess from "../components/NoAccess.vue";
+import FileUpload from "../components/UI/FileUpload.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -178,15 +174,8 @@ const previewUrl = ref(null);
 // Computed properties
 const isAdmin = ref(false);
 
-function handleFileChange(event) {
-  const file = event.target.files[0]
-  if (file && file.type.startsWith('image/')) {
-    selectedFile.value = file
-    previewUrl.value = URL.createObjectURL(file)
-  } else {
-    selectedFile.value = null
-    previewUrl.value = null
-  }
+function handleFileChange(file: File | null) {
+  selectedFile.value = file;
 }
 
 // Handle typing a digit

@@ -51,7 +51,7 @@
         </div>
       </div>
 
-      <template v-if="activeGameweek && activeGameweek?.is_finished">
+      <template v-if="activeGameweek && activeGameweek?.is_finished && Object.keys(gameweekWinner).length > 0">
           <GameweekWinnerCard 
             :username="gameweekWinner.username"
             :totalPoints="gameweekWinner.total_points"
@@ -164,6 +164,7 @@
           <router-link 
             :to="`/group/${groupId}/stats`" 
             class="text-sm text-blue-600 hover:underline"
+            v-if="Object.keys(groupStats).length > 0"
           >
             View All →
           </router-link>
@@ -175,7 +176,12 @@
           <StatRow icon="✅" label="Correct Results" :value="groupStats.total_correct_results" />
           <StatRow icon="📈" label="Score Accuracy" :value="groupStats.correct_score_ratio_percent + '%'" />
         </div>
-        <p v-else class="text-gray-500 py-2">No stats data available.</p>
+        <p v-else class="text-gray-500 py-2">No stats data available. 
+          <router-link :to="`/group/${group.id}/create-gameweek`" class="text-blue-600 hover:underline">
+            Create a gameweek
+          </router-link> 
+          and start playing to see stats!
+        </p>
     </div> 
 
     <!-- Members Section -->
@@ -344,9 +350,11 @@ const fetchAllData = async () => {
       }
     }
 
-    const { data: statsData, error: statsError } = await groupsService.getGroupStats(groupId.value, userStore.user?.id);
-    if (statsError) throw new Error('Failed to load user stats');
-    groupStats.value = statsData[0] || [];
+    if (gameweeks.value.length > 0) {
+      const { data: statsData, error: statsError } = await groupsService.getGroupStats(groupId.value, userStore.user?.id);
+      if (statsError) throw new Error('Failed to load user stats');
+      groupStats.value = statsData[0] || [];
+    }
 
   } catch (err) {
     console.error('Error fetching group data:', err);

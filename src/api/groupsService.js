@@ -112,7 +112,8 @@ export const groupsService = {
               id,
               username,
               email,
-              is_fake
+              is_fake,
+              bg_colour
             )
           `)
           .eq('group_id', groupId)
@@ -137,7 +138,8 @@ export const groupsService = {
         is_admin: membership.is_admin,
         joined_at: membership.joined_at,
         membership_id: membership.id,
-        is_fake: membership.users.is_fake
+        is_fake: membership.users.is_fake,
+        bg_colour: membership.users.bg_colour
       }))
 
       return { data: members, error: null }

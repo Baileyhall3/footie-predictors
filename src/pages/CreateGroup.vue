@@ -16,20 +16,9 @@
       </div>
 
       <!-- Group Icon -->
-      <div>
+      <div class="mt-4">
         <label class="block font-medium">Group Icon</label>
-        <input
-          type="file"
-          accept="image/png, image/jpeg"
-          @change="handleFileChange"
-          class="mt-4"
-        />
-      </div>
-
-      <!-- Image Preview -->
-      <div v-if="previewUrl" class="mt-4">
-        <p class="text-sm text-gray-600">Preview:</p>
-        <img :src="previewUrl" alt="Preview" class="w-24 h-24 object-cover rounded border" />
+        <FileUpload :fileTypes="['image/png', 'image/jpeg']" :maxFileSizeMB="8" :modelValue="selectedFile" @update:modelValue="handleFileChange" />
       </div>
 
       <!-- Scoring System -->
@@ -107,6 +96,7 @@ import { useRouter } from 'vue-router';
 import { groupsService } from '../api/groupsService';
 import { supabase } from '../api/supabase';
 import SelectInput from '../components/UI/SelectInput.vue';
+import FileUpload from '../components/UI/FileUpload.vue';
 
 const router = useRouter();
 
@@ -115,7 +105,6 @@ const pinInputs = ref([]);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
 const selectedFile = ref(null);
-const previewUrl = ref(null);
 
 // Reactive form data
 const groupData = ref({
@@ -130,15 +119,8 @@ const groupData = ref({
   description: ''
 });
 
-function handleFileChange(event) {
-  const file = event.target.files[0]
-  if (file && file.type.startsWith('image/')) {
-    selectedFile.value = file
-    previewUrl.value = URL.createObjectURL(file)
-  } else {
-    selectedFile.value = null
-    previewUrl.value = null
-  }
+function handleFileChange(file: File | null) {
+  selectedFile.value = file;
 }
 
 // Function to handle group creation with Supabase
