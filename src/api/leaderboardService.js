@@ -293,7 +293,7 @@ export const leaderboardService = {
    * @param {string} userId - user ID
    * @returns {Promise<{data: Array, error: Object}>}
    */
-  async getGroupLeaderboardHistory(groupId, userId) {
+  async getUserGroupLeaderboardHistory(groupId, userId) {
     try {
       // Get current leaderboard
       const { data, error } = await supabaseDb.customQuery((supabase) =>
@@ -302,6 +302,31 @@ export const leaderboardService = {
           .select(`*`)
           .eq('group_id', groupId)
           .eq('user_id', userId)
+          .order('gameweek', { ascending: false })
+      );
+  
+      if (error) throw error;
+
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error fetching leaderboard history:', error)
+      return { data: null, error }
+    }
+  },
+
+  /**
+   * Get the leaderboard history for a group
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getGroupLeaderboardHistory(groupId) {
+    try {
+      // Get current leaderboard
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('leaderboard_history_view')
+          .select(`*`)
+          .eq('group_id', groupId)
           .order('gameweek', { ascending: false })
       );
   

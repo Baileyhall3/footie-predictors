@@ -14,7 +14,7 @@
     <!-- Content (only shown when not loading and no error) -->
     <div v-if="!error && !loading && groupExists">
       <!-- Group Info Section -->
-      <div class="bg-white shadow-lg rounded-xl p-6 mb-4">
+      <div class="px-2 mb-8">
         <div class="flex">
           <img 
           :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
@@ -48,7 +48,7 @@
         </div>
       </div>
 
-      <Tabs>
+      <Tabs v-if="!notInGroup">
         <Tab header="Overview">
           <RoundedContainer headerText="Group Info">
             <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
@@ -66,10 +66,10 @@
           </template>
 
           <!-- Gameweeks Section -->
-          <GroupGameweeks v-if="!notInGroup" :gameweeks="gameweeks" :groupId="group.id" :isAdmin="isAdmin" />
+          <GroupGameweeks :gameweeks="gameweeks" :groupId="group.id" :isAdmin="isAdmin" />
 
           <!-- Predictions section -->
-          <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="!notInGroup && activeGameweek">
+          <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="activeGameweek">
             <div v-if="Object.keys(predictions).length > 0">
               <ScoreCard
                   :matches="matches"
@@ -99,7 +99,7 @@
               </div>
           </RoundedContainer>
             <!-- Matches List -->
-            <RoundedContainer v-if="!notInGroup && Object.keys(matches).length > 0">
+            <RoundedContainer v-if="Object.keys(matches).length > 0">
                 <ScoreCard 
                   :matches="matches"
                   allowCollapse
@@ -108,7 +108,7 @@
                 />
             </RoundedContainer>
             <!-- Predictions -->
-            <RoundedContainer v-if="!notInGroup && activeGameweek">
+            <RoundedContainer v-if="activeGameweek">
               <ScoreCard
                   v-if="Object.keys(predictions).length > 0"
                   :matches="matches"
@@ -127,14 +127,6 @@
             </RoundedContainer>
 
             <RoundedContainer headerText="Current Standings">
-              <!-- <template #headerContent>
-                <router-link 
-                  :to="`/group/${gameweek?.group_id}/leaderboards`" 
-                  class="text-sm text-blue-600 hover:underline"
-                >
-                  View Full Leaderboard →
-                </router-link>
-              </template> -->
               <p v-if="gwLeaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(gwLeaderboardLastUpdated) }}</p>
               <div v-if="gwLeaderboard.length">
                 <LeaderboardCard 
@@ -148,29 +140,7 @@
           </Tab>
         </template>
         <Tab header="Leaderboard">
-          <RoundedContainer headerText="All-Time" v-if="!notInGroup">
-            <template #headerContent>
-              <router-link 
-                :to="`/group/${groupId}/leaderboards`" 
-                class="text-sm text-blue-600 hover:underline"
-              >
-                View Full Leaderboard →
-              </router-link>
-            </template>
-
-            <p v-if="leaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
-
-            <div v-if="leaderboard.length">
-              <LeaderboardCard 
-                :leaderboard="leaderboard"
-                headerText="All-Time"
-                previewOnly
-                :gameweekId="activeGameweek?.id"
-                includeUserPredictionLink
-              />
-            </div>
-            <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-          </RoundedContainer>
+          <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
         </Tab>
         <Tab header="Stats">
           <CombinedGroupStats :groupId="group.id" />
@@ -243,6 +213,7 @@ import Tab from "../components/UI/Tab.vue";
 import GroupGameweeks from "../components/GroupGameweeks.vue";
 import RoundedContainer from "../components/UI/RoundedContainer.vue";
 import CombinedGroupStats from "./CombinedGroupStats.vue";
+import GroupLeaderboard from "./GroupLeaderboard.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -258,14 +229,12 @@ const groupId = ref(null);
 const group = ref({});
 const members = ref([]);
 const gameweeks = ref([]);
-const leaderboard = ref([]);
 const predictions = ref({});
 const matches = ref([]);
 const notInGroup = ref(true);
 const deleteConfirmMsg = ref('');
 const deleteConfirmTitle = ref('');
 const deleteConfirmText = ref('Confirm');
-const leaderboardLastUpdated = ref();
 const isAdmin = ref(false);
 const isGroupOwner = ref(false);
 const groupOwner = ref({});
@@ -545,14 +514,6 @@ async function getGroupMembers() {
 }
 
 async function getLeaderboard() {
-  const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value);
-  if (leaderboardError) throw new Error('Failed to load leaderboard');
-  leaderboard.value = leaderboardData || [];
-  
-  if (leaderboard.value.length > 0) {
-    leaderboardLastUpdated.value = leaderboard.value[0].leaderboard_last_updated ? new Date(leaderboard.value[0].leaderboard_last_updated) : null;
-  }
-
   if (activeGameweek.value) {
     // Fetch current gameweek leaderboard
     const { data: scoresData, error: scoresError } = await leaderboardStore.fetchGameweekScores(groupId.value, activeGameweek.value.id);

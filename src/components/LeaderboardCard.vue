@@ -73,6 +73,14 @@
       </div>
     </template>
   </TransitionGroup>
+  <div v-if="props.previewOnly && recordsNotLoaded != 0" class="text-center mt-4">
+      <button 
+          @click="allRecordsLoaded = true"
+          class="text-blue-600 hover:underline font-medium"
+      >
+          Show {{ recordsNotLoaded }} more
+      </button>
+  </div>
 </template>
   
 <script setup lang="ts">
@@ -116,10 +124,12 @@ const updateScore = (leaderboardId: string, userId: string, value: string) => {
 };
 
 const currentUserId = userStore.user?.id;
-const isEditing = ref(false);
-const hasLeaderboardChanges = ref(false);
-const leaderboardCollapsed = ref(false);
-const searchString = ref('');
+const isEditing = ref<boolean>(false);
+const hasLeaderboardChanges = ref<boolean>(false);
+const leaderboardCollapsed = ref<boolean>(false);
+const searchString = ref<string>('');
+const recordsNotLoaded = ref<number>();
+const allRecordsLoaded = ref<boolean>(false);
 
 const visibleLeaderboard = computed(() => {
   let list = props.leaderboard;
@@ -138,7 +148,11 @@ const visibleLeaderboard = computed(() => {
       start = Math.max(totalEntries - 5, 0);
     }
 
-    list = list.slice(start, end);
+    recordsNotLoaded.value = props.leaderboard.length - 5;
+    
+    if (!allRecordsLoaded.value) {
+      list = list.slice(start, end);
+    }
   }
 
   // Filter by search string if one is present

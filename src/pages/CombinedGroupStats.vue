@@ -73,8 +73,8 @@ async function fetchStatsData() {
 
         const { data: statsData, error: statsError } = await groupsService.getGroupStats(props.groupId);
         if (statsError) throw new Error('Failed to load group stats');
-        const userRecord = statsData.filter(x => x.user_id === userStore.user?.id);
-        userStats.value = userRecord[0];
+        const userRecord = statsData.find(x => x.user_id === userStore.user?.id);
+        userStats.value = userRecord;
         groupStats.value = statsData || [];
 
         bestAvgPoints.value = getTopOrBottomThree(statsData, 'avg_points_per_gameweek');

@@ -1,5 +1,7 @@
 <template>
-    <Line :data="chartData" :options="chartOptions" />
+    <div class="px-4">
+        <Line :data="chartData" :options="chartOptions" />
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -16,6 +18,32 @@ import {
     Color
 } from 'chart.js'
 
+const endLabelPlugin = {
+    id: 'endLabels',
+    afterDatasetsDraw(chart, args, options) {
+        const { ctx } = chart;
+
+        chart.data.datasets.forEach((dataset, index) => {
+            const meta = chart.getDatasetMeta(index);
+            const lastPoint = meta.data[meta.data.length - 1];
+
+            if (!lastPoint) return;
+
+            const { x, y } = lastPoint.tooltipPosition();
+
+            ctx.save();
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = dataset.borderColor as string;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(dataset.label ?? '', x + 6, y);
+            ctx.restore();
+        });
+    }
+};
+
+ChartJS.register(endLabelPlugin);
+
 ChartJS.register(
     Title,
     Tooltip,
@@ -29,9 +57,8 @@ ChartJS.register(
 export interface LineData {
     title?: string,
     borderColor: Color,
-    xLabels: string[]
-    data: number[]
-    options: ChartOptions
+    data: number[],
+    totalPointsPerGameweek: number[]
 }
 
 export interface ChartOptions {
@@ -43,35 +70,63 @@ export interface ChartOptions {
 }
 
 export interface IProps {
-    lineData: LineData,
+    lineData: LineData[],
+    options: ChartOptions,
+    xLabels: string[]
 }
 
 const props = defineProps<IProps>();
 
 const chartData = {
-    labels: props.lineData.xLabels,
-    datasets: [
-        {
-            label: props.lineData.title ?? 'Line Chart',
-            data: props.lineData.data,
-            fill: false,
-            borderColor: props.lineData.borderColor,
-            tension: 0.1
-        }
-    ]
+    labels: props.xLabels ?? [],
+    datasets: props.lineData.map(line => ({
+        label: line.title ?? 'Line Chart',
+        data: line.data,
+        fill: false,
+        borderColor: line.borderColor,
+        tension: 0.1,
+        totalPoints: line.totalPointsPerGameweek
+    }))
 };
+
 
 const chartOptions = {
     responsive: true,
+    layout: {
+        padding: {
+            top: 0,
+            right: 40
+        }
+    },
+    plugins: {
+        legend: {
+            display: false
+        },
+        endLabels: {
+            display: true
+        },
+        tooltip: {
+            callbacks: {
+                label: (tooltipItem) => {
+                    const dataset = tooltipItem.dataset;
+                    const index = tooltipItem.dataIndex;
+                    const user = dataset.label;
+                    const position = dataset.data[index];
+                    const totalPoints = dataset.totalPoints?.[index]; // our custom field
+                    return `${user}: Position ${position}, ${totalPoints} pts`;
+                }
+            }
+        }
+    },
     scales: {
         y: {
-        min: props.lineData.options?.minY ?? 0,
-        ticks: {
-            stepSize: props.lineData.options?.stepSize ?? 1,
-            precision: props.lineData.options?.precision ?? 0,
-        },
-            beginAtZero: props.lineData.options?.beginAtZero ?? true,
-            reverse: props.lineData.options?.reverse ?? false,
+            min: props.options?.minY ?? 0,
+            ticks: {
+                stepSize: props.options?.stepSize ?? 1,
+                precision: props.options?.precision ?? 0,
+            },
+                beginAtZero: props.options?.beginAtZero ?? true,
+                reverse: props.options?.reverse ?? false,
         }
     }
 };

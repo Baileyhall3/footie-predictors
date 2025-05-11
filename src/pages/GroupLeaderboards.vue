@@ -74,7 +74,7 @@
                 <Tabs>
                     <Tab header="History">
                         <div class="divide-y divide-gray-200">
-                            <div v-for="record in leaderboardHistory" :key="record.id" class="py-3 flex justify-between items-center">
+                            <div v-for="record in userLeaderboardHistory" :key="record.id" class="py-3 flex justify-between items-center">
                                 <div>
                                     <div class="font-medium text-center">
                                         <router-link 
@@ -96,10 +96,17 @@
                         </div>
                     </Tab>
                     <Tab header="Position Chart">
-                        <LineChart :lineData="positionHistory" />
-                    </Tab>
-                    <Tab header="Points Chart">
-                        <LineChart :lineData="pointsHistory" />
+                        <LineChart 
+                            :lineData="positionHistory" 
+                            :xLabels="posXLabels"
+                            :options="{
+                                stepSize: 1,
+                                precision: 0,
+                                beginAtZero: true,
+                                reverse: true,
+                                minY: 1
+                            }" 
+                        />
                     </Tab>
                 </Tabs>
             </div>
@@ -149,9 +156,10 @@ const scoresLastUpdated = ref();
 const changedRecords = ref(<LeaderboardRecord[]>([])); 
 const error = ref(null);
 const leaderboardHistory = ref([]);
+const userLeaderboardHistory = ref([]);
 const gameweekLkp = ref([]);
 const positionHistory = ref<LineData>({});
-const pointsHistory = ref<LineData>({});
+const posXLabels = ref<string[]>([]);
 
 onMounted(async () => {
     fetchAllData();
@@ -201,10 +209,13 @@ async function fetchAllData() {
         }
 
         // Fetch group leaderboard history
-        const { data: historyData, error: scoresError } = await leaderboardService.getGroupLeaderboardHistory(groupId.value, userStore.user?.id);
+        const { data: historyData, error: scoresError } = await leaderboardService.getGroupLeaderboardHistory(groupId.value);
         if (scoresError) throw new Error('Failed to load leaderboard history');
-        leaderboardHistory.value = historyData || [];
+        leaderboardHistory.value = (historyData || []);
+
         if (historyData.length > 0) {
+            userLeaderboardHistory.value = historyData.filter(x => x.user_id === userStore.user?.id);
+            userLeaderboardHistory.value.sort((a, b) => b.gameweek - a.gameweek);
             mapHistoryCharts(historyData);
         }
 
@@ -229,27 +240,45 @@ async function setCurrentGameweek(gameweek: any) {
 }
 
 function mapHistoryCharts(historyData: any[]) {
-    const sortedHistory = historyData.sort((a, b) => a.gameweek - b.gameweek);
-    positionHistory.value = {
-        title: 'Position Over Time',
-        borderColor: 'rgb(59, 130, 246)',
-        xLabels: sortedHistory.map(r => `GW${r.gameweek}`),
-        data: sortedHistory.map(r => r.position),
-        options: {
-            stepSize: 1,
-            precision: 0,
-            beginAtZero: true,
-            reverse: true,
-            minY: 1
-        }
-    };
+    const usersMap: Record<string, {
+        username: string;
+        borderColor: string;
+        gameweekPositions: Record<number, number>; // gameweek: position
+        totalPointsPerGameweek: Record<number, number>
+    }> = {};
 
-    pointsHistory.value = {
-        title: 'Points Over Time',
-        borderColor: 'rgb(34, 197, 94)',
-        xLabels: sortedHistory.map(r => `GW${r.gameweek}`),
-        data: sortedHistory.map((r) => r.total_points)
-    };
+    const gameweekSet = new Set<number>();
+
+    historyData.forEach(entry => {
+        const { user_id, username, gameweek, position, bg_colour, total_points } = entry;
+
+        gameweekSet.add(gameweek);
+
+        if (!usersMap[user_id]) {
+            usersMap[user_id] = {
+                username,
+                borderColor: bg_colour,
+                gameweekPositions: {},
+                totalPointsPerGameweek: {}
+            };
+        }
+
+        usersMap[user_id].gameweekPositions[gameweek] = position;
+        usersMap[user_id].totalPointsPerGameweek[gameweek] = total_points;
+
+    });
+
+    const sortedGameweeks = Array.from(gameweekSet).sort((a, b) => a - b);
+
+    // Format data for chart
+    positionHistory.value = Object.values(usersMap).map(user => ({
+        title: user.username,
+        borderColor: user.borderColor,
+        data: sortedGameweeks.map(gw => user.gameweekPositions[gw] ?? null),
+        totalPointsPerGameweek: sortedGameweeks.map(gw => user.totalPointsPerGameweek[gw] ?? null)
+    }));
+
+    posXLabels.value = sortedGameweeks.map(gw => `GW ${gw}`);
 }
 
 const cancelChanges = () => {

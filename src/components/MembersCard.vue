@@ -139,8 +139,8 @@ function removeMember(member: Member) {
 }
 
 const showMore = () => {
-  const nextLimit = displayLimit.value + props.memberLimit;
-  displayLimit.value = Math.min(nextLimit, props.members.length);
+    const nextLimit = displayLimit.value + props.memberLimit;
+    displayLimit.value = Math.min(nextLimit, props.members.length);
 };
 
 </script>
