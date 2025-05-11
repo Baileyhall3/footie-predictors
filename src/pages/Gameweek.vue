@@ -63,16 +63,8 @@
           />
         </template>
 
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-          <!-- Matches List -->
-          <div class="flex justify-between items-center mb-4">
-            <div class="items-center flex">
-              <h3 class="text-xl font-semibold">Matches</h3>
-              <button type="button" @click="toggleMatchesCollapse">
-                <ChevronDownIcon v-if="!matchesCollapsed" class="size-5 ms-2"  />
-                <ChevronUpIcon v-else class="size-5 ms-2" />
-              </button>
-            </div>
+        <RoundedContainer headerText="Matches" collapsable>
+          <template #headerContent>
             <router-link :to="`/gameweek/${gameweekId}/add-matches`">
               <button 
                 v-if="isAdmin && !gameweek?.is_locked && gameweek?.is_active" 
@@ -81,9 +73,9 @@
                 + Add Matches
               </button>
             </router-link>
-          </div>
-          <template v-if="matches.length > 0 && !matchesCollapsed">
+          </template>
             <ScoreCard 
+                v-if="matches.length > 0"
                 :matches="matches"
                 :isAdmin="editMode && gameweek?.is_active && gameweek?.is_locked"
                 :canRemove="editMode && gameweek?.is_active && !gameweek?.is_locked"
@@ -91,16 +83,14 @@
                 @update-score="handleScoreUpdate"
                 @match-removed="handleMatchRemoved"
             />
-  
             <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
               Save Scores
             </button>
-          </template>
-        </div>
+        </RoundedContainer>
 
         <template v-if="!editMode">
           <!-- Predictions -->
-          <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+          <RoundedContainer>
             <div>
               <template v-if="Object.keys(predictions).length > 0">
                 <ScoreCard 
@@ -119,22 +109,19 @@
               </template>
               <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
             </div>
-          </div>
+          </RoundedContainer>
   
           <!-- Leaderboard Section -->
-          <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold">Leaderboard</h3>
+          <RoundedContainer headerText="Leaderboard">
+            <template #headerContent>
               <router-link 
                 :to="`/group/${gameweek?.group_id}/leaderboards`" 
                 class="text-sm text-blue-600 hover:underline"
               >
                 View Full Leaderboard →
               </router-link>
-            </div>
-
+            </template>
             <p v-if="leaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
-            
             <div v-if="leaderboard.length">
               <LeaderboardCard 
                 :leaderboard="leaderboard"
@@ -143,7 +130,7 @@
               />
             </div>
             <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-          </div>
+          </RoundedContainer>
         </template>
       </template>
     </div>
@@ -158,7 +145,7 @@ import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
-import { ShareIcon, LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
+import { ShareIcon, LockClosedIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -169,10 +156,10 @@ import { leaderboardStore } from '../store/leaderboardStore';
 import LeaderboardCard from '../components/LeaderboardCard.vue';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
-import { TrophyIcon } from '@heroicons/vue/24/solid';
 import confetti from 'canvas-confetti';
 import DeadlineCountdown from '../components/UI/DeadlineCountdown.vue';
 import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
+import RoundedContainer from '../components/UI/RoundedContainer.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -189,7 +176,6 @@ const members = ref([]);
 const deleteConfirm = ref(null);
 const leaderboard = ref([]);
 const userGameweekScore = ref();
-const matchesCollapsed = ref(false);
 const gameweekWinner = ref();
 const leaderboardLastUpdated = ref();
 
@@ -451,10 +437,6 @@ const triggerConfetti = () => {
     origin: { y: 0.6 }, // Adjust origin for better effect
   });
 };
-
-const toggleMatchesCollapse = () => {
-  matchesCollapsed.value = !matchesCollapsed.value;
-}
   
 function redirectToGroup() {
   router.push(`/group/${gameweek.value.group_id}`);
