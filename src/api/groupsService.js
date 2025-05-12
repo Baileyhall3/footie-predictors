@@ -25,12 +25,13 @@ export const groupsService = {
 
   /**
    * Create a new group
-   * @param {string} name - Group name
+   * @param {object} groupData - Group data
    * @param {string} adminId - User ID of the group admin
    * @param {File} iconFile - File for group icon
+   * @param {object} seasonData - Season data
    * @returns {Promise<{data: Object, error: Object}>}
    */
-  async createGroup(groupData, adminId, iconFile = null) {
+  async createGroup(groupData, adminId, iconFile = null, seasonData) {
     try {
       const { data: group, error } = await supabaseDb.create('groups', {
         name: groupData.name,
@@ -67,6 +68,22 @@ export const groupsService = {
       });
 
       if (leaderboardError) throw leaderboardError;
+
+      const { data: sznData, error: seasonError } = await supabaseDb.create('seasons', {
+        name: seasonData.name ?? 'Season 1',
+        group_id: group.id,
+        start_date: seasonData.start_date,
+        end_date: seasonData.end_date
+      });
+
+      if (seasonError) throw seasonError;
+
+      const { error: seasonLeaderboardError } = await supabaseDb.create('season_leaderboard', {
+        user_id: adminId,
+        season_id: sznData.id,
+      });
+
+      if (seasonLeaderboardError) throw seasonLeaderboardError;
   
       return { data: group, error: null };
     } catch (error) {

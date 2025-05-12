@@ -13,45 +13,33 @@
                 <span v-if="member.is_admin && groupOwner.id != member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>
                 <span v-if="groupOwner.id === member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Owner</span>
             </div>
-              
-            <div v-if="isAdmin && userStore.user?.id !== member.id && groupOwner.id != member.id" class="relative flex items-center gap-2">
-                <!-- Ellipsis Dropdown -->
-                <div class="relative">
-                    <button @click="toggleDropdown(member.id)" class="p-1 rounded-md hover:bg-gray-200" :class="{'bg-gray-200': openMembersDropdown === member.id}">
-                        <EllipsisHorizontalIcon class="size-6 text-gray-500" />
+
+            <Dropdown v-if="isAdmin && userStore.user?.id !== member.id && groupOwner.id != member.id">
+                <template #items>
+                    <button 
+                        @click="updateAdminStatus(member)" 
+                        :disabled="member.is_fake"
+                        class="dropdown-item"
+                    >
+                        {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
                     </button>
-    
-                    <!-- Dropdown Menu -->
-                    <Transition name="fade-slide">
-                        <div v-if="openMembersDropdown === member.id" 
-                        class="absolute right-0 w-32 bg-white shadow-lg rounded-md border z-50"
-                        >
-                        <button 
-                            @click="updateAdminStatus(member)" 
-                            :disabled="member.is_fake"
-                            class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-200 disabled:opacity-50"
-                        >
-                            {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
-                        </button>
-    
-                        <router-link 
-                            v-if="member.is_fake && props.gameweek && !props.gameweek?.is_locked" 
-                            :to="`/admin-gameweek-predictions/${props.gameweek?.id}/${member.id}`"
-                            class="block px-4 py-2 text-sm  hover:bg-gray-200"
-                        >
-                            Predict
-                        </router-link>
-    
-                        <button 
-                            @click="removeMember(member)" 
-                            class="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-200"
-                        >
-                            Remove
-                        </button>
-                        </div>
-                    </Transition>
-                </div>
-            </div>
+
+                    <router-link 
+                        v-if="member.is_fake && props.gameweek && !props.gameweek?.is_locked" 
+                        :to="`/admin-gameweek-predictions/${props.gameweek?.id}/${member.id}`"
+                        class="dropdown-item"
+                    >
+                        Predict
+                    </router-link>
+
+                    <button 
+                        @click="removeMember(member)" 
+                        class="dropdown-item text-red-700"
+                    >
+                        Remove
+                    </button>
+                </template>
+            </Dropdown>
         </div>
     </TransitionGroup>
     <div v-if="hasMoreMembers" class="text-center mt-4">
@@ -68,8 +56,7 @@
 import { computed, ref } from 'vue';
 import { userStore } from "../store/userStore";
 import { userIsAdmin } from '../utils/checkPermissions';
-import { UserIcon } from "@heroicons/vue/24/outline";
-import { EllipsisHorizontalIcon } from "@heroicons/vue/24/solid";
+import Dropdown from './UI/Dropdown.vue';
   
 interface Member {
   id: string;
@@ -99,7 +86,6 @@ const props = withDefaults(defineProps<IProps>(), {
 });
 const emit = defineEmits(["update-admin-status", "member-removed"]);
 
-const openMembersDropdown = ref(null);
 const displayLimit = ref(props.memberLimit);
 
 const visibleMembers = computed(() => {
@@ -119,17 +105,6 @@ const isAdmin = computed(() => {
     return userIsAdmin(props.members);
 });
 
-const toggleDropdown = (memberId: string) => {
-    openMembersDropdown.value = openMembersDropdown.value === memberId ? null : memberId;
-};
-
-// Close dropdown when clicking outside
-document.addEventListener("click", (event) => {
-    if (!event.target.closest(".relative")) {
-        openMembersDropdown.value = null;
-    }
-});
-
 function updateAdminStatus(member: Member) {
     emit("update-admin-status", member)
 }
@@ -146,16 +121,6 @@ const showMore = () => {
 </script>
 
 <style scoped>
-/* Fade and slide-down effect */
-.fade-slide-enter-active, .fade-slide-leave-active {
-  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-}
-
-.fade-slide-enter-from, .fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
 .member-list-enter-active,
 .member-list-leave-active {
   transition: all 0.3s ease;

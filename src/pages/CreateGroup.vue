@@ -1,97 +1,155 @@
 <template>
-  <div class="max-w-2xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-xl">
-    <h1 class="text-2xl font-bold mb-4 text-center">Create a New Group</h1>
+  <div class="container mx-auto py-8">
+    <div class="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-xl">
+      <h1 class="text-2xl font-bold mb-4 text-center">Create a New Group</h1>
 
-    <form @submit.prevent="createGroup" class="space-y-4" novalidate>
-      <!-- Group Name -->
-      <div>
-        <label class="block font-medium">Group Name</label>
-        <input
-          v-model="groupData.name"
-          type="text"
-          placeholder="Enter group name"
-          class="w-full border p-2 rounded-md"
-          required
-        />
-      </div>
-
-      <!-- Group Icon -->
-      <div class="mt-4">
-        <label class="block font-medium">Group Icon</label>
-        <FileUpload :fileTypes="['image/png', 'image/jpeg']" :maxFileSizeMB="8" :modelValue="selectedFile" @update:modelValue="handleFileChange" />
-      </div>
-
-      <!-- Scoring System -->
-      <SelectInput selectLabel="Scoring System" v-model="groupData.scoring_system" :options="[
-          { value: 'classic', label: 'Classic (1 pt for correct result, 3 pts for exact score)' },
-          { value: 'custom', label: 'Custom (set below)' }
-        ]" />
-
-      <!-- Custom Scoring -->
-      <div v-if="groupData.scoring_system === 'custom'" class="grid grid-cols-2 gap-4">
+      <form @submit.prevent="createGroup" class="space-y-4" novalidate>
+        <!-- Group Name -->
         <div>
-          <label class="block font-medium">Correct Result Points</label>
-          <input v-model.number="groupData.correct_result_pts" type="number" min="0" class="w-full border p-2 rounded-md" />
+          <label class="block font-medium">Group Name</label>
+          <input
+            v-model="groupData.name"
+            type="text"
+            placeholder="Enter group name"
+            class="w-full border p-2 rounded-md"
+            required
+          />
         </div>
-        <div>
-          <label class="block font-medium">Exact Score Points</label>
-          <input v-model.number="groupData.exact_score_pts" type="number" min="0" class="w-full border p-2 rounded-md" />
-        </div>
-        <div>
-          <label class="block font-medium">Incorrect Result Points</label>
-          <input v-model.number="groupData.incorrect_points" type="number" max="0" class="w-full border p-2 rounded-md" />
-        </div>
-      </div>
 
-      <!-- Privacy Setting -->
-      <SelectInput selectLabel="Group Privacy" v-model="groupData.is_public" :options="[
-          { value: true, label: 'Public (Anyone can join)' },
-          { value: false, label: 'Private (Invite only)' }
-        ]" />
+        <!-- Group Description -->
+        <div>
+          <label class="block font-medium">Group Description</label>
+          <textarea v-model="groupData.description" rows="3" placeholder="Describe your group..." class="w-full border p-2 rounded-md"></textarea>
+        </div>
 
-      <!-- PIN Input (Only Visible When Private) -->
-      <div v-if="!groupData.is_public" class="mt-4">
-        <label class="block font-medium">Set Group PIN</label>
-          <div class="flex gap-2 justify-center mt-2">
+        <!-- Group Icon -->
+        <div class="mt-4">
+          <label class="block font-medium">Group Icon</label>
+          <FileUpload :fileTypes="['image/png', 'image/jpeg']" :maxFileSizeMB="8" :modelValue="selectedFile" @update:modelValue="handleFileChange" />
+        </div>
+
+        <!-- Scoring System -->
+        <SelectInput selectLabel="Scoring System" v-model="groupData.scoring_system" :options="[
+            { value: 'classic', label: 'Classic (1 pt for correct result, 3 pts for exact score)' },
+            { value: 'custom', label: 'Custom (set below)' }
+          ]" />
+
+        <!-- Custom Scoring -->
+        <div v-if="groupData.scoring_system === 'custom'" class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-medium">Correct Result Points</label>
+            <input v-model.number="groupData.correct_result_pts" type="number" min="0" class="w-full border p-2 rounded-md" />
+          </div>
+          <div>
+            <label class="block font-medium">Exact Score Points</label>
+            <input v-model.number="groupData.exact_score_pts" type="number" min="0" class="w-full border p-2 rounded-md" />
+          </div>
+          <div>
+            <label class="block font-medium">Incorrect Result Points</label>
+            <input v-model.number="groupData.incorrect_points" type="number" max="0" class="w-full border p-2 rounded-md" />
+          </div>
+        </div>
+
+        <!-- Privacy Setting -->
+        <SelectInput selectLabel="Group Privacy" v-model="groupData.is_public" :options="[
+            { value: true, label: 'Public (Anyone can join)' },
+            { value: false, label: 'Private (Invite only)' }
+          ]" />
+
+        <!-- PIN Input (Only Visible When Private) -->
+        <div v-if="!groupData.is_public" class="mt-4">
+          <label class="block font-medium">Set Group PIN</label>
+            <div class="flex gap-2 justify-center mt-2">
+              <input
+                v-for="(digit, index) in pin"
+                :key="index"
+                ref="pinInputs"
+                type="text"
+                maxlength="1"
+                class="w-12 h-12 text-center border rounded-md text-xl font-bold"
+                v-model="pin[index]"
+                @input="handleInput(index, $event)"
+                @keydown.backspace="handleBackspace(index, $event)"
+              />
+            </div>
+        </div>
+
+        <!-- Maximum Members -->
+        <div class="mb-6">
+          <label class="block font-medium">Max Members</label>
+          <input v-model.number="groupData.max_members" type="number" min="1" max="500" class="w-full border p-2 rounded-md" />
+        </div>
+
+        <!-- First Season Setup -->
+        <div class="mt-6 border-t pt-6">
+          <h2 class="text-xl font-semibold mb-4">Initial Season</h2>
+
+          <!-- Season Name -->
+          <div>
+            <label class="block font-medium">Season Name</label>
             <input
-              v-for="(digit, index) in pin"
-              :key="index"
-              ref="pinInputs"
+              v-model="seasonData.name"
               type="text"
-              maxlength="1"
-              class="w-12 h-12 text-center border rounded-md text-xl font-bold"
-              v-model="pin[index]"
-              @input="handleInput(index, $event)"
-              @keydown.backspace="handleBackspace(index, $event)"
+              placeholder="e.g. 2024/25 Season"
+              class="w-full border p-2 rounded-md"
+              required
             />
           </div>
-      </div>
+          
+          <!-- Start Date -->
+          <div class="mt-4">
+            <label class="block font-medium">Start Date</label>
+            <p class="text-gray-600 text-sm">Leave this blank if you want the season to start when the first gameweek starts.</p>
+            <div class="p-2 border w-full rounded-md">
+                <DatePicker 
+                    v-model="seasonData.start_date" 
+                    showIcon 
+                    showTime
+                    hourFormat="24"
+                    dateFormat="dd/mm/yy"
+                    class="w-full"
+                    :minDate="new Date()"
+                    fluid
+                    hideOnDateTimeSelect
+                />
+            </div>
+          </div>
 
-      <!-- Maximum Members -->
-      <div>
-        <label class="block font-medium">Max Members</label>
-        <input v-model.number="groupData.max_members" type="number" min="1" max="500" class="w-full border p-2 rounded-md" />
-      </div>
+          <!-- End Date -->
+          <div class="mt-4">
+            <label class="block font-medium">End Date</label>
+            <p class="text-gray-600 text-sm">Leave this blank if you want to manually end the season.</p>
+            <div class="p-2 border w-full rounded-md">
+                <DatePicker 
+                    v-model="seasonData.end_date" 
+                    showIcon 
+                    showTime
+                    hourFormat="24"
+                    dateFormat="dd/mm/yy"
+                    class="w-full"
+                    :minDate="minSeasonEndDate"
+                    fluid
+                    :disabled="!seasonData.start_date"
+                    hideOnDateTimeSelect
+                />
+            </div>
+          </div>
+        </div>
 
-      <!-- Group Description -->
-      <div>
-        <label class="block font-medium">Group Description</label>
-        <textarea v-model="groupData.description" rows="3" placeholder="Describe your group..." class="w-full border p-2 rounded-md"></textarea>
-      </div>
+        <!-- Error Message -->
+        <p v-if="errorMessage" class="text-red-500 text-center">{{ errorMessage }}</p>
 
-      <!-- Error Message -->
-      <p v-if="errorMessage" class="text-red-500 text-center">{{ errorMessage }}</p>
-
-      <!-- Submit Button -->
-      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md font-bold hover:bg-green-700">
-        {{ isSubmitting ? 'Creating...' : 'Create Group' }}
-      </button>
-    </form>
+        <!-- Submit Button -->
+        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md font-bold hover:bg-green-700">
+          {{ isSubmitting ? 'Creating...' : 'Create Group' }}
+        </button>
+      </form>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { groupsService } from '../api/groupsService';
 import { supabase } from '../api/supabase';
@@ -104,7 +162,7 @@ const pin = ref(["", "", "", ""]);
 const pinInputs = ref([]);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
-const selectedFile = ref(null);
+const selectedFile = ref(undefined);
 
 // Reactive form data
 const groupData = ref({
@@ -117,6 +175,22 @@ const groupData = ref({
   group_pin: null,
   max_members: 100, 
   description: ''
+});
+
+const seasonData = ref({
+  name: '',
+  start_date: null,
+  end_date: null
+});
+
+const minSeasonEndDate = computed(() => {
+  if (!seasonData.value.start_date) return null;
+  
+  const start = new Date(seasonData.value.start_date);
+  const minEnd = new Date(start);
+  minEnd.setDate(minEnd.getDate() + 1); // start_date + 1 day
+
+  return minEnd;
 });
 
 function handleFileChange(file: File | null) {
@@ -147,6 +221,10 @@ const createGroup = async () => {
     errorMessage.value = 'Please enter a value for your maxmimum members.';
     return;
   }
+  if (seasonData.value.name == '') {
+    errorMessage.value = 'Please enter a name for your first season.';
+    return;
+  }
   
   isSubmitting.value = true;
   
@@ -161,7 +239,7 @@ const createGroup = async () => {
     const adminId = user.user.id;
 
     // Create the group in Supabase
-    const { data: newGroup, error } = await groupsService.createGroup(groupData.value, adminId, selectedFile.value);
+    const { data: newGroup, error } = await groupsService.createGroup(groupData.value, adminId, selectedFile.value, seasonData.value);
 
     if (error) {
       throw error;

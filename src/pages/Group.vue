@@ -13,39 +13,51 @@
 
     <!-- Content (only shown when not loading and no error) -->
     <div v-if="!error && !loading && groupExists">
-      <!-- Group Info Section -->
-      <div class="px-2 mb-8">
-        <div class="flex">
-          <img 
-          :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
-          <div class="self-end">
-            <h2 class="text-2xl font-bold">{{ group.name }}</h2>
+      <!-- Group header Section -->
+      <div class="px-2 mb-4">
+        <!-- Header Row -->
+        <div class="flex items-center justify-between gap-4 mb-4 flex-nowrap">
+          <!-- Group Icon + Name -->
+          <div class="flex items-center gap-3 min-w-0 max-w-full flex-1">
+            <img 
+              :src="group.icon_url ?? '/images/green-football-md.png'" 
+              class="w-10 h-10 flex-shrink-0" 
+              alt="Group Logo"
+              />
+            <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
+          </div>
+
+          <!-- Admin Buttons -->
+          <div class="flex flex-wrap gap-2 justify-end flex-shrink-0">
+            <button @click="copyGroupLink()" class="p-1 rounded-md hover:bg-gray-200">
+              <LinkIcon class="size-6 text-blue-500" />
+            </button>
+            <Dropdown>
+              <template #trigger>
+                <EllipsisVerticalIcon class="size-6 text-gray-500" />
+              </template>
+              <template #items>
+                <router-link :to="`/group/${group.id}/update-group`" v-if="isGroupOwner">
+                  <button class="dropdown-item">
+                    Edit
+                  </button>
+                </router-link>
+                <template v-if="!isGroupOwner">
+                  <button v-if="!notInGroup" 
+                    @click="updateMemberStatus(false)" 
+                    class="dropdown-item text-red-700"
+                  >
+                    Leave group
+                  </button>
+                </template>
+
+              </template>
+            </Dropdown>
           </div>
         </div>
-        <p class="text-gray-500 mb-4 mt-4">{{ group.description || 'No description available' }}</p>
 
-        <!-- Admin Controls (only visible to the admin) -->
-        <div class="mt-4 flex flex-wrap gap-2">
-          <router-link :to="`/group/${group.id}/update-group`" v-if="isGroupOwner">
-            <button class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition">
-              Edit
-            </button>
-          </router-link>
-          <button @click="copyGroupLink" class="px-3 py-1 bg-blue-500 text-white rounded-md" v-if="!notInGroup">
-            <div class="justify-between items-center flex">
-              Share
-              <ShareIcon class="text-white size-4 ms-2" />
-            </div>
-          </button>
-          <template v-if="!isGroupOwner">
-            <button v-if="notInGroup" @click="tryJoinGroup()" class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition">
-                Join
-            </button>
-            <button v-else @click="updateMemberStatus(false)" class="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition">
-                Leave
-            </button>
-          </template>
-        </div>
+        <!-- Group Description -->
+        <p class="text-gray-500">{{ group.description || 'No description available' }}</p>
       </div>
 
       <Tabs v-if="!notInGroup">
@@ -88,61 +100,59 @@
             <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
           </div>
         </Tab>
-        <template v-if="activeGameweek">
-          <Tab :header="`Gameweek ${activeGameweek.week_number}`">
-            <RoundedContainer headerText="Gameweek Stats">
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
-                  <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
-                  <StatRow icon="🥇" label="Current Leader" :value="currentLeader.username" />
-                  <StatRow icon="🎯" label="Most Correct Scores" :value="`${userMostCorrectScores.total_correct_scores} (${userMostCorrectScores.username}) `" />
-              </div>
-          </RoundedContainer>
-            <!-- Matches List -->
-            <RoundedContainer v-if="Object.keys(matches).length > 0">
-                <ScoreCard 
-                  :matches="matches"
-                  allowCollapse
-                  header="Matches"
-                  :matchesClickable="activeGameweek?.is_locked"
-                />
-            </RoundedContainer>
-            <!-- Predictions -->
-            <RoundedContainer v-if="activeGameweek">
-              <ScoreCard
-                  v-if="Object.keys(predictions).length > 0"
-                  :matches="matches"
-                  :predictions="predictions"
-                  :locked="activeGameweek?.is_locked"
-                  :gameweekId="activeGameweek?.id"
-                  header="Your Predictions"
-                  showLockedIcon
-                  allowCollapse
-                  :matchesClickable="activeGameweek?.is_locked"
-                  :totalPoints="currentUserGameweekData.total_points"
-                  @update-prediction="handlePredictionUpdate"
-                  @predictions-submitted="submitPredictions"
+        <Tab :header="`Gameweek ${activeGameweek.week_number}`" v-if="activeGameweek">
+          <RoundedContainer headerText="Gameweek Stats">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
+                <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
+                <StatRow icon="🥇" label="Current Leader" :value="currentLeader.username" />
+                <StatRow icon="🎯" label="Most Correct Scores" :value="`${userMostCorrectScores.total_correct_scores} (${userMostCorrectScores.username}) `" />
+            </div>
+        </RoundedContainer>
+          <!-- Matches List -->
+          <RoundedContainer v-if="Object.keys(matches).length > 0">
+              <ScoreCard 
+                :matches="matches"
+                allowCollapse
+                header="Matches"
+                :matchesClickable="activeGameweek?.is_locked"
               />
-              <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
-            </RoundedContainer>
+          </RoundedContainer>
+          <!-- Predictions -->
+          <RoundedContainer v-if="activeGameweek">
+            <ScoreCard
+                v-if="Object.keys(predictions).length > 0"
+                :matches="matches"
+                :predictions="predictions"
+                :locked="activeGameweek?.is_locked"
+                :gameweekId="activeGameweek?.id"
+                header="Your Predictions"
+                showLockedIcon
+                allowCollapse
+                :matchesClickable="activeGameweek?.is_locked"
+                :totalPoints="currentUserGameweekData.total_points"
+                @update-prediction="handlePredictionUpdate"
+                @predictions-submitted="submitPredictions"
+            />
+            <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
+          </RoundedContainer>
 
-            <RoundedContainer headerText="Current Standings">
-              <p v-if="gwLeaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(gwLeaderboardLastUpdated) }}</p>
-              <div v-if="gwLeaderboard.length">
-                <LeaderboardCard 
-                  :leaderboard="gwLeaderboard"
-                  :gameweekId="activeGameweek?.id"
-                  :includeUserPredictionLink="activeGameweek?.is_locked"
-                />
-              </div>
-              <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-            </RoundedContainer>
-          </Tab>
-        </template>
+          <RoundedContainer headerText="Current Standings">
+            <p v-if="gwLeaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(gwLeaderboardLastUpdated) }}</p>
+            <div v-if="gwLeaderboard.length">
+              <LeaderboardCard 
+                :leaderboard="gwLeaderboard"
+                :gameweekId="activeGameweek?.id"
+                :includeUserPredictionLink="activeGameweek?.is_locked"
+              />
+            </div>
+            <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
+          </RoundedContainer>
+        </Tab>
         <Tab header="Leaderboard">
           <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
         </Tab>
-        <Tab header="Stats">
+        <Tab header="Stats" v-if="activeGameweek">
           <CombinedGroupStats :groupId="group.id" />
         </Tab>
         <Tab header="Members">
@@ -175,6 +185,16 @@
           </RoundedContainer>
         </Tab>
       </Tabs>
+      <RoundedContainer v-else class="max-w-xl mx-auto mt-10 text-center">
+        <h2 class="text-xl font-semibold mb-2">You're not part of this group yet</h2>
+        <p class="text-gray-600 mb-6">Join now to start predicting, competing on the leaderboard, and more!</p>
+
+        <button @click="tryJoinGroup" 
+          class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
+        >
+          Join Group
+        </button>
+      </RoundedContainer>
     </div>  
   </div>
 
@@ -193,7 +213,7 @@ import { gameweeksService } from "../api/gameweeksService";
 import { userIsAdmin, userInGroup, userIsGroupOwner } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
-import { ShareIcon } from "@heroicons/vue/24/solid";
+import { ShareIcon, LinkIcon, EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
 import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
@@ -214,6 +234,7 @@ import GroupGameweeks from "../components/GroupGameweeks.vue";
 import RoundedContainer from "../components/UI/RoundedContainer.vue";
 import CombinedGroupStats from "./CombinedGroupStats.vue";
 import GroupLeaderboard from "./GroupLeaderboard.vue";
+import Dropdown from "../components/UI/Dropdown.vue";
 
 const route = useRoute();
 const router = useRouter();

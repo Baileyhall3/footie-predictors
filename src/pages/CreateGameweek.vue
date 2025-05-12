@@ -3,58 +3,60 @@
     <NoAccess />
   </template>
   
-  <div v-else class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto mt-6">
-    <LoadingScreen v-if="loading" />
-
-    <h2 class="text-2xl font-semibold mb-4">Gameweek {{ weekNumber }}</h2>
-    <!-- <span class="text-lg"><span class="font-semibold">Step 1:</span> Set a deadline for the gameweek. This will be the cut-off time for predictions to be made.</span> -->
-
-    <!-- Deadline Input -->
-    <div class="mb-8 mt-4">
-      <label class="block text-sm font-medium text-gray-700">Deadline</label>
-      <div class="p-2 border border-gray-300 rounded-md">
-          <DatePicker 
-              v-model="deadline" 
-              showIcon 
-              showTime
-              hourFormat="24"
-              dateFormat="dd/mm/yy"
-              class="w-full"
-              :minDate="minDateTime"
-              fluid
-              hideOnDateTimeSelect
-          />
-      </div>
-    </div>
-
-    <!-- Active Gameweek Checkbox -->
-    <!-- <div class="mb-4 flex items-center">
-        <input type="checkbox" id="setActive" v-model="setActive" class="mr-2">
-        <label for="setActive" class="text-sm font-medium text-gray-700">Set Active</label>
-    </div> -->
-
-    <template v-if="deadline">
-      <AddMatches 
-        :deadline="deadline"
-        :selectedMatches="selectedMatches"
-        @error-message="handleErrorMessage"
-      />
+  <div v-else class="container mx-auto py-8">
+    <div class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto">
+      <LoadingScreen v-if="loading" />
   
-      <!-- Added Matches List -->
-        <div class="mt-4 mb-4" v-if="selectedMatches.length > 0">
-          <p class="text-lg font-semibold">Matches</p>
-          <ScoreCard 
-              :matches="selectedMatches"
-              canRemove
-              oneMatchPerRow
-              @match-removed="handleMatchRemoved"
-          />
+      <h2 class="text-2xl font-semibold mb-4">Gameweek {{ weekNumber }}</h2>
+      <!-- <span class="text-lg"><span class="font-semibold">Step 1:</span> Set a deadline for the gameweek. This will be the cut-off time for predictions to be made.</span> -->
+  
+      <!-- Deadline Input -->
+      <div class="mb-8 mt-4">
+        <label class="block text-sm font-medium text-gray-700">Deadline</label>
+        <div class="p-2 border border-gray-300 rounded-md">
+            <DatePicker 
+                v-model="deadline" 
+                showIcon 
+                showTime
+                hourFormat="24"
+                dateFormat="dd/mm/yy"
+                class="w-full"
+                :minDate="minDateTime"
+                fluid
+                hideOnDateTimeSelect
+            />
         </div>
+      </div>
   
-      <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
-
-      <button v-if="selectedMatches.length > 0" @click="createGameweek" class="w-full bg-green-600 text-white py-2 rounded-md">Create Gameweek</button>
-    </template>
+      <!-- Active Gameweek Checkbox -->
+      <!-- <div class="mb-4 flex items-center">
+          <input type="checkbox" id="setActive" v-model="setActive" class="mr-2">
+          <label for="setActive" class="text-sm font-medium text-gray-700">Set Active</label>
+      </div> -->
+  
+      <template v-if="deadline">
+        <AddMatches 
+          :deadline="deadline"
+          :selectedMatches="selectedMatches"
+          @error-message="handleErrorMessage"
+        />
+    
+        <!-- Added Matches List -->
+          <div class="mt-4 mb-4" v-if="selectedMatches.length > 0">
+            <p class="text-lg font-semibold">Matches</p>
+            <ScoreCard 
+                :matches="selectedMatches"
+                canRemove
+                oneMatchPerRow
+                @match-removed="handleMatchRemoved"
+            />
+          </div>
+    
+        <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
+  
+        <button v-if="selectedMatches.length > 0" @click="createGameweek" class="w-full bg-green-600 text-white py-2 rounded-md">Create Gameweek</button>
+      </template>
+    </div>
   </div>
 </template>
   
