@@ -13,77 +13,114 @@
 
     <!-- Content (only shown when not loading and no error) -->
     <div v-if="!error && !loading && groupExists">
-      <!-- Group header Section -->
-      <div class="px-2 mb-4">
-        <!-- Header Row -->
-        <div class="flex items-center justify-between gap-4 mb-4 flex-nowrap">
-          <!-- Group Icon + Name -->
-          <div class="flex items-center gap-3 min-w-0 max-w-full flex-1">
-            <img 
-              :src="group.icon_url ?? '/images/green-football-md.png'" 
-              class="w-10 h-10 flex-shrink-0" 
-              alt="Group Logo"
-              />
-            <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
-          </div>
-
-          <!-- Admin Buttons -->
-          <div class="flex flex-wrap gap-2 justify-end flex-shrink-0">
-            <button @click="copyGroupLink()" class="p-1 rounded-md hover:bg-gray-200">
-              <LinkIcon class="size-6 text-blue-500" />
-            </button>
-            <Dropdown>
-              <template #trigger>
-                <EllipsisVerticalIcon class="size-6 text-gray-500" />
-              </template>
-              <template #items>
-                <router-link :to="`/group/${group.id}/update-group`" v-if="isGroupOwner">
-                  <button class="dropdown-item">
-                    Edit
-                  </button>
-                </router-link>
-                <template v-if="!isGroupOwner">
-                  <button v-if="!notInGroup" 
-                    @click="updateMemberStatus(false)" 
-                    class="dropdown-item text-red-700"
-                  >
-                    Leave group
-                  </button>
+      <template v-if="!notInGroup">
+        <!-- Group header Section -->
+        <div class="px-2 mb-4">
+          <!-- Header Row -->
+          <div class="flex items-center justify-between gap-4 mb-4 flex-nowrap">
+            <!-- Group Icon + Name -->
+            <div class="flex items-center gap-3 min-w-0 max-w-full flex-1">
+              <img 
+                :src="group.icon_url ?? '/images/green-football-md.png'" 
+                class="w-10 h-10 flex-shrink-0" 
+                alt="Group Logo"
+                />
+              <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
+            </div>
+  
+            <div class="flex flex-wrap gap-2 justify-end flex-shrink-0" v-if="!notInGroup">
+              <button @click="copyGroupLink()" class="p-1 rounded-md hover:bg-gray-200">
+                <LinkIcon class="size-6 text-blue-500" />
+              </button>
+              <Dropdown>
+                <template #trigger>
+                  <EllipsisVerticalIcon class="size-6 text-gray-500" />
                 </template>
-
-              </template>
-            </Dropdown>
+                <template #items>
+                  <router-link :to="`/group/${group.id}/update-group`" v-if="isGroupOwner">
+                    <button class="dropdown-item">
+                      Edit
+                    </button>
+                  </router-link>
+                  <template v-if="!isGroupOwner">
+                    <button @click="updateMemberStatus(false)" 
+                      class="dropdown-item text-red-700"
+                    >
+                      Leave group
+                    </button>
+                  </template>
+  
+                </template>
+              </Dropdown>
+            </div>
           </div>
+  
+          <!-- Group Description -->
+          <p class="text-gray-500">{{ group.description || 'No description available' }}</p>
         </div>
-
-        <!-- Group Description -->
-        <p class="text-gray-500">{{ group.description || 'No description available' }}</p>
-      </div>
-
-      <Tabs v-if="!notInGroup">
-        <Tab header="Overview" borderColour="black">
-          <RoundedContainer headerText="Group Info">
-            <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
-            <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
-            <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
+  
+        <Tabs>
+          <Tab header="Overview" borderColour="black">
+            <RoundedContainer headerText="Group Info">
+              <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
+              <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
+              <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
+            </RoundedContainer>
+  
+            <template v-if="activeGameweek && activeGameweek?.is_finished && Object.keys(gameweekWinner).length > 0">
+              <GameweekWinnerCard 
+                :username="gameweekWinner.username"
+                :totalPoints="gameweekWinner.total_points"
+                :isCurrentUser="gameweekWinner.userIsGameweekWinner"
+                :weekNumber="activeGameweek?.week_number"
+              />
+            </template>
+  
+            <!-- Gameweeks Section -->
+            <GroupGameweeks :gameweeks="gameweeks" :groupId="group.id" :isAdmin="isAdmin" />
+  
+            <!-- Predictions section -->
+            <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="activeGameweek">
+              <div v-if="Object.keys(predictions).length > 0">
+                <ScoreCard
+                    :matches="matches"
+                    :predictions="predictions"
+                    :locked="activeGameweek?.is_locked"
+                    :gameweekId="activeGameweek?.id"
+                    header="Your Predictions"
+                    showLockedIcon
+                    allowCollapse
+                    :matchesClickable="activeGameweek?.is_locked"
+                    :totalPoints="currentUserGameweekData.total_points"
+                    @update-prediction="handlePredictionUpdate"
+                    @predictions-submitted="submitPredictions"
+                />
+              </div>
+              <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
+            </div>
+          </Tab>
+          <Tab :header="`Gameweek ${activeGameweek.week_number}`" v-if="activeGameweek">
+            <RoundedContainer headerText="Gameweek Stats">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
+                  <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
+                  <StatRow icon="🥇" label="Current Leader" :value="currentLeader.username" />
+                  <StatRow icon="🎯" label="Most Correct Scores" :value="`${userMostCorrectScores.total_correct_scores} (${userMostCorrectScores.username}) `" />
+              </div>
           </RoundedContainer>
-
-          <template v-if="activeGameweek && activeGameweek?.is_finished && Object.keys(gameweekWinner).length > 0">
-            <GameweekWinnerCard 
-              :username="gameweekWinner.username"
-              :totalPoints="gameweekWinner.total_points"
-              :isCurrentUser="gameweekWinner.userIsGameweekWinner"
-              :weekNumber="activeGameweek?.week_number"
-            />
-          </template>
-
-          <!-- Gameweeks Section -->
-          <GroupGameweeks :gameweeks="gameweeks" :groupId="group.id" :isAdmin="isAdmin" />
-
-          <!-- Predictions section -->
-          <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="activeGameweek">
-            <div v-if="Object.keys(predictions).length > 0">
+            <!-- Matches List -->
+            <RoundedContainer v-if="Object.keys(matches).length > 0">
+                <ScoreCard 
+                  :matches="matches"
+                  allowCollapse
+                  header="Matches"
+                  :matchesClickable="activeGameweek?.is_locked"
+                />
+            </RoundedContainer>
+            <!-- Predictions -->
+            <RoundedContainer v-if="activeGameweek">
               <ScoreCard
+                  v-if="Object.keys(predictions).length > 0"
                   :matches="matches"
                   :predictions="predictions"
                   :locked="activeGameweek?.is_locked"
@@ -96,96 +133,67 @@
                   @update-prediction="handlePredictionUpdate"
                   @predictions-submitted="submitPredictions"
               />
-            </div>
-            <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
-          </div>
-        </Tab>
-        <Tab :header="`Gameweek ${activeGameweek.week_number}`" v-if="activeGameweek">
-          <RoundedContainer headerText="Gameweek Stats">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
-                <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
-                <StatRow icon="🥇" label="Current Leader" :value="currentLeader.username" />
-                <StatRow icon="🎯" label="Most Correct Scores" :value="`${userMostCorrectScores.total_correct_scores} (${userMostCorrectScores.username}) `" />
-            </div>
-        </RoundedContainer>
-          <!-- Matches List -->
-          <RoundedContainer v-if="Object.keys(matches).length > 0">
-              <ScoreCard 
-                :matches="matches"
-                allowCollapse
-                header="Matches"
-                :matchesClickable="activeGameweek?.is_locked"
-              />
-          </RoundedContainer>
-          <!-- Predictions -->
-          <RoundedContainer v-if="activeGameweek">
-            <ScoreCard
-                v-if="Object.keys(predictions).length > 0"
-                :matches="matches"
-                :predictions="predictions"
-                :locked="activeGameweek?.is_locked"
-                :gameweekId="activeGameweek?.id"
-                header="Your Predictions"
-                showLockedIcon
-                allowCollapse
-                :matchesClickable="activeGameweek?.is_locked"
-                :totalPoints="currentUserGameweekData.total_points"
-                @update-prediction="handlePredictionUpdate"
-                @predictions-submitted="submitPredictions"
-            />
-            <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
-          </RoundedContainer>
-
-          <RoundedContainer headerText="Current Standings">
-            <p v-if="gwLeaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(gwLeaderboardLastUpdated) }}</p>
-            <div v-if="gwLeaderboard.length">
-              <LeaderboardCard 
-                :leaderboard="gwLeaderboard"
-                :gameweekId="activeGameweek?.id"
-                :includeUserPredictionLink="activeGameweek?.is_locked"
-              />
-            </div>
-            <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-          </RoundedContainer>
-        </Tab>
-        <Tab header="Leaderboard">
-          <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
-        </Tab>
-        <Tab header="Stats" v-if="activeGameweek">
-          <CombinedGroupStats :groupId="group.id" />
-        </Tab>
-        <Tab header="Members">
-          <RoundedContainer :headerText="`Members (${members.length})`" v-if="!notInGroup || (notInGroup && group.is_public)">
-            <template #headerContent v-if="isAdmin">
-              <button 
-                v-if="members.length != group.max_members" 
-                @click="openCreateMemberDialog()"
-                class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-              >
-                + Add Member
-              </button>
-              <button 
-                v-else
-                class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded transition cursor-default"
-              >
-                Max Members Reached
-              </button>
-            </template>            
-            <div v-if="members.length">
-              <MembersCard 
-                :members="members"
-                :groupOwner="groupOwner"
-                :gameweek="activeGameweek"
-                @update-admin-status="updateMemberAdminStatus"
-                @member-removed="confirmRemoveMember"
-              />
-            </div>
-            <p v-else class="text-gray-500 py-2">No members yet.</p>
-          </RoundedContainer>
-        </Tab>
-      </Tabs>
+              <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
+            </RoundedContainer>
+  
+            <RoundedContainer headerText="Current Standings">
+              <p v-if="gwLeaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(gwLeaderboardLastUpdated) }}</p>
+              <div v-if="gwLeaderboard.length">
+                <LeaderboardCard 
+                  :leaderboard="gwLeaderboard"
+                  :gameweekId="activeGameweek?.id"
+                  :includeUserPredictionLink="activeGameweek?.is_locked"
+                />
+              </div>
+              <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
+            </RoundedContainer>
+          </Tab>
+          <Tab header="Leaderboard">
+            <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
+          </Tab>
+          <Tab header="Stats" v-if="activeGameweek">
+            <CombinedGroupStats :groupId="group.id" />
+          </Tab>
+          <Tab header="Members">
+            <RoundedContainer :headerText="`Members (${members.length})`" v-if="!notInGroup || (notInGroup && group.is_public)">
+              <template #headerContent v-if="isAdmin">
+                <button 
+                  v-if="members.length != group.max_members" 
+                  @click="openCreateMemberDialog()"
+                  class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+                >
+                  + Add Member
+                </button>
+                <button 
+                  v-else
+                  class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded transition cursor-default"
+                >
+                  Max Members Reached
+                </button>
+              </template>            
+              <div v-if="members.length">
+                <MembersCard 
+                  :members="members"
+                  :groupOwner="groupOwner"
+                  :gameweek="activeGameweek"
+                  @update-admin-status="updateMemberAdminStatus"
+                  @member-removed="confirmRemoveMember"
+                />
+              </div>
+              <p v-else class="text-gray-500 py-2">No members yet.</p>
+            </RoundedContainer>
+          </Tab>
+        </Tabs>
+      </template>
       <RoundedContainer v-else class="max-w-xl mx-auto mt-10 text-center">
+        <div class="flex justify-center items-center gap-3 min-w-0 max-w-full flex-1 mb-4">
+          <img 
+            :src="group.icon_url ?? '/images/green-football-md.png'" 
+            class="w-10 h-10 flex-shrink-0" 
+            alt="Group Logo"
+            />
+          <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
+        </div>
         <h2 class="text-xl font-semibold mb-2">You're not part of this group yet</h2>
         <p class="text-gray-600 mb-6">Join now to start predicting, competing on the leaderboard, and more!</p>
 
