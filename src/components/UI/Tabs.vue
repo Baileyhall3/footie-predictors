@@ -9,8 +9,8 @@
                 :class="[
                     'px-4 py-2 text-sm font-medium transition whitespace-nowrap',
                     selected === index
-                        ? `border-b-2 border-${props.borderColour}-600 text-${props.borderColour}-600`
-                        : `text-gray-500 hover:text-${props.borderColour}-600`
+                        ? activeClass
+                        : inactiveClass
                 ]"
             >
                 {{ tab.header }}
@@ -25,7 +25,7 @@
 </template>
   
 <script setup lang="ts">
-import { ref, provide, reactive } from 'vue';
+import { ref, provide, reactive, computed } from 'vue';
 
 type BorderColor =
   | 'blue'
@@ -43,24 +43,35 @@ const props = withDefaults(defineProps<IProps>(), {
 });
 
 const tabs = reactive<{ header: string; index: number }[]>([]);
-const loadedTabs = reactive<boolean[]>([]);
+// const loadedTabs = reactive<boolean[]>([]);
 const selected = ref(0);
+
+const colorMap = {
+  blue: 'text-blue-600 border-blue-600 hover:text-blue-600',
+  green: 'text-green-600 border-green-600 hover:text-green-600',
+  purple: 'text-purple-600 border-purple-600 hover:text-purple-600',
+  black: 'text-black border-black hover:text-black',
+  gray: 'text-gray-600 border-gray-600 hover:text-gray-600'
+};
+
+const activeClass = computed(() => `border-b-2 ${colorMap[props.borderColour]}`);
+const inactiveClass = computed(() => `text-gray-500 hover:${colorMap[props.borderColour].split(' ')[2]}`);
 
 function registerTab(header: string) {
     const index = tabs.length;
     tabs.push({ header, index });
-    loadedTabs.push(false);
+    // loadedTabs.push(false);
     return index;
 }
 
 function selectTab(index: number) {
     selected.value = index;
-    loadedTabs[index] = true;
+    // loadedTabs[index] = true;
 }
 
 provide('registerTab', registerTab);
 provide('selectedTab', selected);
-provide('loadedTabs', loadedTabs);
+// provide('loadedTabs', loadedTabs);
 </script>
   
 <style scoped>

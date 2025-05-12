@@ -49,7 +49,7 @@
       </div>
 
       <Tabs v-if="!notInGroup">
-        <Tab header="Overview">
+        <Tab header="Overview" borderColour="black">
           <RoundedContainer headerText="Group Info">
             <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
             <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
