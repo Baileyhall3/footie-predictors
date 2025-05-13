@@ -28,12 +28,6 @@
         </div>
       </div>
   
-      <!-- Active Gameweek Checkbox -->
-      <!-- <div class="mb-4 flex items-center">
-          <input type="checkbox" id="setActive" v-model="setActive" class="mr-2">
-          <label for="setActive" class="text-sm font-medium text-gray-700">Set Active</label>
-      </div> -->
-  
       <template v-if="deadline">
         <AddMatches 
           :deadline="deadline"
@@ -61,7 +55,7 @@
 </template>
   
 <script setup>
-import { ref, onMounted, watch, onUnmounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService'
 import LoadingScreen from "../components/LoadingScreen.vue"; 

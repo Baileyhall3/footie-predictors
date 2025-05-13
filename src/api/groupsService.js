@@ -84,6 +84,8 @@ export const groupsService = {
       });
 
       if (seasonLeaderboardError) throw seasonLeaderboardError;
+
+      await supabaseDb.update('groups', group.id, { active_season_id: sznData.id });
   
       return { data: group, error: null };
     } catch (error) {

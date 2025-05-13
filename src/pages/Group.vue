@@ -91,7 +91,7 @@
                     showLockedIcon
                     allowCollapse
                     :matchesClickable="activeGameweek?.is_locked"
-                    :totalPoints="currentUserGameweekData.total_points"
+                    :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
                     @update-prediction="handlePredictionUpdate"
                     @predictions-submitted="submitPredictions"
                 />
@@ -100,7 +100,7 @@
             </div>
           </Tab>
           <Tab :header="`Gameweek ${activeGameweek.week_number}`" v-if="activeGameweek">
-            <RoundedContainer headerText="Gameweek Stats">
+            <RoundedContainer headerText="Gameweek Stats" v-if="activeGameweek.is_finished">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
                   <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
@@ -129,14 +129,14 @@
                   showLockedIcon
                   allowCollapse
                   :matchesClickable="activeGameweek?.is_locked"
-                  :totalPoints="currentUserGameweekData.total_points"
+                  :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
                   @update-prediction="handlePredictionUpdate"
                   @predictions-submitted="submitPredictions"
               />
               <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
             </RoundedContainer>
   
-            <RoundedContainer headerText="Current Standings">
+            <RoundedContainer headerText="Current Standings" v-if="activeGameweek?.is_locked">
               <p v-if="gwLeaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(gwLeaderboardLastUpdated) }}</p>
               <div v-if="gwLeaderboard.length">
                 <LeaderboardCard 
