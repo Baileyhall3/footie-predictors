@@ -10,142 +10,165 @@
       </div>
 
       <template v-else>
-        <div class="mb-1 ms-1">
-          <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 hover:underline font-medium">
-            ← Back to group
-          </router-link>
-        </div>
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-          <div class="flex items-center gap-2 mb-4">
-            <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
-            <LockClosedIcon class="size-6 ms-1" v-if="gameweek?.is_locked" />
-            <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
-              Active
+        <div class="px-2 mb-4">
+          <!-- Header Row -->
+          <div class="flex items-center justify-between gap-4 mb-4 flex-nowrap">
+            <div class="flex items-center gap-3 min-w-0 max-w-full flex-1">
+              <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
+              <LockClosedIcon class="size-6 ms-1" v-if="gameweek?.is_locked" />
+              <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
+                Active
+              </div>
+            </div>
+  
+            <div class="flex flex-wrap gap-2 justify-end flex-shrink-0">
+              <button @click="copyGameweekLink()" class="p-1 rounded-md hover:bg-gray-200" title="Copy gameweek link">
+                <LinkIcon class="size-6 text-blue-500" />
+              </button>
+              <Dropdown>
+                <template #trigger>
+                  <EllipsisVerticalIcon class="size-6 text-gray-500" />
+                </template>
+                <template #items>
+                  <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
+                    Go to group
+                  </router-link>
+                  <template v-if="isAdmin">
+                    <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
+                      {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
+                    </button>
+                    <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
+                      {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
+                    </button>
+                    <button @click="deleteGameweek" class="dropdown-item text-red-700">
+                      Delete
+                    </button>
+                  </template>
+                </template>
+              </Dropdown>
             </div>
           </div>
+          <!-- Gameweek deadline -->
           <p class="text-lg">
             <span class="font-semibold">Deadline: </span>
             <DeadlineCountdown :deadline="new Date(gameweek?.deadline)" v-if="gameweek?.deadline" />
           </p>
-      
-          <!-- Edit Mode Toggle (Admins Only) -->
-           <div class="flex flex-wrap gap-2 mt-3" v-if="isAdmin">
-              <button @click="toggleEditMode" class="px-3 py-1 bg-green-600 text-white rounded-md">
-                {{ editMode ? 'Exit Edit Mode' : 'Edit' }}
-              </button>
-             <!-- Share Gameweek -->
-             <button @click="copyGameweekLink" class="px-3 py-1 bg-blue-500 text-white rounded-md">
-               <div class="justify-between items-center flex">
-                 Share
-                 <ShareIcon class="text-white size-4 ms-2" />
-               </div>
-             </button>
-             <template v-if="editMode">
-               <!-- <button @click="changeGameWeekActiveStatus" class="px-3 py-1 bg-purple-600 text-white rounded-md">
-                  {{ gameweek?.is_active ? 'Make inactive' : 'Make active' }}
-                </button> -->
-                <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="px-3 py-1 bg-gray-600 text-white rounded-md">
-                  {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
-                </button>
-                <button @click="deleteGameweek" class="px-3 py-1 bg-red-600 text-white rounded-md">
-                  Delete
-                </button>
-             </template>
-           </div>
         </div>
-        
-        <template v-if="gameweek?.is_finished">
-          <GameweekWinnerCard 
-            :username="gameweekWinner.username"
-            :totalPoints="gameweekWinner.total_points"
-            :isCurrentUser="userIsGameweekWinner"
-            :weekNumber="gameweek?.week_number"
-          />
-        </template>
 
-        <RoundedContainer headerText="Matches" collapsable>
-          <template #headerContent>
-            <router-link :to="`/gameweek/${gameweekId}/add-matches`">
-              <button 
-                v-if="isAdmin && !gameweek?.is_locked && gameweek?.is_active" 
-                class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-              >
-                + Add Matches
-              </button>
-            </router-link>
-          </template>
-            <ScoreCard 
-                v-if="matches.length > 0"
-                :matches="matches"
-                :isAdmin="editMode && gameweek?.is_active && gameweek?.is_locked"
-                :canRemove="editMode && gameweek?.is_active && !gameweek?.is_locked"
-                :matchesClickable="gameweek?.is_locked && !editMode"
-                @update-score="handleScoreUpdate"
-                @match-removed="handleMatchRemoved"
-            />
-            <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-              Save Scores
-            </button>
-        </RoundedContainer>
-
-        <template v-if="!editMode">
-          <!-- Predictions -->
-          <RoundedContainer>
-            <div>
-              <template v-if="Object.keys(predictions).length > 0">
-                <ScoreCard 
-                    :matches="matches"
-                    :predictions="predictions"
-                    :locked="gameweek?.is_locked || !gameweek?.is_active"
-                    :totalPoints="userGameweekScore ?? null"
-                    :includeSubmitBtn="!gameweek?.is_locked && gameweek?.is_active"
-                    allowCollapse
-                    header="Your Predictions"
-                    :gameweekId="gameweekId"
-                    :matchesClickable="gameweek?.is_locked"
-                    @update-prediction="handlePredictionUpdate"
-                    @predictions-submitted="submitPredictions"
-                />
-              </template>
-              <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
-            </div>
-          </RoundedContainer>
-  
-          <!-- Leaderboard Section -->
-          <RoundedContainer headerText="Leaderboard">
-            <template #headerContent>
-              <router-link 
-                :to="`/group/${gameweek?.group_id}/leaderboards`" 
-                class="text-sm text-blue-600 hover:underline"
-              >
-                View Full Leaderboard →
-              </router-link>
-            </template>
-            <p v-if="leaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
-            <div v-if="leaderboard.length">
-              <LeaderboardCard 
-                :leaderboard="leaderboard"
-                :gameweekId="gameweekId"
-                :includeUserPredictionLink="gameweek?.is_locked"
+        <Tabs @tab-selected="handleTabSelected">
+          <Tab header="Matches">
+            <template v-if="gameweek?.is_finished">
+              <GameweekWinnerCard 
+                :username="gameweekWinner.username"
+                :totalPoints="gameweekWinner.total_points"
+                :isCurrentUser="userIsGameweekWinner"
+                :weekNumber="gameweek?.week_number"
               />
-            </div>
-            <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-          </RoundedContainer>
-        </template>
+            </template>
+            <RoundedContainer headerText="Matches" collapsable>
+              <template #headerContent>
+                <div class="flex items-center" v-if="isAdmin">
+                  <router-link :to="`/gameweek/${gameweekId}/add-matches`">
+                    <button @click="editMode = true" v-if="!gameweek?.is_locked && gameweek?.is_active"
+                      class="p-1 rounded-md hover:bg-green-200" title="Add matches to gameweek"
+                    >
+                      <PlusIcon class="size-5 text-green-600" />
+                    </button>
+                  </router-link>
+                  <template v-if="!editMode">
+                    <button @click="editMode = true" class="p-1 rounded-md hover:bg-gray-200" title="Edit this gameweek">
+                      <PencilSquareIcon class="size-5 text-gray-500" />
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button @click="editMode = false" class="p-1 rounded-md hover:bg-red-200" title="Stop editing">
+                      <XMarkIcon class="size-5 text-red-700" />
+                    </button>
+                  </template>
+                </div>
+              </template>
+                <ScoreCard 
+                    v-if="matches.length > 0"
+                    :matches="matches"
+                    :isAdmin="editMode && gameweek?.is_active && gameweek?.is_locked"
+                    :canRemove="editMode && gameweek?.is_active && !gameweek?.is_locked"
+                    :matchesClickable="gameweek?.is_locked && !editMode"
+                    @update-score="handleScoreUpdate"
+                    @match-removed="handleMatchRemoved" 
+                  />
+                <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+                  Save Scores
+                </button>
+            </RoundedContainer>
+          </Tab>
+          <Tab header="Predictions">
+            <!-- Predictions -->
+            <RoundedContainer>
+              <div>
+                <template v-if="Object.keys(predictions).length > 0">
+                  <ScoreCard 
+                      :matches="matches"
+                      :predictions="predictions"
+                      :locked="gameweek?.is_locked || !gameweek?.is_active"
+                      :totalPoints="userGameweekScore ?? null"
+                      :includeSubmitBtn="!gameweek?.is_locked && gameweek?.is_active"
+                      allowCollapse
+                      header="Your Predictions"
+                      :gameweekId="gameweekId"
+                      :matchesClickable="gameweek?.is_locked"
+                      @update-prediction="handlePredictionUpdate"
+                      @predictions-submitted="submitPredictions"
+                  />
+                </template>
+                <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
+              </div>
+            </RoundedContainer>
+          </Tab>
+          <Tab header="Leaderboard">
+            <!-- Leaderboard Section -->
+            <RoundedContainer headerText="Leaderboard">
+              <template #headerContent>
+                <router-link 
+                  :to="`/group/${gameweek?.group_id}/leaderboards`" 
+                  class="text-sm text-blue-600 hover:underline"
+                >
+                  View Full Leaderboard →
+                </router-link>
+              </template>
+              <p v-if="leaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
+              <div v-if="leaderboard.length">
+                <LeaderboardCard 
+                  :leaderboard="leaderboard"
+                  :gameweekId="gameweekId"
+                  :includeUserPredictionLink="gameweek?.is_locked"
+                />
+              </div>
+              <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
+            </RoundedContainer>
+            <!-- <RoundedContainer headerText="Potential Finishes">
+              <PotentialFinishGrid 
+                :scoringSystem="potentialFinishData.scoringSystem"
+                :users="potentialFinishData.users"
+                :predictions="potentialFinishData.predictions"
+                :matches="potentialFinishData.matches"
+              />
+            </RoundedContainer> -->
+          </Tab>
+        </Tabs>
       </template>
     </div>
 
     <DeleteConfirm ref="deleteConfirm" title="Delete Gameweek" message="Are you sure you want to delete this gameweek?" />
   </template>
   
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
-import { ShareIcon, LockClosedIcon } from "@heroicons/vue/24/solid";
+import { ShareIcon, LockClosedIcon, LinkIcon, EllipsisVerticalIcon, PencilSquareIcon, XMarkIcon, PlusIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -160,6 +183,10 @@ import confetti from 'canvas-confetti';
 import DeadlineCountdown from '../components/UI/DeadlineCountdown.vue';
 import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
 import RoundedContainer from '../components/UI/RoundedContainer.vue';
+import Dropdown from '../components/UI/Dropdown.vue';
+import Tabs from '../components/UI/Tabs.vue';
+import Tab from '../components/UI/Tab.vue';
+import PotentialFinishGrid from '../components/PotentialFinishGrid.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -178,6 +205,7 @@ const leaderboard = ref([]);
 const userGameweekScore = ref();
 const gameweekWinner = ref();
 const leaderboardLastUpdated = ref();
+const potentialFinishData = ref({ scoringSystem: {}, users: [], predictions: [], matches: [] });
 
 const isAdmin = ref(false);
 
@@ -189,7 +217,7 @@ const canUnlockGameweek = computed(() => {
 
 const userIsGameweekWinner = computed(() => {
   return gameweek.value?.is_finished && gameweekWinner.value.user_id === userStore.user?.id;
-})
+});
   
 onMounted(async () => {
   await fetchGameweek();
@@ -230,17 +258,25 @@ async function fetchGameweek() {
     userGameweekScore.value = leaderboard.value.find(x => x.user_id == userStore.user?.id).total_points;
     gameweekWinner.value = leaderboard.value.find(x => x.position == 1);
   }
-  
-  mapPredictions();
-}
 
-async function mapPredictions() {
   // Fetch both matches and predictions
   const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
     gameweeksService.getMatches(gameweekId.value),
     predictionsService.getUserGameweekPredictions(userStore.user?.id, gameweekId.value)
   ]);
 
+  const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(gameweek.value.group_id);
+  if (groupError) throw new Error('Failed to load group');
+
+  const { data: gameweekPredictions, error: gameweekPredictionsError } = await predictionsService.getGameweekPredictions(gameweek.value.id);
+  if (gameweekPredictionsError) throw new Error('Failed to load all gameweek predictions')
+
+  mapPredictions(predictionsData, matchData);
+
+  mapPotentialFinishData(leaderboardData, groupData, matchData, gameweekPredictions);
+}
+
+async function mapPredictions(predictionsData, matchData) {
   // Map predictions by match_id for quick lookup
   const predictionsMap = predictionsData.reduce((acc, prediction) => {
     acc[prediction.match_id] = prediction;
@@ -275,12 +311,51 @@ async function mapPredictions() {
     triggerConfetti();
   }
 }
+
+function mapPotentialFinishData(leaderboardData: any[], groupData: any, matchData: any[], predictionsData: any[]) {
+  potentialFinishData.value.scoringSystem = { 
+    exactScorePoints: groupData.exact_score_points,
+    correctResultPoints: groupData.correct_result_points,
+    incorrectResultPoints: groupData.incorrect_points
+  }
+
+  potentialFinishData.value.users = leaderboardData.map(user => ({
+    id: user.user_id,
+    username: user.username,
+    bgColor: user.bg_colour,
+    currentPoints: user.total_points,
+    currentPosition: user.position,
+    currentTotalCorrectScores: user.total_correct_scores
+  }));
+
+  const unfinishedMatches = matchData.filter(x => x.final_home_score === null && x.final_away_score === null)
+
+  potentialFinishData.value.matches = matchData.map(match => ({
+    id: match.id,
+    homeTeam: match.home_team,
+    awayTeam: match.away_team,
+    actualScore: (
+      match.final_home_score !== null && match.final_away_score !== null
+    ) ? { home: match.final_home_score, away: match.final_away_score } : null
+  }));
+
+  potentialFinishData.value.predictions = predictionsData.map(pred => ({
+    userId: pred.user_id,
+    matchId: pred.match_id,
+    homeScore: pred.predicted_home_score,
+    awayScore: pred.predicted_away_score
+  }));
+}
   
 function toggleEditMode() {
   editMode.value = !editMode.value;
   if (!editMode.value) {
     mapPredictions();
   }
+}
+
+function handleTabSelected(index: number) {
+  editMode.value = false;
 }
 
 async function changeGameWeekActiveStatus() {

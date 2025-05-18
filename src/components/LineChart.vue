@@ -84,7 +84,7 @@ const chartData = {
         data: line.data,
         fill: false,
         borderColor: line.borderColor,
-        tension: 0.1,
+        tension: 0,
         totalPoints: line.totalPointsPerGameweek
     }))
 };

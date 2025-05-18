@@ -8,9 +8,10 @@
                 <ChevronUpIcon v-else class="size-5 ms-2 transition-transform duration-300" />
             </button>
         </div>
+        <slot name="headerActionItems"></slot>
         <router-link 
             :to="`/gameweek-predictions/${props.gameweekId}`" 
-            v-if="props.locked && props.gameweekId"
+            v-if="props.locked && props.gameweekId && !slots.headerActionItems"
             class="text-sm text-blue-600 hover:underline"
           >
             View All →
@@ -139,7 +140,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useSlots } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 
@@ -170,6 +171,7 @@ const props = withDefaults(defineProps<IProps>(), {
     includeSubmitBtn: true,
 });
 const emit = defineEmits(["update-prediction", "update-score", "match-removed", "predictions-submitted"]);
+const slots = useSlots();
 
 const groupedMatches = computed(() => {
     return props.matches.reduce((acc, match) => {

@@ -10,9 +10,11 @@
 
             <!-- Dropdown Menu -->
             <Transition name="fade-slide">
-                <div v-if="dropdownOpen" class="absolute right-0 w-32 bg-white shadow-lg rounded-md border z-50">
-                    <slot name="items"></slot>
-                </div>
+                <template v-if="dropdownOpen">
+                    <div class="absolute right-0 w-32 bg-white shadow-lg rounded-md border z-50">
+                        <slot name="items"></slot>
+                    </div>
+                </template>
             </Transition>
         </div>
     </div>
@@ -20,20 +22,31 @@
 
 <script setup lang="ts">
 import { EllipsisHorizontalIcon } from "@heroicons/vue/24/solid";
-import { ref, useSlots } from 'vue';
+import { ref, useSlots, onMounted, onUnmounted } from 'vue';
 
 const dropdownOpen = ref(false);
+let isMounted = false;
 
 const toggleDropdown = () => {
+    if (!isMounted) return;
     dropdownOpen.value = !dropdownOpen.value;
 }
 
 const slots = useSlots();
 
-document.addEventListener("click", (event) => {
-    if (!event.target.closest(".relative")) {
+function handleClickOutside(event: MouseEvent) {
+    if (!(event.target as HTMLElement).closest(".relative")) {
         dropdownOpen.value = false;
     }
+}
+
+onMounted(() => {
+    isMounted = true;
+    document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+    document.removeEventListener("click", handleClickOutside);
 });
 </script>
 

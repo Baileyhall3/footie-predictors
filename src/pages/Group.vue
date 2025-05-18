@@ -29,7 +29,7 @@
             </div>
   
             <div class="flex flex-wrap gap-2 justify-end flex-shrink-0" v-if="!notInGroup">
-              <button @click="copyGroupLink()" class="p-1 rounded-md hover:bg-gray-200">
+              <button @click="copyGroupLink()" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
                 <LinkIcon class="size-6 text-blue-500" />
               </button>
               <Dropdown>
@@ -37,6 +37,9 @@
                   <EllipsisVerticalIcon class="size-6 text-gray-500" />
                 </template>
                 <template #items>
+                  <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item" v-if="activeGameweek">
+                    Gameweek {{ activeGameweek?.week_number }}
+                  </router-link>
                   <router-link :to="`/group/${group.id}/update-group`" v-if="isGroupOwner">
                     <button class="dropdown-item">
                       Edit
@@ -49,7 +52,6 @@
                       Leave group
                     </button>
                   </template>
-  
                 </template>
               </Dropdown>
             </div>
@@ -57,14 +59,47 @@
   
           <!-- Group Description -->
           <p class="text-gray-500">{{ group.description || 'No description available' }}</p>
+          <!-- <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p> -->
         </div>
   
         <Tabs>
-          <Tab header="Overview" borderColour="black">
-            <RoundedContainer headerText="Group Info">
-              <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
-              <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
-              <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
+          <Tab header="Overview">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 md:gap-8">
+              <RoundedContainer headerText="Group Info">
+                <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
+                <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
+                <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
+              </RoundedContainer>
+              <RoundedContainer :headerText="activeSeason.name">
+                <div class="mb-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+                  <div class="flex flex-col">
+                    <span class="opacity-75">Start&nbsp;Date</span>
+                    <span class="font-medium">
+                      {{ activeSeason.start_date ? DateUtils.toShortDate(activeSeason.start_date) : 'TBD' }}
+                    </span>
+                  </div>
+  
+                  <div class="flex flex-col">
+                    <span class="opacity-75">End&nbsp;Date</span>
+                    <span class="font-medium">
+                      {{ activeSeason.end_date ? DateUtils.toShortDate(activeSeason.end_date) : '—' }}
+                    </span>
+                  </div>
+                </div>
+              </RoundedContainer>
+            </div>
+
+            <RoundedContainer v-if="gameweeks.length === 0" class="mx-auto mt-10 text-center">
+              <h2 class="text-xl font-semibold mb-2">You haven't created a gameweek yet</h2>
+              <p class="text-gray-600 mb-6">Set one up now to start predicting with your group members!</p>
+              
+              <router-link :to="`/group/${group.id}/create-gameweek`">
+                <button @click="tryJoinGroup" 
+                  class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
+                >
+                  Create Gameweek
+                </button>
+              </router-link>
             </RoundedContainer>
   
             <template v-if="activeGameweek && activeGameweek?.is_finished && Object.keys(gameweekWinner).length > 0">
@@ -75,9 +110,6 @@
                 :weekNumber="activeGameweek?.week_number"
               />
             </template>
-  
-            <!-- Gameweeks Section -->
-            <GroupGameweeks :gameweeks="gameweeks" :groupId="group.id" :isAdmin="isAdmin" />
   
             <!-- Predictions section -->
             <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="activeGameweek">
@@ -94,12 +126,27 @@
                     :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
                     @update-prediction="handlePredictionUpdate"
                     @predictions-submitted="submitPredictions"
-                />
+                  >
+                  <template #headerActionItems>
+                    <router-link 
+                      :to="`/gameweek/${activeGameweek.id}`" 
+                      class="text-sm text-blue-600 hover:underline"
+                    >
+                      Gameweek {{ activeGameweek?.week_number }}
+                    </router-link>
+                  </template>
+                </ScoreCard>
               </div>
               <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
             </div>
           </Tab>
           <Tab :header="`Gameweek ${activeGameweek.week_number}`" v-if="activeGameweek">
+            <template #dropdown>
+              <div class="p-2 text-sm">
+                <button @click="doSomething()">Option A</button>
+                <button @click="doSomethingElse()">Option B</button>
+              </div>
+            </template>
             <RoundedContainer headerText="Gameweek Stats" v-if="activeGameweek.is_finished">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
@@ -109,14 +156,14 @@
               </div>
           </RoundedContainer>
             <!-- Matches List -->
-            <RoundedContainer v-if="Object.keys(matches).length > 0">
+            <!-- <RoundedContainer v-if="Object.keys(matches).length > 0">
                 <ScoreCard 
                   :matches="matches"
                   allowCollapse
                   header="Matches"
                   :matchesClickable="activeGameweek?.is_locked"
                 />
-            </RoundedContainer>
+            </RoundedContainer> -->
             <!-- Predictions -->
             <RoundedContainer v-if="activeGameweek">
               <ScoreCard
@@ -132,7 +179,16 @@
                   :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
                   @update-prediction="handlePredictionUpdate"
                   @predictions-submitted="submitPredictions"
-              />
+                >
+                  <template #headerActionItems>
+                    <router-link 
+                      :to="`/gameweek/${activeGameweek.id}`" 
+                      class="text-sm text-blue-600 hover:underline"
+                    >
+                      Gameweek {{ activeGameweek?.week_number }}
+                    </router-link>
+                  </template>
+                </ScoreCard>
               <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
             </RoundedContainer>
   
@@ -147,6 +203,10 @@
               </div>
               <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
             </RoundedContainer>
+          </Tab>
+          <Tab :header="activeSeason.name">
+            <!-- Gameweeks Section -->
+            <GroupGameweeks :gameweeks="gameweeks" :groupId="group.id" :isAdmin="isAdmin" />
           </Tab>
           <Tab header="Leaderboard">
             <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
@@ -243,6 +303,7 @@ import RoundedContainer from "../components/UI/RoundedContainer.vue";
 import CombinedGroupStats from "./CombinedGroupStats.vue";
 import GroupLeaderboard from "./GroupLeaderboard.vue";
 import Dropdown from "../components/UI/Dropdown.vue";
+import { seasonsService } from "../api/seasonsService";
 
 const route = useRoute();
 const router = useRouter();
@@ -275,10 +336,29 @@ const gwLeaderboardLastUpdated = ref();
 const currentLeader = ref({});
 const currentUserGameweekData = ref({});
 const userMostCorrectScores = ref({});
+const activeSeason = ref({});
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
   return admin ? admin.username : 'Unknown';
+});
+
+const progressPercent = computed(() => {
+  return Math.min(100, Math.max(0, 60 * 100));
+  const start = activeSeason.value.start_date ? new Date(activeSeason.value.start_date) : null;
+  const end = activeSeason.value.end_date ? new Date(activeSeason.value.end_date) : null;
+  const now = new Date();
+
+  if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return 0;
+  }
+
+  const total = end.getTime() - start.getTime();
+  const elapsed = now.getTime() - start.getTime();
+
+  if (total <= 0) return 0;
+
+  return Math.min(100, Math.max(0, (elapsed / total) * 100));
 });
 
 // Fetch all data for the group
@@ -321,13 +401,18 @@ const fetchAllData = async () => {
     isAdmin.value = userIsAdmin(members.value);
     isGroupOwner.value = userIsGroupOwner(group.value);
 
-    const { data: adminData, error: adminError } = await groupsService.getGroupAdmin(groupId.value);
+    const { data: adminData, error: adminError } = await groupsService.getGroupAdmin(groupId.value); // could be optimised by making group view with this data
+    if (adminError) throw new Error('Failed to load group admin');
     groupOwner.value = adminData;
+
+    const { data: seasonData, error: seasonError } = await seasonsService.getSeasonById(group.value.active_season_id);
+    if (seasonError) throw new Error('Failed to load active season');
+    activeSeason.value = seasonData;
     
     // Fetch gameweeks
-    const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getGameweeks(groupId.value);
+    const { data: gameweeksData, error: gameweeksError } = await seasonsService.getSeasonGameweeks(activeSeason.value.id);
     if (gameweeksError) throw new Error('Failed to load gameweeks');
-    gameweeks.value = gameweeksData || [];
+    gameweeks.value = gameweeksData ? gameweeksData.sort((a, b) => b.week_number - a.week_number) : []
 
     
     activeGameweek.value = gameweeksData.filter(x => x.is_active)[0];

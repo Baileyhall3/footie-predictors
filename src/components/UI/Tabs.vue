@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- Tab headers -->
-        <div class="flex overflow-x-auto no-scrollbar border-b border-t mb-8 space-x-4">
+        <div class="flex overflow-x-auto no-scrollbar bg-white mb-8 space-x-4">
             <button v-for="(tab, index) in tabs"
                 :key="index"
                 @click="selectTab(index)"
@@ -41,20 +41,13 @@ const props = withDefaults(defineProps<IProps>(), {
     borderColour: 'blue',
 });
 
+const emit = defineEmits<{
+  (e: 'tab-selected', index: number): void;
+}>();
+
 const tabs = reactive<{ header: string; index: number }[]>([]);
 // const loadedTabs = reactive<boolean[]>([]);
 const selected = ref(0);
-
-// const colorMap = {
-//   blue: 'text-blue-600 border-blue-600 hover:text-blue-600',
-//   green: 'text-green-600 border-green-600 hover:text-green-600',
-//   purple: 'text-purple-600 border-purple-600 hover:text-purple-600',
-//   black: 'text-black border-black hover:text-black',
-//   gray: 'text-gray-600 border-gray-600 hover:text-gray-600'
-// };
-
-const activeClass = computed(() => `border-b-2 ${colorMap[props.borderColour]}`);
-const inactiveClass = computed(() => `text-gray-500 hover:${colorMap[props.borderColour].split(' ')[2]}`);
 
 const colorMap = {
     blue: 'border-blue-600 text-blue-600 hover:text-blue-600',
@@ -63,16 +56,6 @@ const colorMap = {
     black: 'border-black text-black hover:text-black',
     gray: 'border-gray-600 text-gray-600 hover:text-gray-600',
 } as const;
-
-const getTabClass = (index: number) => {
-    const base = 'px-4 py-2 text-sm font-medium transition';
-    const active = colorMap[props.borderColour];
-    const inactive = `text-gray-500 hover:${active.split(' ')[2]}`; // Just use the hover text color
-
-    return selected.value === index
-        ? `${base} ${active.split(' ').slice(0, 2).join(' ')}`
-        : `${base} ${inactive}`;
-};
 
 function registerTab(header: string) {
     const index = tabs.length;
@@ -83,6 +66,7 @@ function registerTab(header: string) {
 
 function selectTab(index: number) {
     selected.value = index;
+    emit("tab-selected", index);
     // loadedTabs[index] = true;
 }
 
