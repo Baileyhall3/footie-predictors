@@ -16,6 +16,15 @@ export const seasonsService = {
   },
 
   /**
+     * Get a season by id using custom view
+     * @param {string} seasonId - Season ID
+     * @returns {Promise<{data: Object, error: Object}>}
+     */
+  async getSeasonByIdUsingView(seasonId) {
+    return supabaseDb.getById('season_with_group', seasonId)
+  },
+
+  /**
    * Create a new group
    * @param {object} seasonData - Group data
    * @returns {Promise<{data: Object, error: Object}>}
@@ -103,4 +112,84 @@ export const seasonsService = {
             return { data: null, error }
         }
     },
+
+    /**
+   * Get the leaderboard for a group
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getGroupLeaderboard(groupId) {
+    try {
+      // Get current leaderboard
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('group_members_and_leaderboard')
+          .select(`
+            *
+          `)
+          .eq('group_id', groupId)
+          .order('total_points', { ascending: false })
+          .order('total_correct_scores', { ascending: false })
+      );
+  
+      if (error) throw error;
+  
+      const leaderboard = data.map((entry, index) => ({
+        ...entry,
+        position: index + 1
+      }));
+  
+      // Fetch history for last TWO gameweeks
+      const { data: historyRows, error: historyError } = await supabaseDb.customQuery((supabase) =>
+        supabase
+        .from('leaderboard_history_latest_view')
+        .select('*')
+        .eq('group_id', groupId));
+
+      if (historyError) throw historyError;
+
+      const distinctGameweeks = [
+        ...new Set(historyRows.map((row) => row.gameweek))
+      ].sort((a, b) => b - a); // Descending order
+  
+      const [latest, previous] = distinctGameweeks;
+  
+      if (!latest || !previous) {
+        return {
+          data: leaderboard.map((entry) => ({ ...entry, movement: 'same' })),
+          error: null
+        };
+      }
+      
+      // Map history data by user and gameweek
+      const historyMap = {};
+      for (const row of historyRows) {
+        if (!historyMap[row.user_id]) historyMap[row.user_id] = {};
+        historyMap[row.user_id][row.gameweek] = row.position;
+      }
+
+      const leaderboardWithMovement = leaderboard.map((entry) => {
+        const userHistory = historyMap[entry.user_id] || {};
+        const current = userHistory[latest];
+        const prev = userHistory[previous];
+  
+        let movement = 'same';
+        if (current && prev) {
+          if (current > prev) movement = 'down';
+          else if (current < prev) movement = 'up';
+        }
+  
+        return {
+          ...entry,
+          movement
+        };
+      });
+  
+      return { data: leaderboardWithMovement, error: null };
+  
+    } catch (error) {
+      console.error('Error fetching group leaderboard:', error);
+      return { data: null, error };
+    }
+  },  
 }

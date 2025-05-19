@@ -412,7 +412,7 @@ async calculateMatchScores(matchId) {
    * Get all predictions for a user in a gameweek
    * @param {string} userId - User ID
    * @param {string} gameweekId - Gameweek ID
-   * @returns {Promise<{data: Array, error: Object}>}
+   * @returns {Promise<{data: { predictions: Array<any>, totalPoints: number }, error: Object}>}
    */
 async getUserGameweekPredictionsUsingView(userId, gameweekId) {
   try {

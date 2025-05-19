@@ -57,17 +57,7 @@ import { computed, ref } from 'vue';
 import { userStore } from "../store/userStore";
 import { userIsAdmin } from '../utils/checkPermissions';
 import Dropdown from './UI/Dropdown.vue';
-  
-interface Member {
-  id: string;
-  email?: string;
-  is_admin: boolean;
-  is_fake: boolean;
-  joined_at: Date | string;
-  membership_id: string;
-  username: string;
-  bg_colour?: string
-}
+import { GroupMember } from '../types';
 
 interface Owner {
     email: string;
@@ -76,7 +66,7 @@ interface Owner {
 }
   
 export interface IProps {
-  members: Member[];
+  members: GroupMember[];
   groupOwner: Owner;
   gameweek?: {};
   memberLimit?: number

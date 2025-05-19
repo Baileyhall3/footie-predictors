@@ -86,29 +86,7 @@
 import { computed, ref } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
-
-export interface Prediction {
-    api_match_id: number | null
-    away_crest_url: string
-    away_team: string
-    away_team_api_id: number | null
-    created_by_admin: boolean
-    final_away_score: number | null
-    final_home_score: number | null
-    gameweek_id: string
-    home_crest_url: string
-    home_team: string
-    home_team_api_id: number | null
-    match_id: string
-    match_time: string
-    predicted_away_score: number | null
-    predicted_home_score: number | null
-    prediction_id: string
-    total_correct_scores: number | null
-    total_points: number | null
-    user_id: string
-    username: string
-}
+import { Prediction } from '../types';
 
 export interface IProps {
     matches: Prediction[];

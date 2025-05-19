@@ -1,6 +1,7 @@
 <template>
     <div class="container mx-auto py-8">
       <LoadingScreen v-if="loading" />
+      <DoesNotExist v-else-if="!gameweekExists" entity="gameweek" />
       <!-- Not in group message -->
       <div v-if="notInGroup" class="bg-red-100 p-4 rounded-md text-red-600">
         <p>You are not a member of this group.</p>
@@ -187,6 +188,7 @@ import Dropdown from '../components/UI/Dropdown.vue';
 import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
 import PotentialFinishGrid from '../components/PotentialFinishGrid.vue';
+import DoesNotExist from '../components/DoesNotExist.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -206,6 +208,7 @@ const userGameweekScore = ref();
 const gameweekWinner = ref();
 const leaderboardLastUpdated = ref();
 const potentialFinishData = ref({ scoringSystem: {}, users: [], predictions: [], matches: [] });
+const gameweekExists = ref<boolean>(true);
 
 const isAdmin = ref(false);
 
@@ -224,56 +227,68 @@ onMounted(async () => {
 });
   
 async function fetchGameweek() {
-  loading.value = true;
-  gameweekId.value = route.params.id || route.query.id;
-
-  const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
-  if (error) return console.error(error);
-  gameweek.value = data;
-
-  const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(data.group_id);
-  if (membersError) throw new Error('Failed to load group members');
-  members.value = membersData || [];
-
-  // Check if user is in the group
-  const isMember = userInGroup(members.value);
-  if (!isMember) {
+  try {
+    loading.value = true;
+    gameweekId.value = route.params.id || route.query.id;
+  
+    const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
+    if (error) {
+      if (error.code === "PGRST116") {
+          gameweekExists.value = false;
+          loading.value = false;
+          throw new Error('Failed to load gameweek details');
+      }
+    }
+    gameweek.value = data;
+  
+    const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(data.group_id);
+    if (membersError) throw new Error('Failed to load group members');
+    members.value = membersData || [];
+  
+    // Check if user is in the group
+    const isMember = userInGroup(members.value);
+    if (!isMember) {
+      loading.value = false;
+      notInGroup.value = true;
+      return;
+    }
+  
+    isAdmin.value = userIsAdmin(members.value);
+  
+    // Fetch leaderboard
+    const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGameweekScores(gameweek.value.group_id, gameweek.value.id);
+    if (leaderboardError) throw new Error('Failed to load leaderboard');
+    leaderboard.value = leaderboardData || [];
+    
+    if (leaderboard.value.length > 0) {
+      leaderboardLastUpdated.value = leaderboard.value[0].updated_at ? new Date(leaderboard.value[0].updated_at) : null;
+    }
+    
+    if (leaderboard.value.length > 0) {
+      userGameweekScore.value = leaderboard.value.find(x => x.user_id == userStore.user?.id).total_points;
+      gameweekWinner.value = leaderboard.value.find(x => x.position == 1);
+    }
+  
+    // Fetch both matches and predictions
+    const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
+      gameweeksService.getMatches(gameweekId.value),
+      predictionsService.getUserGameweekPredictions(userStore.user?.id, gameweekId.value)
+    ]);
+  
+    const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(gameweek.value.group_id);
+    if (groupError) throw new Error('Failed to load group');
+  
+    const { data: gameweekPredictions, error: gameweekPredictionsError } = await predictionsService.getGameweekPredictions(gameweek.value.id);
+    if (gameweekPredictionsError) throw new Error('Failed to load all gameweek predictions')
+  
+    mapPredictions(predictionsData, matchData);
+  
+    mapPotentialFinishData(leaderboardData, groupData, matchData, gameweekPredictions);
+  } catch (err) {
+    console.error(err);
+  } finally {
     loading.value = false;
-    notInGroup.value = true;
-    return;
   }
-
-  isAdmin.value = userIsAdmin(members.value);
-
-  // Fetch leaderboard
-  const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGameweekScores(gameweek.value.group_id, gameweek.value.id);
-  if (leaderboardError) throw new Error('Failed to load leaderboard');
-  leaderboard.value = leaderboardData || [];
-  
-  if (leaderboard.value.length > 0) {
-    leaderboardLastUpdated.value = leaderboard.value[0].updated_at ? new Date(leaderboard.value[0].updated_at) : null;
-  }
-  
-  if (leaderboard.value.length > 0) {
-    userGameweekScore.value = leaderboard.value.find(x => x.user_id == userStore.user?.id).total_points;
-    gameweekWinner.value = leaderboard.value.find(x => x.position == 1);
-  }
-
-  // Fetch both matches and predictions
-  const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
-    gameweeksService.getMatches(gameweekId.value),
-    predictionsService.getUserGameweekPredictions(userStore.user?.id, gameweekId.value)
-  ]);
-
-  const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(gameweek.value.group_id);
-  if (groupError) throw new Error('Failed to load group');
-
-  const { data: gameweekPredictions, error: gameweekPredictionsError } = await predictionsService.getGameweekPredictions(gameweek.value.id);
-  if (gameweekPredictionsError) throw new Error('Failed to load all gameweek predictions')
-
-  mapPredictions(predictionsData, matchData);
-
-  mapPotentialFinishData(leaderboardData, groupData, matchData, gameweekPredictions);
 }
 
 async function mapPredictions(predictionsData, matchData) {

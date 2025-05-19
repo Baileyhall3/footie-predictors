@@ -15,21 +15,17 @@
     <div v-if="!error && !loading && groupExists">
       <template v-if="!notInGroup">
         <!-- Group header Section -->
-        <div class="px-2 mb-4">
-          <!-- Header Row -->
-          <div class="flex items-center justify-between gap-4 mb-4 flex-nowrap">
-            <!-- Group Icon + Name -->
-            <div class="flex items-center gap-3 min-w-0 max-w-full flex-1">
-              <img 
-                :src="group.icon_url ?? '/images/green-football-md.png'" 
-                class="w-10 h-10 flex-shrink-0" 
-                alt="Group Logo"
-                />
-              <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
-            </div>
-  
-            <div class="flex flex-wrap gap-2 justify-end flex-shrink-0" v-if="!notInGroup">
-              <button @click="copyGroupLink()" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
+         <PageHeader>
+          <template #header>
+            <img 
+              :src="group.icon_url ?? '/images/green-football-md.png'" 
+              class="w-10 h-10 flex-shrink-0" 
+              alt="Group Logo"
+              />
+            <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
+          </template>
+          <template #actionItems>
+            <button @click="copyGroupLink()" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
                 <LinkIcon class="size-6 text-blue-500" />
               </button>
               <Dropdown>
@@ -54,14 +50,11 @@
                   </template>
                 </template>
               </Dropdown>
-            </div>
-          </div>
-  
-          <!-- Group Description -->
-          <p class="text-gray-500">{{ group.description || 'No description available' }}</p>
-          <!-- <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p> -->
-        </div>
-  
+          </template>
+          <template #details>
+            <p class="text-gray-500">{{ group.description || 'No description available' }}</p>
+          </template>
+        </PageHeader>
         <Tabs>
           <Tab header="Overview">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 md:gap-8">
@@ -70,26 +63,36 @@
                 <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
                 <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
               </RoundedContainer>
-              <RoundedContainer :headerText="activeSeason.name">
+              <RoundedContainer>
+                <template #header>
+                    <h3 class="text-xl font-semibold">
+                        <router-link 
+                            :to="`/season/${activeSeason?.id}`" 
+                            class="text-blue-600 hover:underline"
+                        >
+                            {{ activeSeason?.name }}
+                        </router-link>
+                    </h3>
+                </template>
                 <div class="mb-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                   <div class="flex flex-col">
                     <span class="opacity-75">Start&nbsp;Date</span>
                     <span class="font-medium">
-                      {{ activeSeason.start_date ? DateUtils.toShortDate(activeSeason.start_date) : 'TBD' }}
+                      {{ activeSeason?.start_date ? DateUtils.toShortDate(activeSeason.start_date) : 'TBD' }}
                     </span>
                   </div>
   
                   <div class="flex flex-col">
                     <span class="opacity-75">End&nbsp;Date</span>
                     <span class="font-medium">
-                      {{ activeSeason.end_date ? DateUtils.toShortDate(activeSeason.end_date) : '—' }}
+                      {{ activeSeason?.end_date ? DateUtils.toShortDate(activeSeason.end_date) : '—' }}
                     </span>
                   </div>
                 </div>
               </RoundedContainer>
             </div>
 
-            <RoundedContainer v-if="gameweeks.length === 0" class="mx-auto mt-10 text-center">
+            <RoundedContainer v-if="gameweeks.length === 0" class="mx-auto text-center">
               <h2 class="text-xl font-semibold mb-2">You haven't created a gameweek yet</h2>
               <p class="text-gray-600 mb-6">Set one up now to start predicting with your group members!</p>
               
@@ -141,12 +144,6 @@
             </div>
           </Tab>
           <Tab :header="`Gameweek ${activeGameweek.week_number}`" v-if="activeGameweek">
-            <template #dropdown>
-              <div class="p-2 text-sm">
-                <button @click="doSomething()">Option A</button>
-                <button @click="doSomethingElse()">Option B</button>
-              </div>
-            </template>
             <RoundedContainer headerText="Gameweek Stats" v-if="activeGameweek.is_finished">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
@@ -204,12 +201,12 @@
               <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
             </RoundedContainer>
           </Tab>
-          <Tab :header="activeSeason.name">
+          <Tab :header="activeSeason?.name">
             <!-- Gameweeks Section -->
-            <GroupGameweeks :gameweeks="gameweeks" :groupId="group.id" :isAdmin="isAdmin" />
+            <GroupGameweeks :gameweeks="gameweeks" :groupId="group?.id" :isAdmin="isAdmin" />
           </Tab>
           <Tab header="Leaderboard">
-            <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
+            <GroupLeaderboard :group="group" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
           </Tab>
           <Tab header="Stats" v-if="activeGameweek">
             <CombinedGroupStats :groupId="group.id" />
@@ -266,12 +263,12 @@
     </div>  
   </div>
 
-  <PinDialog ref="pinDialog" :groupPin="String(group.group_pin)" @submit-pin="updateMemberStatus(true)" />
+  <PinDialog ref="pinDialog" :groupPin="String(group?.group_pin)" @submit-pin="updateMemberStatus(true)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
   <CreateGroupMember ref="createMemberDialog" :groupId="groupId" @user-created="getGroupMembers(); getLeaderboard();" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { groupsStore } from "../store/groupsStore";
@@ -304,6 +301,8 @@ import CombinedGroupStats from "./CombinedGroupStats.vue";
 import GroupLeaderboard from "./GroupLeaderboard.vue";
 import Dropdown from "../components/UI/Dropdown.vue";
 import { seasonsService } from "../api/seasonsService";
+import PageHeader from "../components/PageHeader.vue";
+import { Season, Gameweek, Group, GroupMember } from '../types';
 
 const route = useRoute();
 const router = useRouter();
@@ -316,9 +315,9 @@ const createMemberDialog = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const groupId = ref(null);
-const group = ref({});
-const members = ref([]);
-const gameweeks = ref([]);
+const group = ref<Group>();
+const members = ref<Array<GroupMember>>([]);
+const gameweeks = ref<Array<Gameweek>>([]);
 const predictions = ref({});
 const matches = ref([]);
 const notInGroup = ref(true);
@@ -327,8 +326,8 @@ const deleteConfirmTitle = ref('');
 const deleteConfirmText = ref('Confirm');
 const isAdmin = ref(false);
 const isGroupOwner = ref(false);
-const groupOwner = ref({});
-const activeGameweek = ref({});
+const groupOwner = ref();
+const activeGameweek = ref<Gameweek>();
 const groupExists = ref(true);
 const gameweekWinner = ref({});
 const gwLeaderboard = ref([]);
@@ -336,7 +335,7 @@ const gwLeaderboardLastUpdated = ref();
 const currentLeader = ref({});
 const currentUserGameweekData = ref({});
 const userMostCorrectScores = ref({});
-const activeSeason = ref({});
+const activeSeason = ref<Season>();
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);

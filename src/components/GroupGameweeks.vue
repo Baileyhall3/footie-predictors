@@ -40,14 +40,7 @@
 <script setup lang="ts">
 import DateUtils from '../utils/dateUtils';
 import { LockClosedIcon } from "@heroicons/vue/24/solid";
-
-type Gameweek = {
-    id: string,
-    week_number: number,
-    is_active: boolean,
-    is_locked: boolean,
-    deadline: Date | string
-}
+import { Gameweek } from '../types';
 
 export interface IProps {
     gameweeks: Gameweek[],

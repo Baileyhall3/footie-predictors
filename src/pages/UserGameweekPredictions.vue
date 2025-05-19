@@ -37,6 +37,7 @@ import LoadingScreen from '../components/LoadingScreen.vue';
 import ScoreCard2 from '../components/ScoreCard2.vue';
 import DoesNotExist from '../components/DoesNotExist.vue';
 import NoAccess from '../components/NoAccess.vue';
+import { Prediction } from '../types';
 
 const route = useRoute();
 
@@ -44,7 +45,7 @@ const loading = ref<boolean>(true);
 const userId = ref<string | null>(null);
 const user = ref({});
 const gameweekId = ref<string | null>(null);
-const predictions = ref([]);
+const predictions = ref<Array<Prediction>>([]);
 const totalPoints = ref<number | undefined>();
 const gameweek = ref({});
 

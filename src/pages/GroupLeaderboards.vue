@@ -133,6 +133,7 @@ import LineChart from '../components/LineChart.vue';
 import { LineData } from '../components/LineChart.vue';
 import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
+import PageHeader from '../components/PageHeader.vue';
 
 interface LeaderboardRecord {
     id: string;
