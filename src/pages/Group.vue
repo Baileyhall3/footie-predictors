@@ -206,7 +206,7 @@
             <GroupGameweeks :gameweeks="gameweeks" :groupId="group?.id" :isAdmin="isAdmin" />
           </Tab>
           <Tab header="Leaderboard">
-            <GroupLeaderboard :group="group" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
+            <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
           </Tab>
           <Tab header="Stats" v-if="activeGameweek">
             <CombinedGroupStats :groupId="group.id" />
