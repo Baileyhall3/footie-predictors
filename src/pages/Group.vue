@@ -21,7 +21,7 @@
               :src="group.icon_url ?? '/images/green-football-md.png'" 
               class="w-10 h-10 flex-shrink-0" 
               alt="Group Logo"
-              />
+            />
             <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
           </template>
           <template #actionItems>
@@ -233,6 +233,8 @@
                   :members="members"
                   :groupOwner="groupOwner"
                   :gameweek="activeGameweek"
+                  includeProfileLink
+                  :groupId="group?.id"
                   @update-admin-status="updateMemberAdminStatus"
                   @member-removed="confirmRemoveMember"
                 />

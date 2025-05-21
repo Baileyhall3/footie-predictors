@@ -8,14 +8,17 @@
                     <div v-for="group in userGroups" :key="group.id">
                         <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-xl font-semibold">
-                                    <router-link 
-                                        :to="`/group/${group.id}/leaderboards`" 
-                                        class="text-blue-600 hover:underline"
-                                    >
-                                        {{ group.name }}
-                                    </router-link>
-                                </h3>
+                                <div class="flex items-center">
+                                    <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
+                                    <h3 class="text-xl font-semibold">
+                                        <router-link 
+                                            :to="`/group/${group.id}`" 
+                                            class="text-blue-600 hover:underline"
+                                        >
+                                            {{ group.name }}
+                                        </router-link>
+                                    </h3>
+                                </div>
                                 <!-- <router-link 
                                     :to="`/group/${group.id}/leaderboards`" 
                                     class="text-sm text-blue-600 hover:underline"
@@ -23,10 +26,11 @@
                                     View Full Leaderboard →
                                 </router-link> -->
                             </div>
-                            
+
                             <div v-if="group.leaderboard && group.leaderboard.length">
                                 <LeaderboardCard 
                                     :leaderboard="group.leaderboard"
+                                    previewOnly
                                 />
                             </div>
                             <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>

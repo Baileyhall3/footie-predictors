@@ -1,5 +1,6 @@
 <template>
-    <div class="container mx-auto px-6 py-8">
+  <LoadingScreen v-if="isLoading" />
+    <div v-else class="container mx-auto px-6 py-8">
         <div class="mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold">Your Groups</h2>
@@ -43,6 +44,7 @@ import { ref, onMounted, computed } from "vue";
 import GroupCard from "../components/GroupCard.vue";
 import { userStore } from "../store/userStore";
 import { groupsStore } from "../store/groupsStore";
+import LoadingScreen from "../components/LoadingScreen.vue";
 
 // State
 const isLoading = ref(true);

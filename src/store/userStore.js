@@ -392,6 +392,7 @@ export const userStore = {
           .from('users')
           .select(`*`)
           .eq('id', userId)
+          .single()
       );
   
       if (error) throw error;

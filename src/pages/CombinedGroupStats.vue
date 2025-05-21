@@ -8,10 +8,10 @@
         </div>
         <p v-else class="text-gray-500 py-2">
             No stats data available. 
-            <router-link :to="`/group/${props.groupId}/create-gameweek`" class="text-blue-600 hover:underline">
+            <!-- <router-link :to="`/group/${props.groupId}/create-gameweek`" class="text-blue-600 hover:underline">
                 Create a gameweek
             </router-link> 
-            and start playing to see stats!
+            and start playing to see stats! -->
         </p>
     </RoundedContainer>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4" v-if="groupStats.length > 0">

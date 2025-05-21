@@ -55,7 +55,7 @@ const props = defineProps<{groupId: string, activeGameweekId?: string}>();
 const leaderboardLastUpdated = ref();
 const leaderboard = ref([]);
 const leaderboardHistory = ref([]);
-const positionHistory = ref<LineData>({});
+const positionHistory = ref<Array<LineData>>();
 const posXLabels = ref<string[]>([]);
 const loading = ref(false);
 

@@ -8,14 +8,17 @@
                     <div v-for="group in userGroups" :key="group.id">
                         <div v-if="group.gameweek" class="bg-white shadow-lg rounded-xl p-6 mb-8">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-xl font-semibold">
-                                    <router-link 
-                                        :to="`/group/${group.id}`" 
-                                        class="text-blue-600 hover:underline"
-                                    >
-                                        {{ group.name }}
-                                    </router-link>
-                                </h3>
+                                <div class=" flex items-center">
+                                    <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
+                                    <h3 class="text-xl font-semibold">
+                                        <router-link 
+                                            :to="`/group/${group.id}`" 
+                                            class="text-blue-600 hover:underline"
+                                        >
+                                            {{ group.name }}
+                                        </router-link>
+                                    </h3>
+                                </div>
                                 <router-link 
                                     :to="`/gameweek/${group.gameweek.id}`" 
                                     class="text-sm text-blue-600 hover:underline"

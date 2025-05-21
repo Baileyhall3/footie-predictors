@@ -53,6 +53,7 @@
           </div>
           </component>
           <span v-if="player.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
+          <StarIcon v-else-if="props.userId && player.user_id === props.userId" class="size-5 text-yellow-300" />
         </div>
         
         <div class="text-right">
@@ -86,21 +87,10 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue';
 import { userStore } from "../store/userStore";
-import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon, EqualsIcon } from "@heroicons/vue/24/solid";
+import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon, EqualsIcon, StarIcon } from "@heroicons/vue/24/solid";
 import DateUtils from '../utils/dateUtils';
 import SearchBar from './UI/SearchBar.vue';
-  
-interface LeaderboardEntry {
-  id: string;
-  position: number;
-  total_correct_results: number;
-  total_correct_scores: number;
-  total_points: number;
-  user_id: string;
-  username: string;
-  movement: string;
-  bg_colour?: string;
-}
+import { LeaderboardEntry } from '../types';
   
 export interface IProps {
   leaderboard: LeaderboardEntry[];
@@ -113,6 +103,7 @@ export interface IProps {
   allowCollapse?: boolean;
   includeSearchBar?: boolean;
   includeUserPredictionLink?: boolean;
+  userId?: string;
 }
 const props = defineProps<IProps>();
 const emit = defineEmits(["update-leaderboard-entry", "changes-saved", "changes-cancelled"]);
@@ -123,19 +114,26 @@ const updateScore = (leaderboardId: string, userId: string, value: string) => {
   emit("update-leaderboard-entry", { leaderboardId, userId, value: parseInt(value) || 0 });
 };
 
-const currentUserId = userStore.user?.id;
 const isEditing = ref<boolean>(false);
 const hasLeaderboardChanges = ref<boolean>(false);
 const leaderboardCollapsed = ref<boolean>(false);
 const searchString = ref<string>('');
-const recordsNotLoaded = ref<number>(0);
 const allRecordsLoaded = ref<boolean>(false);
+
+const recordsNotLoaded = computed(() => {
+  if (!props.previewOnly || allRecordsLoaded.value) return 0;
+  return props.leaderboard.length - visibleLeaderboard.value.length;
+});
+
+const currentUserId = computed(() => {
+  return props.userId ?? userStore.user?.id
+})
 
 const visibleLeaderboard = computed(() => {
   let list = props.leaderboard;
 
   if (props.previewOnly && props.leaderboard.length > 5) {
-    const index = list.findIndex(entry => entry.user_id === currentUserId);
+    const index = list.findIndex(entry => entry.user_id === currentUserId.value);
     if (index === -1) return [];
 
     const totalEntries = list.length;
@@ -148,10 +146,11 @@ const visibleLeaderboard = computed(() => {
       start = Math.max(totalEntries - 5, 0);
     }
 
-    recordsNotLoaded.value = props.leaderboard.length - 5;
-    
     if (!allRecordsLoaded.value) {
       list = list.slice(start, end);
+      recordsNotLoaded.value = props.leaderboard.length - list.length;
+    } else {
+      recordsNotLoaded.value = 0; // 👈 set to zero when all records are shown
     }
   }
 

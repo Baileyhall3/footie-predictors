@@ -75,7 +75,6 @@
                                     </span>
                                 </template>
 
-
                                 <div class="flex items-center gap-2 min-w-0">
                                     <img
                                         :src="match.away_team_crest ?? '/images/default_club_badge.png'"
@@ -86,8 +85,6 @@
                                         {{ match.away_team }}
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
 

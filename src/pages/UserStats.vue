@@ -74,9 +74,10 @@ import StatRow from '../components/StatRow.vue';
 import GroupCard from '../components/GroupCard.vue';
 import { ArrowsUpDownIcon } from '@heroicons/vue/24/outline';
 import SelectInput from '../components/UI/SelectInput.vue';
+import { UserStats } from '../types';
 
 const loading = ref(false);
-const groupStats = ref([]);
+const groupStats = ref<Array<UserStats>>([]);
 const sortField = ref(null);
 const showSortSelect = ref(false);
 

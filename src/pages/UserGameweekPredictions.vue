@@ -88,7 +88,7 @@ async function fetchAllData() {
             throw new Error(`User error: ${userError}`)
         }
 
-        user.value = userData[0];
+        user.value = userData;
 
     } catch(err) {
         console.error(err);

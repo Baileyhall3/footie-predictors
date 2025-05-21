@@ -77,3 +77,23 @@ export interface GroupMember {
     username: string;
     bg_colour?: string
 }
+
+export interface UserStats {
+    avg_points_per_gameweek: number | null,
+    total_correct_scores: number | null,
+    total_correct_results: number | null,
+    correct_score_ratio_percent: number | null,
+    gameweek_wins: number | null
+}
+
+export interface LeaderboardEntry {
+    id: string;
+    position: number;
+    total_correct_results: number;
+    total_correct_scores: number;
+    total_points: number;
+    user_id: string;
+    username: string;
+    movement: string;
+    bg_colour?: string;
+}

@@ -2,6 +2,7 @@
     <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex justify-between items-center mb-4" v-if="props.header">
             <div class="items-center flex">
+                <slot name="filter"></slot>
                 <h3 class="text-xl font-semibold">{{ props.header }}</h3>
                 <LockClosedIcon class="size-5 ms-2" v-if="props.locked && props.showLockedIcon" />
                 <button type="button" @click="toggleMatchesCollapse" v-if="props.allowCollapse">
@@ -27,20 +28,22 @@
                             :is="props.matchesClickable ? 'router-link' : 'div'"
                             :to="props.matchesClickable ? `/match/${match.match_id}` : undefined"
                             :key="match.match_id"
-                            class="flex flex-col items-center justify-center py-2 bg-gray-100 mt-2 rounded-md px-2"
+                            class="flex flex-col items-center py-2 bg-gray-100 mt-2 rounded-md px-2"
                             v-for="match in matchGroup"
                         >
-                            <div class="flex items-center justify-center w-full max-w-lg">
+                            <div class="flex justify-center" style="width: 100%;">
                                 <!-- Home Team and Score -->
-                                <div class="flex items-center space-x-2 justify-end" style="width: 100%;">
-                                    <span class="font-medium text-sm flex items-center overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
-                                        <span class="truncate">
+                                <div class="flex items-center space-x-2 justify-end" style="width: 45%;">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="truncate text-sm font-medium min-w-0">
                                             {{ match.home_team }}
-                                        </span>
-                                        <img :src="match.home_crest_url ?? '/images/default_club_badge.png'"
-                                            alt="Away Team"
-                                            class="w-6 h-6 inline-block ms-2 flex-shrink-0">
-                                    </span>
+                                        </div>
+                                        <img
+                                            :src="match.home_crest_url ?? '/images/default_club_badge.png'"
+                                            alt="Home Team"
+                                            class="w-6 h-6 flex-shrink-0"
+                                        />
+                                    </div>
                                     <span
                                         class="text-md font-bold" 
                                         :class="getPredictionColor(match)">
@@ -51,19 +54,21 @@
                                 <div class="border-l border-gray-300 h-5 mx-2"></div>
             
                                 <!-- Away Team and Score -->
-                                <div class="flex items-center space-x-2 justify-start" style="width: 100%;">
+                                <div class="flex items-center space-x-2 justify-start" style="width: 45%;">
                                     <span class="text-md font-bold" 
                                         :class="getPredictionColor(match)">
                                         {{ match.predicted_away_score }}
                                     </span>
-                                    <span class="font-medium text-sm flex items-center overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
-                                        <img :src="match.away_crest_url ?? '/images/default_club_badge.png'"
-                                            alt="Away Team"
-                                            class="w-6 h-6 inline-block mr-2 flex-shrink-0">
-                                        <span class="truncate">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <img
+                                            :src="match.away_crest_url ?? '/images/default_club_badge.png'"
+                                            alt="Home Team"
+                                            class="w-6 h-6 flex-shrink-0"
+                                        />
+                                        <div class="truncate text-sm font-medium min-w-0">
                                             {{ match.away_team }}
-                                        </span>
-                                    </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             

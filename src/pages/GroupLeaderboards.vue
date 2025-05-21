@@ -134,6 +134,7 @@ import { LineData } from '../components/LineChart.vue';
 import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
 import PageHeader from '../components/PageHeader.vue';
+import { LookupOption } from '../components/UI/Lookup.vue';
 
 interface LeaderboardRecord {
     id: string;
@@ -158,7 +159,7 @@ const changedRecords = ref(<LeaderboardRecord[]>([]));
 const error = ref(null);
 const leaderboardHistory = ref([]);
 const userLeaderboardHistory = ref([]);
-const gameweekLkp = ref([]);
+const gameweekLkp = ref<Array<LookupOption>>([]);
 const positionHistory = ref<LineData>({});
 const posXLabels = ref<string[]>([]);
 
@@ -228,7 +229,7 @@ async function fetchAllData() {
     }
 }
 
-async function setCurrentGameweek(gameweek: any) {
+async function setCurrentGameweek(gameweek: LookupOption) {
     currentGameweek.value = gameweek;
     // Fetch gameweek leaderboard
     const { data: scoresData, error: scoresError } = await leaderboardStore.fetchGameweekScores(groupId.value, gameweek.id);

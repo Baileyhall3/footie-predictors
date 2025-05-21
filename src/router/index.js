@@ -24,6 +24,7 @@ import Leaderboards from '../pages/Leaderboards.vue';
 import GroupLeaderboards from '../pages/GroupLeaderboards.vue';
 import MatchPredictions from '../pages/MatchPredictions.vue';
 import UserGameweekPredictions from '../pages/UserGameweekPredictions.vue';
+import GroupUserProfile from '../pages/GroupUserProfile.vue';
 
 import Season from '../pages/Season.vue';
 
@@ -205,6 +206,15 @@ const router = createRouter({
       component: UserGameweekPredictions,
       meta: {
         title: 'User Gameweek Predictions - Footie Predictors',
+        requiresAuth: true
+      }
+    }, 
+    {
+      path: '/user-group-profile/:group_id/:user_id',
+      name: 'User Group Profile',
+      component: GroupUserProfile,
+      meta: {
+        title: 'User Group Profile - Footie Predictors',
         requiresAuth: true
       }
     }, 

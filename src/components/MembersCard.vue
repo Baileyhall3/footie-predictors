@@ -1,46 +1,54 @@
 <template>
     <TransitionGroup name="member-list" tag="div">
-        <div v-for="member in visibleMembers" :key="member.id" class="flex justify-between items-center border-b py-3">
+        <component
+            v-for="member in visibleMembers"
+            :is="rowTag"
+            :key="member.id"
+            class="flex justify-between items-center border-b py-3 hover:bg-gray-100"
+            v-bind="rowTag === RouterLink ? { to: memberPath(member.id) } : {}"
+        >
             <div class="flex items-center space-x-2">
-                <div
-                    class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium"
+                <div class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
                     :style="{ backgroundColor: member.bg_colour || '#ccc' }"
                 >
                     {{ member.username.charAt(0).toUpperCase() }}
                 </div>
-                <span >{{ member.username }}</span>
-                <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
-                <span v-if="member.is_admin && groupOwner.id != member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>
-                <span v-if="groupOwner.id === member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Owner</span>
+                    {{ member.username }}
+                <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                    You
+                </span>
+                <span v-if="member.is_admin && groupOwner.id !== member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                    Admin
+                </span>
+                <span v-if="groupOwner.id === member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                    Owner
+                </span>
             </div>
 
-            <Dropdown v-if="isAdmin && userStore.user?.id !== member.id && groupOwner.id != member.id">
+            <Dropdown v-if="isAdmin && userStore.user?.id !== member.id && groupOwner.id !== member.id">
                 <template #items>
-                    <button 
-                        @click="updateAdminStatus(member)" 
+                    <button
+                        @click="updateAdminStatus(member)"
                         :disabled="member.is_fake"
                         class="dropdown-item"
                     >
                         {{ member.is_admin ? 'Remove Admin' : 'Make Admin' }}
                     </button>
 
-                    <router-link 
-                        v-if="member.is_fake && props.gameweek && !props.gameweek?.is_locked" 
-                        :to="`/admin-gameweek-predictions/${props.gameweek?.id}/${member.id}`"
+                    <RouterLink
+                        v-if="member.is_fake && props.gameweek && !props.gameweek?.is_locked"
+                        :to="`/admin-gameweek-predictions/${props.gameweek.id}/${member.id}`"
                         class="dropdown-item"
                     >
                         Predict
-                    </router-link>
+                    </RouterLink>
 
-                    <button 
-                        @click="removeMember(member)" 
-                        class="dropdown-item text-red-700"
-                    >
+                    <button @click="removeMember(member)" class="dropdown-item text-red-700">
                         Remove
                     </button>
                 </template>
             </Dropdown>
-        </div>
+        </component>
     </TransitionGroup>
     <div v-if="hasMoreMembers" class="text-center mt-4">
         <button 
@@ -57,7 +65,8 @@ import { computed, ref } from 'vue';
 import { userStore } from "../store/userStore";
 import { userIsAdmin } from '../utils/checkPermissions';
 import Dropdown from './UI/Dropdown.vue';
-import { GroupMember } from '../types';
+import { GroupMember, Gameweek } from '../types';
+import { RouterLink } from 'vue-router';
 
 interface Owner {
     email: string;
@@ -68,13 +77,23 @@ interface Owner {
 export interface IProps {
   members: GroupMember[];
   groupOwner: Owner;
-  gameweek?: {};
-  memberLimit?: number
+  gameweek?: Gameweek;
+  memberLimit?: number;
+  includeProfileLink?: boolean;
+  groupId?: string;
 }
 const props = withDefaults(defineProps<IProps>(), {
     memberLimit: 10
 });
 const emit = defineEmits(["update-admin-status", "member-removed"]);
+
+const rowTag = computed(() =>
+  props.includeProfileLink && props.groupId ? RouterLink : 'div'
+)
+
+/** Build the destination path for a member */
+const memberPath = (memberId: string | number) =>
+  `/user-group-profile/${props.groupId}/${memberId}`
 
 const displayLimit = ref(props.memberLimit);
 
@@ -95,11 +114,11 @@ const isAdmin = computed(() => {
     return userIsAdmin(props.members);
 });
 
-function updateAdminStatus(member: Member) {
+function updateAdminStatus(member: GroupMember) {
     emit("update-admin-status", member)
 }
 
-function removeMember(member: Member) {
+function removeMember(member: GroupMember) {
     emit("member-removed", member);
 }
 
