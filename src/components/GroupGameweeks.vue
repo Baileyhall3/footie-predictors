@@ -2,9 +2,8 @@
     <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-semibold">Gameweeks</h3>
-            <router-link :to="`/group/${props.groupId}/create-gameweek`">
+            <router-link :to="`/group/${props.groupId}/create-gameweek`" v-if="props.isAdmin && !props.hideCreateGameweeks">
                 <button 
-                    v-if="props.isAdmin" 
                     class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
                 >
                     + Add Gameweek
@@ -21,8 +20,13 @@
                         </router-link>
                         <LockClosedIcon class="size-4 ms-2" v-if="gameweek.is_locked" />
                     </div>
-                    <div class="text-sm text-gray-500">
-                        Deadline: {{ DateUtils.toFullDateTime(gameweek.deadline) }}
+                    <div class="text-sm text-gray-600">
+                        <span class="font-semibold">Deadline: </span>
+                        {{ DateUtils.toFullDateTime(gameweek.deadline) }}
+                    </div>
+                    <div class="text-sm text-gray-600" v-if="gameweek.is_finished && gameweek.winner_name">
+                        <span class="font-semibold">Winner: </span>
+                        {{ gameweek.winner_name }}
                     </div>
                 </div>
                 
@@ -33,7 +37,7 @@
                 </div>
             </div>
         </div>
-        <p v-else class="text-gray-500 py-2">No gameweeks yet.</p>
+        <p v-else class="text-gray-600 py-2">No gameweeks yet.</p>
     </div>
 </template>
 
@@ -45,7 +49,8 @@ import { Gameweek } from '../types';
 export interface IProps {
     gameweeks: Gameweek[],
     isAdmin: boolean,
-    groupId: string
+    groupId: string,
+    hideCreateGameweeks?: boolean
 }
 
 const props = defineProps<IProps>();

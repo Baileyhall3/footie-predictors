@@ -33,9 +33,9 @@
                             <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item" v-if="activeGameweek">
                                 Gameweek {{ activeGameweek?.week_number }}
                             </router-link>
-                            <template v-if="isAdmin">
-                                <button class="dropdown-item" v-if="!season?.end_date">
-                                    Set end date
+                            <template v-if="isAdmin && !season?.end_date">
+                                <button class="dropdown-item" @click="endSeason">
+                                    End Season
                                 </button>
                             </template>
                         </template>
@@ -60,8 +60,34 @@
                     </div>
                 </template>
             </PageHeader>
-            <Tabs>
+            <Tabs v-model="activeTabIndex">
                 <Tab header="Overview">
+                    <template v-if="season?.is_finished && leaderboard && leaderboard.length > 0">
+                        <GameweekWinnerCard 
+                            :username="leaderboard[0].username"
+                            :totalPoints="leaderboard[0].total_points"
+                            :isCurrentUser="leaderboard[0].user_id === userStore.user?.id"
+                            :seasonName="season.name"
+                        />
+                    </template>
+                    <RoundedContainer headerText="End of Season" v-if="season?.is_finished && leaderboard && leaderboard.length > 0">
+                        After {{ gameweeks.length }} gameweeks of trials and tribulations, our season has come to an end.
+                        <br /><br />
+                        👑 <strong>{{ leaderboard[0].username }}</strong> emerges as this season’s champion, racking up 
+                        <strong>{{ leaderboard[0].total_points }}</strong> points and claiming victory in 
+                        <strong>{{ leaderboard[0].gameweek_wins || 0 }}</strong> gameweeks!
+                        <br /><br />
+                        <template v-if="leaderboard[1]">
+                            🥈 The runner-up, <strong>{{ leaderboard[1].username }}</strong>, fought valiantly, finishing just 
+                            <strong>{{ leaderboard[0].total_points - leaderboard[1].total_points }}</strong> points behind.
+                            <br /><br />
+                        </template>
+                        📈 To view your own stats and the end of season awards, go to the 
+                        <span class="text-blue-600 hover:underline hover:cursor-pointer" @click="activeTabIndex = 3">Stats tab</span>.
+                        <br /><br />
+                        Thank you all for playing, predicting, and participating. Until next time — rest up, strategize, and get ready for the next season!
+                    </RoundedContainer>
+
                     <template v-if="userGameweekPredictions && userGameweekPredictions.length > 0">
                         <ScoreCard2
                             :matches="userGameweekPredictions"
@@ -69,26 +95,57 @@
                             :totalPoints="totalPoints"
                             matchesClickable
                         >
+                        <template #headerActionItems>
+                            <router-link 
+                                :to="`/gameweek/${activeGameweek?.id}`" 
+                                class="text-sm text-blue-600 hover:underline"
+                            >
+                                Gameweek {{ activeGameweek?.week_number }}
+                            </router-link>
+                        </template>
                         </ScoreCard2>
+                    </template>
+                    <template v-else>
+                        <RoundedContainer>
+                            <p class="text-gray-500 py-2">No predictions made for the current gameweek yet.</p>
+                        </RoundedContainer>
                     </template>
                 </Tab>
                 <Tab header="Gameweeks">
-                    <GroupGameweeks :gameweeks="gameweeks" :groupId="season?.group_id" :isAdmin="isAdmin && season?.is_active" />
+                    <GroupGameweeks 
+                        :gameweeks="gameweeks" 
+                        :groupId="season?.group_id" 
+                        :isAdmin="isAdmin && season?.is_active" 
+                        :hideCreateGameweeks="season?.is_finished"
+                    />
+                </Tab>
+                <Tab header="Leaderboard">
+                    <GroupLeaderboard 
+                        :groupId="season?.group_id" 
+                        :activeGameweekId="activeGameweek ? activeGameweek.id : null" 
+                        :seasonId="season?.id" 
+                        :winnerId="season?.winner_id"
+                    />
+                </Tab>
+                <Tab header="Stats">
+                    <CombinedGroupStats :groupId="season?.group_id" :seasonId="season?.id" />
                 </Tab>
             </Tabs>
         </template>
     </div>
+
+    <DeleteConfirm ref="endSeasonConfirm" title="Please Confirm" message="Are you sure you want to end this season? This cannot be undone." confirmText="End Season" />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from "vue-router";
 import { seasonsService } from '../api/seasonsService';
 import Tabs from "../components/UI/Tabs.vue";
 import Tab from "../components/UI/Tab.vue";
 import LoadingScreen from '../components/LoadingScreen.vue';
 import DoesNotExist from "../components/DoesNotExist.vue";
-import { Season, Gameweek, Prediction } from '../types';
+import { Season, Gameweek, Prediction, LeaderboardEntry, UserStats } from '../types';
 import PageHeader from '../components/PageHeader.vue';
 import GroupGameweeks from '../components/GroupGameweeks.vue';
 import DateUtils from '../utils/dateUtils';
@@ -100,6 +157,11 @@ import "vue3-toastify/dist/index.css";
 import ScoreCard2 from '../components/ScoreCard2.vue';
 import { predictionsService } from '../api/predictionsService';
 import { userStore } from "../store/userStore";
+import CombinedGroupStats from './CombinedGroupStats.vue';
+import StatRow from '../components/StatRow.vue';
+import GroupLeaderboard from './GroupLeaderboard.vue';
+import DeleteConfirm from '../components/DeleteConfirm.vue';
+import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -114,6 +176,10 @@ const isAdmin = ref<boolean>(false);
 const error = ref<string | null>(null);
 const userGameweekPredictions = ref<Array<Prediction>>();
 const totalPoints = ref<number>(0);
+const leaderboard = ref<LeaderboardEntry>();
+const seasonStats = ref<Array<UserStats>>();
+const activeTabIndex = ref<number>(0);
+const endSeasonConfirm = ref();
 
 onMounted(() => {
     fetchAllData();
@@ -166,14 +232,47 @@ async function fetchAllData() {
                     totalPoints.value = predictionsData.totalPoints;
                 }
             }
+
+            const { data: leaderboardData, error: leaderboardError } = await seasonsService.getSeasonLeaderboard(seasonId.value);
+            if (leaderboardError) {
+                throw new Error('Error fetching season leaderboard');
+            }
+
+            if (leaderboardData) {
+                leaderboard.value = leaderboardData;
+            }
+
+            const { data: seasonStatsData, error: seasonStatsError } = await seasonsService.getSeasonStats(seasonId.value);
+            if (seasonStatsError) {
+                throw new Error('Error fetching season stats');
+            }
+
+            if (seasonStatsData) {
+                seasonStats.value = seasonStatsData;
+            }
         }
-
-
     } catch(err) {
         console.error(err);
         error.value = err.message || 'An error occurred while loading season data';
     } finally {
         loading.value = false;
+    }
+}
+
+async function endSeason() {
+    const confirmed = await endSeasonConfirm.value?.show();
+    if (confirmed) {
+        try {
+            await seasonsService.updateSeason(seasonId.value, { 
+                is_finished: true, 
+                end_date: new Date(), 
+                winner_id: leaderboard.value ? leaderboard.value[0].user_id : null 
+            });
+
+            window.location.reload();
+        } catch (err) {
+            console.error(err);
+        }
     }
 }
 

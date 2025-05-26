@@ -36,9 +36,17 @@
                   <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item" v-if="activeGameweek">
                     Gameweek {{ activeGameweek?.week_number }}
                   </router-link>
-                  <router-link :to="`/group/${group.id}/update-group`" v-if="isGroupOwner">
+                  <router-link :to="`/season/${activeSeason?.id}`" class="text-blue-600 dropdown-item" v-if="activeSeason">
+                    {{ activeSeason?.name }}
+                  </router-link>
+                  <router-link :to="`/group/${group?.id}/update-group`" v-if="isGroupOwner">
                     <button class="dropdown-item">
                       Edit
+                    </button>
+                  </router-link>
+                  <router-link :to="`/group/${group?.id}/create-season`" v-if="isGroupOwner">
+                    <button class="dropdown-item">
+                      New season
                     </button>
                   </router-link>
                   <template v-if="!isGroupOwner">
@@ -89,6 +97,13 @@
                     </span>
                   </div>
                 </div>
+                <p class="text-sm text-gray-500" v-if="isGroupOwner && activeSeason?.is_finished">
+                  This season has now ended. 
+                  <router-link :to="`/group/${group?.id}/create-season`" class="text-blue-600 hover:underline hover:cursor-pointer">
+                    Create a new season
+                  </router-link> 
+                  to begin predicting once more!
+                </p>
               </RoundedContainer>
             </div>
 
@@ -144,24 +159,14 @@
             </div>
           </Tab>
           <Tab :header="`Gameweek ${activeGameweek.week_number}`" v-if="activeGameweek">
-            <RoundedContainer headerText="Gameweek Stats" v-if="activeGameweek.is_finished">
+            <RoundedContainer headerText="Gameweek Stats">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
                   <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
                   <StatRow icon="🥇" label="Current Leader" :value="currentLeader.username" />
                   <StatRow icon="🎯" label="Most Correct Scores" :value="`${userMostCorrectScores.total_correct_scores} (${userMostCorrectScores.username}) `" />
               </div>
-          </RoundedContainer>
-            <!-- Matches List -->
-            <!-- <RoundedContainer v-if="Object.keys(matches).length > 0">
-                <ScoreCard 
-                  :matches="matches"
-                  allowCollapse
-                  header="Matches"
-                  :matchesClickable="activeGameweek?.is_locked"
-                />
-            </RoundedContainer> -->
-            <!-- Predictions -->
+            </RoundedContainer>
             <RoundedContainer v-if="activeGameweek">
               <ScoreCard
                   v-if="Object.keys(predictions).length > 0"
@@ -196,17 +201,37 @@
                   :leaderboard="gwLeaderboard"
                   :gameweekId="activeGameweek?.id"
                   :includeUserPredictionLink="activeGameweek?.is_locked"
+                  :winnerId="activeGameweek?.winner_id"
                 />
               </div>
               <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
             </RoundedContainer>
           </Tab>
-          <Tab :header="activeSeason?.name">
-            <!-- Gameweeks Section -->
-            <GroupGameweeks :gameweeks="gameweeks" :groupId="group?.id" :isAdmin="isAdmin" />
+          <Tab header="Seasons">
+            <RoundedContainer v-if="seasons?.length">
+              <div v-for="season in seasons" :key="season.id" class="flex justify-between items-center border-b py-3">
+                  <div>
+                      <div class="items-center flex">
+                          <router-link :to="`/season/${season.id}`" class="text-blue-600 hover:underline font-medium">
+                              {{ season.name }}
+                          </router-link>
+                      </div>
+                      <div class="text-sm text-gray-500">
+                          {{ season.start_date ? DateUtils.toShortDate(season.start_date) : 'TBD' }} - 
+                          {{ season.end_date ? DateUtils.toShortDate(season.end_date) : 'TBD' }}
+                      </div>
+                  </div>
+                  
+                  <div class="flex items-center gap-2">
+                      <div v-if="season.id === activeSeason?.id" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
+                          Active
+                      </div>
+                  </div>
+              </div>
+            </RoundedContainer>
           </Tab>
           <Tab header="Leaderboard">
-            <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" />
+            <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" :seasonId="group?.active_season_id" />
           </Tab>
           <Tab header="Stats" v-if="activeGameweek">
             <CombinedGroupStats :groupId="group.id" />
@@ -338,6 +363,7 @@ const currentLeader = ref({});
 const currentUserGameweekData = ref({});
 const userMostCorrectScores = ref({});
 const activeSeason = ref<Season>();
+const seasons = ref<Array<Season>>();
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
@@ -409,6 +435,10 @@ const fetchAllData = async () => {
     const { data: seasonData, error: seasonError } = await seasonsService.getSeasonById(group.value.active_season_id);
     if (seasonError) throw new Error('Failed to load active season');
     activeSeason.value = seasonData;
+
+    const { data: seasonsData, error: seasonsError } = await seasonsService.getGroupSeasons(group.value.id);
+    if (seasonsError) throw new Error('Failed to load seasons');
+    seasons.value = seasonsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
     // Fetch gameweeks
     const { data: gameweeksData, error: gameweeksError } = await seasonsService.getSeasonGameweeks(activeSeason.value.id);

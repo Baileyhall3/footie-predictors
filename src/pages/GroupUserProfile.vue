@@ -38,7 +38,11 @@
                     <p class="text-gray-500">Member of {{ groupName }} since {{ DateUtils.toShortDate(user?.joined_at) }}</p>
                 </template>
             </PageHeader>
-            <Tabs>
+            <RoundedContainer v-if="!currentGameweek" class="mx-auto text-center">
+                <h2 class="text-xl font-semibold mb-2">No active gameweek</h2>
+                <p class="text-gray-600 mb-6">Once an active gameweek has been set and {{ user?.username }}'s' predictions have been made, they will show here!</p>
+            </RoundedContainer>
+            <Tabs v-else>
                 <Tab header="Predictions">
                     <ScoreCard2
                         :matches="userGameweekPredictions"
@@ -163,7 +167,6 @@ import LineChart from '../components/LineChart.vue';
 import { LineData } from '../components/LineChart.vue';
 
 const route = useRoute();
-const router = useRouter();
 
 const loading = ref<boolean>(false);
 const userExists = ref<boolean>(true);
@@ -173,13 +176,13 @@ const isAdmin = ref<boolean>(false);
 const error = ref<string | null>(null);
 const userGameweekPredictions = ref<Array<Prediction>>();
 const groupId = ref<string | null>(null);
-const groupLeaderboard = ref<Array<LeaderboardEntry>>(); // TODO: Leaderboard type
+const groupLeaderboard = ref<Array<LeaderboardEntry>>();
 const groupName = ref<string>();
 const userStats = ref<UserStats>();
 const currentGameweek = ref<LookupOption>();
 const gameweekTotalPoints = ref<number>();
 const gameweekLkp = ref<Array<LookupOption>>();
-const scores = ref<Array<LeaderboardEntry>>([]); // TODO: Types for this
+const scores = ref<Array<LeaderboardEntry>>([]);
 const leaderboardHistory = ref([]);
 const positionHistory = ref<Array<LineData>>();
 const posXLabels = ref<string[]>([]);

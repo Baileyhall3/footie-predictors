@@ -34,6 +34,7 @@ export interface Group {
 export interface Gameweek {
     id: string,
     group_id: string,
+    group_name?: string,
     week_number: number,
     deadline: string | Date,
     created_at: string | Date,
@@ -41,7 +42,9 @@ export interface Gameweek {
     is_active: boolean,
     is_finished: boolean,
     winner_id: string | null,
+    winner_name?: string | null,
     season_id: string,
+    season_name: string,
 }
 
 export interface Prediction {
@@ -78,14 +81,6 @@ export interface GroupMember {
     bg_colour?: string
 }
 
-export interface UserStats {
-    avg_points_per_gameweek: number | null,
-    total_correct_scores: number | null,
-    total_correct_results: number | null,
-    correct_score_ratio_percent: number | null,
-    gameweek_wins: number | null
-}
-
 export interface LeaderboardEntry {
     id: string;
     position: number;
@@ -96,4 +91,22 @@ export interface LeaderboardEntry {
     username: string;
     movement: string;
     bg_colour?: string;
+    season_id: string;
+    gameweek_wins?: number | null;
+}
+
+export interface UserStats {
+    avg_points_per_gameweek: number;
+    correct_score_ratio_percent: number;
+    gameweek_wins: number;
+    group_id: string;
+    group_name: string;
+    icon_url: string | undefined;
+    season_id: string;
+    total_correct_results: number;
+    total_correct_scores: number;
+    total_gameweeks: number;
+    total_points: number
+    user_id: string;
+    username: string;
 }

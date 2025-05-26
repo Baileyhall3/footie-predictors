@@ -62,28 +62,23 @@ export const groupsService = {
   
       if (memberError) throw memberError;
 
-      const { error: leaderboardError } = await supabaseDb.create('leaderboard', {
-        user_id: adminId,
-        group_id: group.id,
-      });
-
-      if (leaderboardError) throw leaderboardError;
-
+      
       const { data: sznData, error: seasonError } = await supabaseDb.create('seasons', {
         name: seasonData.name ?? 'Season 1',
         group_id: group.id,
         start_date: seasonData.start_date,
         end_date: seasonData.end_date
       });
-
+      
       if (seasonError) throw seasonError;
 
-      const { error: seasonLeaderboardError } = await supabaseDb.create('season_leaderboard', {
+      const { error: leaderboardError } = await supabaseDb.create('leaderboard', {
         user_id: adminId,
-        season_id: sznData.id,
+        group_id: group.id,
+        season_id: sznData.id
       });
 
-      if (seasonLeaderboardError) throw seasonLeaderboardError;
+      if (leaderboardError) throw leaderboardError;
 
       await supabaseDb.update('groups', group.id, { active_season_id: sznData.id });
   

@@ -64,6 +64,15 @@ export const gameweeksService = {
   },
 
   /**
+   * Get a gameweek by ID using the gameweeks_with_group view
+   * @param {string} id - Gameweek ID
+   * @returns {Promise<{data: Object, error: Object}>}
+   */
+  async getGameweekByIdUsingView(id) {
+    return supabaseDb.getById('gameweeks_with_group', id)
+  },
+
+  /**
    * Create a new gameweek
    * @param {Object} gameweek - Gameweek data
    * @param {string} gameweek.group_id - Group ID

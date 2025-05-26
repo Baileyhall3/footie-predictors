@@ -16,12 +16,11 @@ const props = defineProps<{
   
 const selectedTab = inject('selectedTab') as Ref<number>;
 const registerTab = inject('registerTab') as (header: string) => number;
-const loadedTabs = inject('loadedTabs') as boolean[];
 
 const index = ref<number>(-1);
 
 const show = computed(() => {
-    return selectedTab.value === index.value || loadedTabs[index.value];
+    return selectedTab.value === index.value;
 });
 
 onMounted(() => {

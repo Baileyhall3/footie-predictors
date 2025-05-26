@@ -14,8 +14,8 @@
             and start playing to see stats! -->
         </p>
     </RoundedContainer>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4" v-if="groupStats.length > 0">
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 md:gap-8" v-if="groupOrSeasonStats.length > 0">
+        <div class="bg-white shadow-lg rounded-xl p-6">
             <Podium 
                 :podiumData="bestAvgPoints" 
                 header="Highest Points Per Gameweek" 
@@ -23,20 +23,28 @@
                 displayField="avg_points_per_gameweek"
             />
         </div>
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <div class="bg-white shadow-lg rounded-xl p-6">
             <Podium 
-                :podiumData="bestScoreAccuracy" 
-                header="Best Score Accuracy" 
-                icon="📈" 
-                displayField="correct_score_ratio_percent"
+                :podiumData="mostGameweekWins" 
+                header="Most Gameweek Wins" 
+                icon="🥇" 
+                displayField="gameweek_wins"
             />
         </div>
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <div class="bg-white shadow-lg rounded-xl p-6">
             <Podium 
                 :podiumData="bestCorrectScores" 
                 header="Total Correct Scores" 
                 icon="🎯" 
                 displayField="total_correct_scores"
+            />
+        </div>
+        <div class="bg-white shadow-lg rounded-xl p-6">
+            <Podium 
+                :podiumData="bestScoreAccuracy" 
+                header="Best Score Accuracy" 
+                icon="📈" 
+                displayField="correct_score_ratio_percent"
             />
         </div>
     </div>
@@ -50,16 +58,19 @@ import { ref, onMounted } from 'vue';
 import { groupsService } from '../api/groupsService';
 import { userStore } from '../store/userStore';
 import LoadingScreen from '../components/LoadingScreen.vue';
+import { seasonsService } from '../api/seasonsService';
 
 const loading = ref(false);
 const bestAvgPoints = ref([]);
 const bestScoreAccuracy = ref([]);
 const bestCorrectScores = ref([]);
-const groupStats = ref([]);
+const mostGameweekWins = ref([]);
+const groupOrSeasonStats = ref([]);
 const userStats = ref([]);
 
 export interface IProps {
-    groupId: string
+    groupId: string;
+    seasonId?: string;
 }
 const props = defineProps<IProps>();
 
@@ -71,16 +82,30 @@ async function fetchStatsData() {
     try {
         loading.value = true;
 
-        const { data: statsData, error: statsError } = await groupsService.getGroupStats(props.groupId);
-        if (statsError) throw new Error('Failed to load group stats');
-        const userRecord = statsData.find(x => x.user_id === userStore.user?.id);
-        userStats.value = userRecord;
-        groupStats.value = statsData || [];
+        let statsError = null;
+        let statsData = [];
 
-        bestAvgPoints.value = getTopOrBottomThree(statsData, 'avg_points_per_gameweek');
-        bestScoreAccuracy.value = getTopOrBottomThree(statsData, 'correct_score_ratio_percent');
-        bestCorrectScores.value = getTopOrBottomThree(statsData, 'total_correct_scores')
+        if (!props.seasonId) {
+            const { data: groupStatsData, error: groupStatsError } = await groupsService.getGroupStats(props.groupId);
+            statsError = groupStatsError;
+            statsData = groupStatsData;
+        } else {
+            const { data: seasonStatsData, error: seasonStatsError } = await seasonsService.getSeasonStats(props.seasonId);
+            statsError = seasonStatsError;
+            statsData = seasonStatsData;
+        }
 
+        if (statsError) throw new Error('Failed to load stats');
+        groupOrSeasonStats.value = statsData || [];
+        if (statsData.length > 0) {
+            const userRecord = statsData.find(x => x.user_id === userStore.user?.id);
+            userStats.value = userRecord;
+    
+            bestAvgPoints.value = getTopOrBottomThree(statsData, 'avg_points_per_gameweek');
+            bestScoreAccuracy.value = getTopOrBottomThree(statsData, 'correct_score_ratio_percent');
+            bestCorrectScores.value = getTopOrBottomThree(statsData, 'total_correct_scores');
+            mostGameweekWins.value = getTopOrBottomThree(statsData, 'gameweek_wins');
+        }
     } catch(err) {
         console.error(err);
     } finally {

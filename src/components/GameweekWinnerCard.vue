@@ -5,8 +5,8 @@
         </div>
         <div class="mt-6 text-center">
             <h2 class="text-xl font-bold text-gray-800 mb-2">
-                🎉 {{ props.username }}{{ props.isCurrentUser ? ', you' : '' }} {{ props.isCurrentUser ? 'are' : 'is' }} 
-                the winner of Gameweek {{ props.weekNumber ?? '' }}!
+                {{ props.seasonName ? '👑' : '🎉' }} {{ props.username }}{{ props.isCurrentUser ? ', you' : '' }} {{ props.isCurrentUser ? 'are' : 'is' }} 
+                the winner of {{ props.seasonName ? props.seasonName : 'Gameweek ' + (props.weekNumber ?? '') }}!
             </h2>
             <p class="text-gray-600 text-md">
                 Total Points: <span class="font-semibold text-yellow-600">{{ props.totalPoints }}</span>
@@ -23,6 +23,7 @@ export interface IProps {
     totalPoints: number,
     isCurrentUser: boolean,
     weekNumber?: number
+    seasonName?: string
 }
 
 const props = defineProps<IProps>();

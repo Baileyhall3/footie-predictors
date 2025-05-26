@@ -52,6 +52,7 @@
             {{ player.username }}
           </div>
           </component>
+          <TrophyIcon v-if="player.user_id === props.winnerId" class="size-5 text-yellow-300" />
           <span v-if="player.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
           <StarIcon v-else-if="props.userId && player.user_id === props.userId" class="size-5 text-yellow-300" />
         </div>
@@ -87,7 +88,7 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue';
 import { userStore } from "../store/userStore";
-import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon, EqualsIcon, StarIcon } from "@heroicons/vue/24/solid";
+import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon, EqualsIcon, StarIcon, TrophyIcon } from "@heroicons/vue/24/solid";
 import DateUtils from '../utils/dateUtils';
 import SearchBar from './UI/SearchBar.vue';
 import { LeaderboardEntry } from '../types';
@@ -104,6 +105,7 @@ export interface IProps {
   includeSearchBar?: boolean;
   includeUserPredictionLink?: boolean;
   userId?: string;
+  winnerId?: string;
 }
 const props = defineProps<IProps>();
 const emit = defineEmits(["update-leaderboard-entry", "changes-saved", "changes-cancelled"]);

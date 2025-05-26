@@ -34,6 +34,9 @@
                   <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
                     Go to group
                   </router-link>
+                  <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item">
+                    {{ gameweek?.season_name }}
+                  </router-link>
                   <template v-if="isAdmin">
                     <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
                       {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
@@ -55,9 +58,9 @@
             <DeadlineCountdown :deadline="new Date(gameweek?.deadline)" v-if="gameweek?.deadline" />
           </p>
         </div>
-
+        
         <Tabs @tab-selected="handleTabSelected">
-          <Tab header="Matches">
+          <Tab header="Predictions">
             <template v-if="gameweek?.is_finished">
               <GameweekWinnerCard 
                 :username="gameweekWinner.username"
@@ -66,43 +69,6 @@
                 :weekNumber="gameweek?.week_number"
               />
             </template>
-            <RoundedContainer headerText="Matches" collapsable>
-              <template #headerContent>
-                <div class="flex items-center" v-if="isAdmin">
-                  <router-link :to="`/gameweek/${gameweekId}/add-matches`">
-                    <button @click="editMode = true" v-if="!gameweek?.is_locked && gameweek?.is_active"
-                      class="p-1 rounded-md hover:bg-green-200" title="Add matches to gameweek"
-                    >
-                      <PlusIcon class="size-5 text-green-600" />
-                    </button>
-                  </router-link>
-                  <template v-if="!editMode">
-                    <button @click="editMode = true" class="p-1 rounded-md hover:bg-gray-200" title="Edit this gameweek">
-                      <PencilSquareIcon class="size-5 text-gray-500" />
-                    </button>
-                  </template>
-                  <template v-else>
-                    <button @click="editMode = false" class="p-1 rounded-md hover:bg-red-200" title="Stop editing">
-                      <XMarkIcon class="size-5 text-red-700" />
-                    </button>
-                  </template>
-                </div>
-              </template>
-                <ScoreCard 
-                    v-if="matches.length > 0"
-                    :matches="matches"
-                    :isAdmin="editMode && gameweek?.is_active && gameweek?.is_locked"
-                    :canRemove="editMode && gameweek?.is_active && !gameweek?.is_locked"
-                    :matchesClickable="gameweek?.is_locked && !editMode"
-                    @update-score="handleScoreUpdate"
-                    @match-removed="handleMatchRemoved" 
-                  />
-                <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
-                  Save Scores
-                </button>
-            </RoundedContainer>
-          </Tab>
-          <Tab header="Predictions">
             <!-- Predictions -->
             <RoundedContainer>
               <div>
@@ -125,6 +91,41 @@
               </div>
             </RoundedContainer>
           </Tab>
+          <Tab header="Matches">
+            <RoundedContainer headerText="Matches" collapsable>
+              <template #headerContent>
+                <div class="flex items-center" v-if="isAdmin">
+                  <router-link :to="`/gameweek/${gameweekId}/add-matches`">
+                    <button @click="editMode = true" v-if="!gameweek?.is_locked && gameweek?.is_active"
+                      class="p-1 rounded-md hover:bg-green-200" title="Add matches to gameweek"
+                    >
+                      <PlusIcon class="size-5 text-green-600" />
+                    </button>
+                  </router-link>
+                  <template v-if="!gameweek?.is_finished">
+                    <button v-if="!editMode" @click="editMode = true" class="p-1 rounded-md hover:bg-gray-200" title="Edit this gameweek">
+                      <PencilSquareIcon class="size-5 text-gray-500" />
+                    </button>
+                    <button v-else @click="editMode = false" class="p-1 rounded-md hover:bg-red-200" title="Stop editing">
+                      <XMarkIcon class="size-5 text-red-700" />
+                    </button>
+                  </template>
+                </div>
+              </template>
+                <ScoreCard 
+                    v-if="matches.length > 0"
+                    :matches="matches"
+                    :isAdmin="editMode && gameweek?.is_active && gameweek?.is_locked"
+                    :canRemove="editMode && gameweek?.is_active && !gameweek?.is_locked"
+                    :matchesClickable="gameweek?.is_locked && !editMode"
+                    @update-score="handleScoreUpdate"
+                    @match-removed="handleMatchRemoved" 
+                  />
+                <button v-if="matchesChanged && editMode" @click="saveScores" class="w-full bg-green-600 text-white py-2 rounded-md mt-4">
+                  Save Scores
+                </button>
+            </RoundedContainer>
+          </Tab>
           <Tab header="Leaderboard">
             <!-- Leaderboard Section -->
             <RoundedContainer headerText="Leaderboard">
@@ -142,6 +143,7 @@
                   :leaderboard="leaderboard"
                   :gameweekId="gameweekId"
                   :includeUserPredictionLink="gameweek?.is_locked"
+                  :winnerId="gameweek?.winner_id"
                 />
               </div>
               <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
@@ -189,13 +191,14 @@ import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
 import PotentialFinishGrid from '../components/PotentialFinishGrid.vue';
 import DoesNotExist from '../components/DoesNotExist.vue';
+import { Gameweek } from '../types';
 
 const route = useRoute();
 const router = useRouter();
 
-const loading = ref(true);
-const gameweekId = ref(null);
-const gameweek = ref(null);
+const loading = ref<boolean>(true);
+const gameweekId = ref<string | null>(null);
+const gameweek = ref<Gameweek>();
 const matches = ref([]);
 const editMode = ref(false);
 const newMatch = ref({ home_team: '', away_team: '', match_time: '' });
@@ -231,7 +234,7 @@ async function fetchGameweek() {
     loading.value = true;
     gameweekId.value = route.params.id || route.query.id;
   
-    const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
+    const { data, error } = await gameweeksService.getGameweekByIdUsingView(gameweekId.value);
     if (error) {
       if (error.code === "PGRST116") {
           gameweekExists.value = false;

@@ -98,7 +98,7 @@ export const seasonsService = {
         try {
             const { data, error } = await supabaseDb.customQuery((supabase) =>
             supabase
-                .from('gameweeks')
+                .from('gameweeks_with_group')
                 .select(`*`)
                 .eq('season_id', seasonId)
                 .order('week_number', { ascending: true })
@@ -108,26 +108,25 @@ export const seasonsService = {
     
             return { data, error: null }
         } catch(err) {
-            console.error('Error fetching season gameweeks', error)
-            return { data: null, error }
+            console.error('Error fetching season gameweeks', err)
+            return { data: null, err }
         }
     },
 
     /**
-   * Get the leaderboard for a group
-   * @param {string} groupId - Group ID
+   * Get the leaderboard for a season
+   * @param {string} seasonId - Season ID
    * @returns {Promise<{data: Array, error: Object}>}
    */
-  async getGroupLeaderboard(groupId) {
+  async getSeasonLeaderboard(seasonId) {
     try {
-      // Get current leaderboard
       const { data, error } = await supabaseDb.customQuery((supabase) =>
         supabase
           .from('group_members_and_leaderboard')
           .select(`
             *
           `)
-          .eq('group_id', groupId)
+          .eq('season_id', seasonId)
           .order('total_points', { ascending: false })
           .order('total_correct_scores', { ascending: false })
       );
@@ -144,7 +143,7 @@ export const seasonsService = {
         supabase
         .from('leaderboard_history_latest_view')
         .select('*')
-        .eq('group_id', groupId));
+        .eq('season_id', seasonId));
 
       if (historyError) throw historyError;
 
@@ -188,8 +187,71 @@ export const seasonsService = {
       return { data: leaderboardWithMovement, error: null };
   
     } catch (error) {
-      console.error('Error fetching group leaderboard:', error);
+      console.error('Error fetching season leaderboard:', error);
       return { data: null, error };
     }
-  },  
+  },
+
+  /**
+     * Get user stats for a season
+     * @param {string} seasonId - Season ID
+     * @param {string} userId - user ID
+     * @returns {Promise<{data: Array, error: Object}>}
+     */
+    async getSeasonStats(seasonId, userId = null) {
+      try {
+        
+        if (!userId) {
+          const { data, error } = await supabaseDb.customQuery((supabase) =>
+            supabase
+              .from('user_group_stats')
+              .select(`*`)
+              .eq('season_id', seasonId)
+          );
+      
+          if (error) throw error;
+    
+          return { data, error: null }
+        } else if (seasonId && userId) {
+          const { data, error } = await supabaseDb.customQuery((supabase) =>
+            supabase
+              .from('user_group_stats')
+              .select(`*`)
+              .eq('season_id', seasonId)
+              .eq('user_id', userId)
+          );
+      
+          if (error) throw error;
+    
+          return { data, error: null }
+        }
+      } catch (error) {
+        console.error('Error fetching season stats:', error)
+        return { data: null, error }
+      }
+    },
+
+  /**
+   * Get the leaderboard history for a season
+   * @param {string} seasonId - Season ID
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getSeasonLeaderboardHistory(seasonId) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('leaderboard_history_view')
+          .select(`*`)
+          .eq('season_id', seasonId)
+          .order('gameweek', { ascending: false })
+      );
+  
+      if (error) throw error;
+
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error fetching leaderboard history:', error)
+      return { data: null, error }
+    }
+  },
 }

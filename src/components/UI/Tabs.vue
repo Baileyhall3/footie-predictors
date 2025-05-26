@@ -25,7 +25,7 @@
 </template>
   
 <script setup lang="ts">
-import { ref, provide, reactive, computed } from 'vue';
+import { ref, provide, reactive, computed, watch } from 'vue';
 
 type BorderColor =
   | 'blue'
@@ -34,20 +34,27 @@ type BorderColor =
   | 'gray';
 
 export interface IProps {
-    borderColour?: BorderColor
+    borderColour?: BorderColor,
+    modelValue?: number;
 }
 
 const props = withDefaults(defineProps<IProps>(), {
     borderColour: 'blue',
+    modelValue: 0
 });
 
 const emit = defineEmits<{
-  (e: 'tab-selected', index: number): void;
+    (e: 'update:modelValue', value: number): void;
+    (e: 'tab-selected', index: number): void;
 }>();
 
 const tabs = reactive<{ header: string; index: number }[]>([]);
 // const loadedTabs = reactive<boolean[]>([]);
-const selected = ref(0);
+const selected = ref(props.modelValue);
+
+watch(() => props.modelValue, (newVal) => {
+    selected.value = newVal;
+});
 
 const colorMap = {
     blue: 'border-blue-600 text-blue-600 hover:text-blue-600',
@@ -67,6 +74,7 @@ function registerTab(header: string) {
 function selectTab(index: number) {
     selected.value = index;
     emit("tab-selected", index);
+    emit("update:modelValue", index);
     // loadedTabs[index] = true;
 }
 

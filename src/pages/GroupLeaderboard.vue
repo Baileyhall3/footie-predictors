@@ -1,7 +1,7 @@
 <template>
     <LoadingScreen v-if="loading" />
     <template v-else>
-        <RoundedContainer headerText="All-Time">
+        <RoundedContainer headerText="This Season">
             <template #headerContent>
                 <router-link 
                 :to="`/group/${$props.groupId}/leaderboards`" 
@@ -16,10 +16,10 @@
             <div v-if="leaderboard.length > 0">
                 <LeaderboardCard 
                     :leaderboard="leaderboard"
-                    headerText="All-Time"
                     previewOnly
                     :gameweekId="props.activeGameweekId"
                     includeUserPredictionLink
+                    :winnerId="props.winnerId"
                 />
             </div>
             <p v-if="leaderboard.length === 0" class="text-gray-500 py-2">No leaderboard data available.</p>
@@ -49,8 +49,14 @@ import { ref, onMounted } from 'vue';
 import { leaderboardService } from '../api/leaderboardService';
 import LeaderboardCard from '../components/LeaderboardCard.vue';
 import LoadingScreen from '../components/LoadingScreen.vue';
+import { seasonsService } from '../api/seasonsService';
 
-const props = defineProps<{groupId: string, activeGameweekId?: string}>();
+const props = defineProps<{
+    groupId: string, 
+    activeGameweekId?: string, 
+    seasonId?: string, 
+    winnerId?: string
+}>();
 
 const leaderboardLastUpdated = ref();
 const leaderboard = ref([]);
@@ -66,7 +72,11 @@ onMounted(() => {
 async function getLeaderboard() {
     try {
         loading.value = true;
-        const { data: leaderboardData, error: leaderboardError } = await leaderboardService.getGroupLeaderboard(props.groupId);
+
+        const { data: leaderboardData, error: leaderboardError } = props.seasonId
+            ? await seasonsService.getSeasonLeaderboard(props.seasonId)
+            : await leaderboardService.getGroupLeaderboard(props.groupId);
+            
         if (leaderboardError) throw new Error('Failed to load leaderboard');
         leaderboard.value = leaderboardData || [];
     
@@ -75,7 +85,10 @@ async function getLeaderboard() {
         }
 
         // Fetch group leaderboard history
-        const { data: historyData, error: scoresError } = await leaderboardService.getGroupLeaderboardHistory(props.groupId);
+        const { data: historyData, error: scoresError } = props.seasonId
+            ? await seasonsService.getSeasonLeaderboardHistory(props.seasonId)
+            : await leaderboardService.getGroupLeaderboardHistory(props.groupId);
+
         if (scoresError) throw new Error('Failed to load leaderboard history');
         leaderboardHistory.value = (historyData || []);
 
