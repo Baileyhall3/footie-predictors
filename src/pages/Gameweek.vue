@@ -32,7 +32,7 @@
                 </template>
                 <template #items>
                   <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
-                    Go to group
+                    Go to Group
                   </router-link>
                   <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item">
                     {{ gameweek?.season_name }}

@@ -28,10 +28,15 @@
                         </template>
                         <template #items>
                             <router-link :to="`/group/${season?.group_id}`" class="text-blue-600 dropdown-item">
-                                Go to group
+                                Go to Group
                             </router-link>
                             <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item" v-if="activeGameweek">
                                 Gameweek {{ activeGameweek?.week_number }}
+                            </router-link>
+                            <router-link :to="`/group/${season?.group_id}/create-gameweek`" v-if="isAdmin && !season?.is_finished">
+                                <button class="dropdown-item">
+                                    Create Gameweek
+                                </button>
                             </router-link>
                             <template v-if="isAdmin && !season?.end_date">
                                 <button class="dropdown-item" @click="endSeason">
@@ -60,7 +65,22 @@
                     </div>
                 </template>
             </PageHeader>
-            <Tabs v-model="activeTabIndex">
+
+            <!-- 🛠️ -->
+            <RoundedContainer v-if="!season?.start_date" class="mx-auto text-center">
+                <h1 class="text-7xl font-semibold mb-2">🛠️</h1>
+                <h2 class="text-xl font-semibold mb-2">Season does not have a start date yet</h2>
+                <template v-if="isAdmin">
+                    <p class="text-gray-600 mb-6">Set up the season's first gameweek now to begin predicting!</p>
+                    <router-link :to="`/group/${season?.group_id}/create-gameweek`">
+                        <button class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition">
+                            Create Gameweek
+                        </button>
+                    </router-link>
+                </template>
+                <p v-else class="text-gray-600 mb-6">Group owner must set a season start date before predictions can be made.</p>
+            </RoundedContainer>
+            <Tabs v-model="activeTabIndex" v-else>
                 <Tab header="Overview">
                     <template v-if="season?.is_finished && leaderboard && leaderboard.length > 0">
                         <GameweekWinnerCard 

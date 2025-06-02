@@ -11,7 +11,7 @@
             <!-- Dropdown Menu -->
             <Transition name="fade-slide">
                 <template v-if="dropdownOpen">
-                    <div class="absolute right-0 w-32 bg-white shadow-lg rounded-md border z-50">
+                    <div class="absolute right-0 bg-white shadow-lg rounded-md border z-50" style="width: max-content;">
                         <slot name="items"></slot>
                     </div>
                 </template>

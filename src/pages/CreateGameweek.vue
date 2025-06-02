@@ -36,15 +36,15 @@
         />
     
         <!-- Added Matches List -->
-          <div class="mt-4 mb-4" v-if="selectedMatches.length > 0">
-            <p class="text-lg font-semibold">Matches</p>
-            <ScoreCard 
-                :matches="selectedMatches"
-                canRemove
-                oneMatchPerRow
-                @match-removed="handleMatchRemoved"
-            />
-          </div>
+        <div class="mt-4 mb-4" v-if="selectedMatches.length > 0">
+          <p class="text-lg font-semibold">Matches</p>
+          <ScoreCard 
+              :matches="selectedMatches"
+              canRemove
+              oneMatchPerRow
+              @match-removed="handleMatchRemoved"
+          />
+        </div>
     
         <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
   

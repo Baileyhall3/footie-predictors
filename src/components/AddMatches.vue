@@ -125,7 +125,7 @@
             <button 
                 @click="addMatch" 
                 :disabled="!manuallySelectedMatch.home_team || !manuallySelectedMatch.away_team || !manuallySelectedMatch.match_time" 
-                class="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:opacity-50"
+                class="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:opacity-50 w-full"
             >
                 Add Match
             </button>

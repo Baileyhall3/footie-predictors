@@ -20,7 +20,7 @@ export interface Group {
     name: string,
     admin_id: string,
     created_at: string,
-    descripton: string | null,
+    description: string | null,
     exact_score_points: number,
     correct_result_points: number,
     incorrect_points: number | null,

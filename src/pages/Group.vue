@@ -44,6 +44,11 @@
                       Edit
                     </button>
                   </router-link>
+                  <router-link :to="`/group/${group?.id}/create-gameweek`" v-if="isGroupOwner && !activeSeason?.is_finished">
+                    <button class="dropdown-item">
+                      Create Gameweek
+                    </button>
+                  </router-link>
                   <router-link :to="`/group/${group?.id}/create-season`" v-if="isGroupOwner">
                     <button class="dropdown-item">
                       New season
@@ -60,7 +65,7 @@
               </Dropdown>
           </template>
           <template #details>
-            <p class="text-gray-500">{{ group.description || 'No description available' }}</p>
+            <p class="text-gray-500">{{ group?.description || 'No description available' }}</p>
           </template>
         </PageHeader>
         <Tabs>
@@ -107,14 +112,11 @@
               </RoundedContainer>
             </div>
 
-            <RoundedContainer v-if="gameweeks.length === 0" class="mx-auto text-center">
+            <RoundedContainer v-if="gameweeks.length === 0 && !activeSeason?.is_finished" class="mx-auto text-center">
               <h2 class="text-xl font-semibold mb-2">You haven't created a gameweek yet</h2>
               <p class="text-gray-600 mb-6">Set one up now to start predicting with your group members!</p>
-              
-              <router-link :to="`/group/${group.id}/create-gameweek`">
-                <button @click="tryJoinGroup" 
-                  class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
-                >
+              <router-link :to="`/group/${group?.id}/create-gameweek`">
+                <button class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition">
                   Create Gameweek
                 </button>
               </router-link>

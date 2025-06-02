@@ -1,19 +1,30 @@
 <template>
     <TransitionGroup name="member-list" tag="div">
-        <component
-            v-for="member in visibleMembers"
-            :is="rowTag"
+        <div v-for="member in visibleMembers"
             :key="member.id"
-            class="flex justify-between items-center border-b py-3 hover:bg-gray-100"
-            v-bind="rowTag === RouterLink ? { to: memberPath(member.id) } : {}"
+            class="flex justify-between items-center border-b py-3"
         >
             <div class="flex items-center space-x-2">
-                <div class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
+                <!-- <div class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
                     :style="{ backgroundColor: member.bg_colour || '#ccc' }"
                 >
                     {{ member.username.charAt(0).toUpperCase() }}
                 </div>
-                    {{ member.username }}
+                {{ member.username }} -->
+                <component
+                    :is="props.includeProfileLink ? 'router-link' : 'span'"
+                    :to="props.includeProfileLink ? `/user-group-profile/${props.groupId}/${member.id}` : undefined"
+                >
+                    <div class="flex items-center space-x-2">
+                        <div
+                            class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
+                            :style="{ backgroundColor: member.bg_colour || '#ccc' }"
+                        >
+                            {{ member.username.charAt(0).toUpperCase() }}
+                        </div>
+                        {{ member.username }}
+                    </div>
+                </component>
                 <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                     You
                 </span>
@@ -48,7 +59,7 @@
                     </button>
                 </template>
             </Dropdown>
-        </component>
+        </div>
     </TransitionGroup>
     <div v-if="hasMoreMembers" class="text-center mt-4">
         <button 
