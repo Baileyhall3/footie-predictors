@@ -41,9 +41,6 @@
                     <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
                       {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                     </button>
-                    <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
-                      {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
-                    </button>
                     <button @click="deleteGameweek" class="dropdown-item text-red-700">
                       Delete
                     </button>
@@ -148,14 +145,12 @@
               </div>
               <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
             </RoundedContainer>
-            <!-- <RoundedContainer headerText="Potential Finishes">
+            <RoundedContainer headerText="Potential Finishes">
               <PotentialFinishGrid 
                 :scoringSystem="potentialFinishData.scoringSystem"
-                :users="potentialFinishData.users"
-                :predictions="potentialFinishData.predictions"
-                :matches="potentialFinishData.matches"
+                :userPredictions="potentialFinishData.userPredictions"
               />
-            </RoundedContainer> -->
+            </RoundedContainer>
           </Tab>
         </Tabs>
       </template>
@@ -191,7 +186,7 @@ import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
 import PotentialFinishGrid from '../components/PotentialFinishGrid.vue';
 import DoesNotExist from '../components/DoesNotExist.vue';
-import { Gameweek } from '../types';
+import { Gameweek, Prediction } from '../types';
 
 const route = useRoute();
 const router = useRouter();
@@ -210,7 +205,7 @@ const leaderboard = ref([]);
 const userGameweekScore = ref();
 const gameweekWinner = ref();
 const leaderboardLastUpdated = ref();
-const potentialFinishData = ref({ scoringSystem: {}, users: [], predictions: [], matches: [] });
+const potentialFinishData = ref({ scoringSystem: {}, userPredictions: [] });
 const gameweekExists = ref<boolean>(true);
 
 const isAdmin = ref(false);
@@ -335,35 +330,43 @@ function mapPotentialFinishData(leaderboardData: any[], groupData: any, matchDat
     exactScorePoints: groupData.exact_score_points,
     correctResultPoints: groupData.correct_result_points,
     incorrectResultPoints: groupData.incorrect_points
-  }
+  };
 
-  potentialFinishData.value.users = leaderboardData.map(user => ({
-    id: user.user_id,
+  const users = leaderboardData.map(user => ({
+    userId: user.user_id,
     username: user.username,
-    bgColor: user.bg_colour,
     currentPoints: user.total_points,
     currentPosition: user.position,
-    currentTotalCorrectScores: user.total_correct_scores
   }));
 
-  const unfinishedMatches = matchData.filter(x => x.final_home_score === null && x.final_away_score === null)
-
-  potentialFinishData.value.matches = matchData.map(match => ({
-    id: match.id,
-    homeTeam: match.home_team,
-    awayTeam: match.away_team,
-    actualScore: (
-      match.final_home_score !== null && match.final_away_score !== null
-    ) ? { home: match.final_home_score, away: match.final_away_score } : null
-  }));
-
-  potentialFinishData.value.predictions = predictionsData.map(pred => ({
+  const predictions = predictionsData.map(pred => ({
     userId: pred.user_id,
-    matchId: pred.match_id,
+    matchId: String(pred.match_id), // make sure matchId is a string
     homeScore: pred.predicted_home_score,
     awayScore: pred.predicted_away_score
   }));
+
+  // Group predictions by userId
+  const predictionsByUser = predictions.reduce((acc, pred) => {
+    if (!acc[pred.userId]) acc[pred.userId] = [];
+    acc[pred.userId].push({
+      matchId: pred.matchId,
+      homeScore: pred.homeScore,
+      awayScore: pred.awayScore
+    });
+    return acc;
+  }, {} as Record<string, Prediction[]>);
+
+  // Combine into UserPrediction[]
+  potentialFinishData.value.userPredictions = users.map(user => ({
+    username: user.username,
+    userId: user.userId,
+    currentPoints: user.currentPoints,
+    currentPosition: user.currentPosition,
+    predictions: predictionsByUser[user.userId] || []
+  }));
 }
+
   
 function toggleEditMode() {
   editMode.value = !editMode.value;
@@ -467,7 +470,6 @@ async function saveScores() {
         match.final_away_score !== match.previous_away_score
       ) {
         await predictionsStore.updateMatchScore(match.id, match.final_home_score, match.final_away_score);
-        debugger
         // await predictionsService.calculateMatchScores(match.id);
       }
     } catch(err) {

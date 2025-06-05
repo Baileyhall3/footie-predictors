@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 import { supabaseDb } from './supabaseDb'
 
 /**
- * Service for managing groups and group memberships
+ * Service for managing seasons
  */
 export const seasonsService = {
 
@@ -25,8 +25,8 @@ export const seasonsService = {
   },
 
   /**
-   * Create a new group
-   * @param {object} seasonData - Group data
+   * Create a new season
+   * @param {object} seasonData - Season data
    * @returns {Promise<{data: Object, error: Object}>}
    */
   async createSeason(seasonData) {
@@ -50,7 +50,7 @@ export const seasonsService = {
   /**
    * Update a season
    * @param {string} id - Season ID
-   * @param {Object} data - Updated group data
+   * @param {Object} data - Updated season data
    * @returns {Promise<{data: Object, error: Object}>}
    */
   async updateSeason(id, data) {

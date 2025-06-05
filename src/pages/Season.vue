@@ -115,14 +115,14 @@
                             :totalPoints="totalPoints"
                             matchesClickable
                         >
-                        <template #headerActionItems>
-                            <router-link 
-                                :to="`/gameweek/${activeGameweek?.id}`" 
-                                class="text-sm text-blue-600 hover:underline"
-                            >
-                                Gameweek {{ activeGameweek?.week_number }}
-                            </router-link>
-                        </template>
+                            <template #headerActionItems>
+                                <router-link 
+                                    :to="`/gameweek/${activeGameweek?.id}`" 
+                                    class="text-sm text-blue-600 hover:underline"
+                                >
+                                    Gameweek {{ activeGameweek?.week_number }}
+                                </router-link>
+                            </template>
                         </ScoreCard2>
                     </template>
                     <template v-else>

@@ -40,6 +40,10 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  seasonId: {
+    type: Number,
+    required: true,
+  },
 });
 const emit = defineEmits(["user-created"]);
 
@@ -64,7 +68,7 @@ const confirm = async() => {
   }
   else {
     try {
-      const { data: createdUser, error: createdUserError } = await groupsService.addFakeUserToGroup(props.groupId, username.value);
+      const { data: createdUser, error: createdUserError } = await groupsService.addFakeUserToGroup(props.groupId, username.value, false, props.seasonId);
       if (createdUserError) {
         errorMessage.value = createdUserError;
         throw new Error('Failed to create user');

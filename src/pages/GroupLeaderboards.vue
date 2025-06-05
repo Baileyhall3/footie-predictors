@@ -35,6 +35,32 @@
                 <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
             </div>
 
+            <RoundedContainer headerText="All-Time Grid">
+                <DataGrid 
+                    :data="leaderboard" 
+                    hideVerticalLines 
+                    hideBorder
+                    headerBgColor="rgb(22 157 74 /1)"
+                >
+                    <template #columns="{ row }">
+                        <GridCol field="position" colName="Pos" :row="row" width="40px">
+                            <template #display="{ row }">
+                                <span class="font-medium w-6 text-center">{{ row.position }}.</span>
+                            </template>
+                        </GridCol>
+                        <GridCol field="username" colName="Username" :row="row" width="200px">
+                            <template #display="{ row }">
+                                <UsernameDisplay :user="row" />
+                            </template>
+                        </GridCol>
+                        <GridCol field="total_points" colName="Pts" :row="row" width="60px" colTitle="Total Points" />
+                        <GridCol field="total_correct_scores" colName="CS" :row="row" width="60px" colTitle="Correct Scores" />
+                        <GridCol field="total_correct_results" colName="CR" :row="row" width="60px" colTitle="Correct Results" />
+                        <GridCol field="gameweek_wins" colName="GWW" :row="row" width="60px" colTitle="Gameweek Wins" />
+                    </template>
+                </DataGrid>
+            </RoundedContainer>
+
             <!-- Current gameweek leaderboard -->
             <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="Object.keys(currentGameweek).length > 0">
                 <div v-if="scores.length">
@@ -135,6 +161,11 @@ import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
 import PageHeader from '../components/PageHeader.vue';
 import { LookupOption } from '../components/UI/Lookup.vue';
+import RoundedContainer from '../components/UI/RoundedContainer.vue';
+import DataGrid from '../components/UI/grid/DataGrid.vue';
+import GridCol from '../components/UI/grid/GridCol.vue';
+import { LeaderboardEntry } from '../types';
+import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
 
 interface LeaderboardRecord {
     id: string;
@@ -150,7 +181,7 @@ const notInGroup = ref(false);
 const groupId = ref(null);
 const members = ref([]);
 const isAdmin = ref(false)
-const leaderboard = ref([]);
+const leaderboard = ref<Array<LeaderboardEntry>>([]);
 const currentGameweek = ref({});
 const scores = ref([]);
 const leaderboardLastUpdated = ref();

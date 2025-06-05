@@ -150,7 +150,19 @@ export const predictionsService = {
    */
   async getGameweekPredictions(gameweekId, onlyFakeUsers = false) {
     try {
-      const { data, error } = await supabaseDb.customQuery((supabase) => {
+      const { data, error } = await supabaseDb.customQuery(async (supabase) => {
+        // Step 1: Get all match IDs for the gameweek
+        const { data: matchRows, error: matchError } = await supabase
+          .from('matches')
+          .select('id')
+          .eq('gameweek_id', gameweekId);
+
+        if (matchError) throw matchError;
+        if (!matchRows || matchRows.length === 0) return [];
+
+        const matchIds = matchRows.map((match) => match.id);
+
+        // Step 2: Get predictions that match those match IDs
         let query = supabase
           .from('predictions')
           .select(`
@@ -170,30 +182,27 @@ export const predictionsService = {
               final_away_score
             )
           `)
-          .eq('matches.gameweek_id', gameweekId)
-          .order('match_time', { foreignTable: 'matches', ascending: true }) // Sort by match time
+          .in('match_id', matchIds)
+          .order('match_time', { foreignTable: 'matches', ascending: true });
 
-        // Apply filtering to return only fake users' predictions
         if (onlyFakeUsers) {
-          query = query.eq('users.is_fake', true)
+          query = query.eq('users.is_fake', true);
         }
 
-        return query
-      })
+        const { data: predictions, error: predictionError } = await query;
 
-      if (error) throw error
+        if (predictionError) throw predictionError;
 
-      // If onlyFakeUsers is true and no predictions exist, return null
-      if (onlyFakeUsers && (!data || data.length === 0)) {
-        return { data: [], error: null }
-      }
+        return { data: predictions, error: null };
+      });
 
-      return { data, error: null }
+      return { data, error: null };
     } catch (error) {
-      console.error('Error fetching gameweek predictions:', error)
-      return { data: null, error }
+      console.error('Error fetching gameweek predictions:', error);
+      return { data: null, error };
     }
   },
+
 
   /**
    * Create or update a prediction

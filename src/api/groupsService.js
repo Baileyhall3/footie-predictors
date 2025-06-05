@@ -228,7 +228,7 @@ export const groupsService = {
     const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
       user_id: userId,
       group_id: groupId,
-    });
+    }); // need to add seasonID here too
 
     if (leaderboardError) {
       console.error('Error adding user to leaderboard:', leaderboardError);
@@ -281,46 +281,53 @@ export const groupsService = {
    * Create a fake user and add them to a group
    * @param {string} groupId - Group ID where the fake user should be added
    * @param {string} username - Fake user's username
+   * @param {string} seasonId - The season ID for which to insert into the leaderboard
    * @returns {Promise<{data: Object, error: Object}>}
    */
-  async addFakeUserToGroup(groupId, username, isAdmin = false) {
-    // Step 1: Insert fake user into users table
-    const { data: userData, error: userError } = await supabaseDb.create('users', {
-      username,
-      is_fake: true
-    });
+  async addFakeUserToGroup(groupId, username, isAdmin = false, seasonId) {
+    try {
 
-    if (userError) {
-      console.error('Error creating fake user:', userError);
-      return { data: null, error: userError };
+      const { data: userData, error: userError } = await supabaseDb.create('users', {
+        username,
+        is_fake: true
+      });
+  
+      if (userError) {
+        console.error('Error creating fake user:', userError);
+        return { data: null, error: userError };
+      }
+  
+      const fakeUserId = userData.id; // Assuming the inserted user data contains the ID
+  
+      // Step 2: Add the fake user to the group
+      const { data: memberData, error: memberError } = await supabaseDb.create('group_members', {
+        group_id: groupId,
+        user_id: fakeUserId,
+        is_admin: isAdmin
+      });
+  
+      if (memberError) {
+        console.error('Error adding fake user to group:', memberError);
+        return { data: null, error: memberError };
+      }
+  
+      // Insert the new user into the leaderboard with total_points = 0
+      const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
+        user_id: fakeUserId,
+        group_id: groupId,
+        season_id: seasonId
+      });
+  
+      if (leaderboardError) {
+        console.error('Error adding user to leaderboard:', leaderboardError);
+        return { data: null, error: leaderboardError };
+      }
+  
+      return { data: { memberData, leaderboardData }, error: null };
+    } catch (err) {
+      console.error('Error creating member ', err);
+      return { data: null, err }
     }
-
-    const fakeUserId = userData.id; // Assuming the inserted user data contains the ID
-
-    // Step 2: Add the fake user to the group
-    const { data: memberData, error: memberError } = await supabaseDb.create('group_members', {
-      group_id: groupId,
-      user_id: fakeUserId,
-      is_admin: isAdmin
-    });
-
-    if (memberError) {
-      console.error('Error adding fake user to group:', memberError);
-      return { data: null, error: memberError };
-    }
-
-    // Insert the new user into the leaderboard with total_points = 0
-    const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
-      user_id: fakeUserId,
-      group_id: groupId,
-    });
-
-    if (leaderboardError) {
-      console.error('Error adding user to leaderboard:', leaderboardError);
-      return { data: null, error: leaderboardError };
-    }
-
-    return { data: { memberData, leaderboardData }, error: null };
   },
 
   /**

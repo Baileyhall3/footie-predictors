@@ -64,6 +64,7 @@ import AddMatches from '../components/AddMatches.vue';
 import NoAccess from '../components/NoAccess.vue';
 import { userIsAdmin } from '../utils/checkPermissions';
 import { groupsStore } from '../store/groupsStore';
+import { seasonsService } from '../api/seasonsService';
   
 const route = useRoute();
 const router = useRouter();
@@ -76,15 +77,27 @@ const setActive = ref(true);
 const loading = ref(false);
 const errorMessage = ref();
 const isAdmin = ref(false);
+const groupExists = ref(true);
 
 const minDateTime = computed(() => {
-    return new Date();
+  return new Date();
 });
 
 onMounted(async () => {
   loading.value = true;
 
-  const { data: gameweeks } = await gameweeksService.getGameweeks(groupId);
+  const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(groupId);
+  console.log(groupError)
+  if (groupError && groupError.code === "PGRST116") {
+    groupExists.value = false;
+    loading.value = false;
+    return;
+  }
+  if (groupError) throw new Error('Failed to load group details');
+
+  const { data: gameweeks, error } = await seasonsService.getSeasonGameweeks(groupData.active_season_id);
+
+  // const { data: gameweeks } = await gameweeksService.getGameweeks(groupId);
   weekNumber.value = (gameweeks?.length || 0) + 1;
 
   const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(groupId);

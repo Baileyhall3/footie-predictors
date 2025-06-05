@@ -56,16 +56,17 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { userIsAdmin } from '../utils/checkPermissions';
 import NoAccess from '../components/NoAccess.vue';
+import { Gameweek } from '../types';
 
 const route = useRoute();
 
-const loading = ref(true);
+const loading = ref<boolean>(true);
 const matches = ref([]);
-const gameweekId = ref();
-const gameweek = ref([]);
-const showAllUsers = ref(false);
-const currentUserId = ref();
-const isAdmin = ref(false);
+const gameweekId = ref<string>();
+const gameweek = ref<Array<Gameweek>>([]);
+const showAllUsers = ref<boolean>(false);
+const currentUserId = ref<string>();
+const isAdmin = ref<boolean>(false);
 
 // Group predictions by user
 const groupedPredictions = ref();
@@ -88,7 +89,7 @@ async function fetchGameweek() {
     if (error) return console.error(error);
     gameweek.value = data;
 
-    const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(gameweekId.value.group_id);
+    const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(gameweek.value.group_id);
     if (membersError) throw new Error('Failed to load group members');
 
     isAdmin.value = userIsAdmin(membersData);

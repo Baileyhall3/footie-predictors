@@ -58,7 +58,7 @@
                     <button @click="updateMemberStatus(false)" 
                       class="dropdown-item text-red-700"
                     >
-                      Leave group
+                      Leave Group
                     </button>
                   </template>
                 </template>
@@ -161,7 +161,7 @@
             </div>
           </Tab>
           <Tab :header="`Gameweek ${activeGameweek.week_number}`" v-if="activeGameweek">
-            <RoundedContainer headerText="Gameweek Stats">
+            <RoundedContainer headerText="Gameweek Stats" v-if="activeGameweek.is_locked">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
                   <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
@@ -169,7 +169,7 @@
                   <StatRow icon="🎯" label="Most Correct Scores" :value="`${userMostCorrectScores.total_correct_scores} (${userMostCorrectScores.username}) `" />
               </div>
             </RoundedContainer>
-            <RoundedContainer v-if="activeGameweek">
+            <RoundedContainer>
               <ScoreCard
                   v-if="Object.keys(predictions).length > 0"
                   :matches="matches"
@@ -294,7 +294,7 @@
 
   <PinDialog ref="pinDialog" :groupPin="String(group?.group_pin)" @submit-pin="updateMemberStatus(true)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
-  <CreateGroupMember ref="createMemberDialog" :groupId="groupId" @user-created="getGroupMembers(); getLeaderboard();" />
+  <CreateGroupMember ref="createMemberDialog" :groupId="groupId" :seasonId="activeSeason?.id" @user-created="getGroupMembers(); getLeaderboard();" />
 </template>
 
 <script setup lang="ts">
@@ -585,7 +585,8 @@ async function updateMemberStatus(isJoining) {
     try {
       const { success, error: joinError } = await groupsStore.addMember(
         groupId.value,
-        userStore.user.id
+        userStore.user.id,
+        // activeSeason.value?.id
       );
   
       if (joinError) throw new Error('Failed to join group');

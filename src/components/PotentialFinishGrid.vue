@@ -1,29 +1,34 @@
 <template>
-    <div class="overflow-x-auto">
-        <table class="table-auto border-collapse w-full text-center">
-            <thead>
-                <tr>
-                    <th class="text-left px-2">User</th>
-                    <th v-for="pos in userCount" :key="pos">{{ pos }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="user in users" :key="user.id">
-                    <td class="flex items-center gap-2 px-2 py-1">
-                        <!-- <img :src="user.avatar" class="w-6 h-6 rounded-full" /> -->
-                        {{ user.username }}
-                    </td>
-                    <td
-                        v-for="pos in userCount"
-                        :key="pos"
-                        :class="cellClass(user.id, pos)"
-                    >
-                        {{ positionCounts[user.id]?.[pos] || '' }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+  <div class="overflow-x-auto">
+    <table class="table-fixed border-collapse">
+      <thead>
+        <tr>
+          <th class="w-24 border p-2 text-left">User</th>
+          <th
+            v-for="pos in maxPosition"
+            :key="pos"
+            class="w-16 border p-2 text-center"
+          >
+            {{ pos }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="user in users" :key="user.username">
+          <td class="border p-2 font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[6rem]">
+            {{ user.username }}
+          </td>
+          <td
+            v-for="pos in maxPosition"
+            :key="pos"
+            class="border p-2 text-center"
+            :class="getCellClass(user.username, pos)"
+          >
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -35,155 +40,183 @@ type ScoringSystem = {
     incorrectResultPoints: number
 }
 
-type User = {
-    id: string,
-    username: string,
-    bgColor: string
-    currentPoints: number | null,
-    currentPosition: number,
-    currentTotalCorrectScores: number | null
-}
-
 type Prediction = {
-    userId: string,
     matchId: string,
     homeScore: number
     awayScore: number
 }
 
-type Match = {
-    id: string,
-    homeTeam: string,
-    awayTeam: string,
-    actualScore: { home: number, away: number } | null
+type UserPrediction = {
+  username: string,
+  userId: string,
+  currentPoints: number,
+  currentPosition: number,
+  predictions: Prediction[]
 }
 
 export interface IProps {
-    scoringSystem: ScoringSystem,
-    users: User[],
-    predictions: Prediction[],
-    matches: Match[]
+    scoringSystem?: ScoringSystem,
+    userPredictions: UserPrediction[],
 }
 
-const props = defineProps<IProps>();
+const props = withDefaults(defineProps<IProps>(), {
+  scoringSystem: { exactScorePoints: 3, correctResultPoints: 1, incorrectResultPoints: 0 },
+});
 
-const positionCounts = ref({})
-const worstPositions = ref<Record<string, number>>({})
+const scenarios = computed(() => simulateGameweek(props.userPredictions, props.scoringSystem));
+const positionMap = computed(() => computePositionMatrix(scenarios.value));
 
-// Computed user count
-const userCount = computed(() => props.users.length)
+const users = props.userPredictions;
+const maxPosition = Math.max(...users.map(u => users.length));
 
-// Utility function: compare predicted result to actual
-function getPoints(pred, actual, scoringSystem) {
-  if (pred.homeScore === actual.home && pred.awayScore === actual.away) {
-    return scoringSystem.exact_score_points
-  }
+onMounted(() => {
+    const scenarios = simulateGameweek(props.userPredictions, props.scoringSystem);
 
-  const predResult = pred.homeScore === pred.awayScore
-    ? 'draw'
-    : pred.homeScore > pred.awayScore ? 'home' : 'away'
+    const scoresOnly = scenarios.map(x => x.userScores);
+    console.log('scenarios ', scoresOnly)
+});
 
-  const actualResult = actual.home === actual.away
-    ? 'draw'
-    : actual.home > actual.away ? 'home' : 'away'
-
-  return predResult === actualResult
-    ? scoringSystem.correct_result_points
-    : scoringSystem.incorrect_points
+function getResultType(home: number, away: number) {
+  if (home > away) return 'H';
+  if (home < away) return 'A';
+  return 'D';
 }
 
-// Main simulation function
-// Main simulation function
-function simulateOutcomes() {
-  const unfinishedMatches = props.matches.filter(m => m.actualScore == null)
-  const outcomes = generateAllMatchOutcomes(unfinishedMatches)
-  const userScoresPerSimulation = []
-  const tempWorst = {} as Record<string, number>
+function extractPossibleOutcomes(predictions: UserPrediction[]) {
+    const matchOutcomes = new Map();
 
-  // Reset counts
-  positionCounts.value = {}
+    for (const user of predictions) {
+        for (const pred of user.predictions) {
+            if (!matchOutcomes.has(pred.matchId)) {
+                matchOutcomes.set(pred.matchId, new Set());
+            }
+            matchOutcomes.get(pred.matchId).add(`${pred.homeScore}-${pred.awayScore}`);
+        }
+    }
 
-  for (const outcome of outcomes) {
-    const allScores: Record<string, number> = {}
+    // Convert Set to Array and add 'unpredicted' outcome
+    const matchOutcomesArr = Array.from(matchOutcomes.entries())
+        .sort(([a], [b]) => a - b) // Ensure matchId order
+        .map(([matchId, outcomes]) => {
+            const arr = Array.from(outcomes);
+            // Add a dummy value that no user predicted to simulate all-wrong
+            arr.push("UNPREDICTED");
+            return { matchId, outcomes: arr };
+        });
 
-    for (const user of props.users) {
-      let total = user.currentPoints ?? 0
+    return matchOutcomesArr;
+}
 
-      for (const match of unfinishedMatches) {
-        const pred = props.predictions.find(
-          p => p.userId === user.id && p.matchId === match.id
-        )
-        if (pred) {
-          const simulatedScore = outcome[match.id]
-          total += getPoints(pred, simulatedScore, props.scoringSystem)
+
+function cartesianProduct(arrays) {
+    return arrays.reduce((acc, curr) => {
+        return acc.flatMap(a => curr.outcomes.map(b => [...a, { matchId: curr.matchId, outcome: b }]));
+    }, [[]]);
+}
+
+function simulateGameweek(predictions: UserPrediction[], scoringSystem: ScoringSystem) {
+  const matchOutcomesArr = extractPossibleOutcomes(predictions);
+  const allCombinations = cartesianProduct(matchOutcomesArr);
+
+  const scenarios = [];
+
+  for (const combination of allCombinations) {
+    const userScores = predictions.map(user => {
+      let totalAdded = 0;
+
+      for (const { matchId, outcome } of combination) {
+        if (outcome === "UNPREDICTED") {
+          // No user got this correct
+          continue;
+        }
+
+        const [simHome, simAway] = outcome.split('-').map(Number);
+        const simulatedResult = getResultType(simHome, simAway);
+
+        const pred = user.predictions.find(p => p.matchId === matchId);
+        if (!pred) continue;
+
+        const isExact = pred.homeScore === simHome && pred.awayScore === simAway;
+        const isCorrectResult = getResultType(pred.homeScore, pred.awayScore) === simulatedResult;
+
+        if (isExact) {
+          totalAdded += scoringSystem.exactScorePoints;
+        } else if (isCorrectResult) {
+          totalAdded += scoringSystem.correctResultPoints;
+        } else {
+          totalAdded += scoringSystem.incorrectResultPoints;
         }
       }
 
-      allScores[user.id] = total
-    }
+      return {
+        user: user.username,
+        totalPoints: user.currentPoints + totalAdded
+      };
+    });
 
-    // Sort by score desc, assign positions (with ties)
-    const sorted = Object.entries(allScores).sort((a, b) => b[1] - a[1])
+    // Sort for positions
+    const sorted = [...userScores].sort((a, b) => b.totalPoints - a.totalPoints);
+    sorted.forEach((u, i) => (u.position = i + 1));
 
-    let currentRank = 1
-    for (let i = 0; i < sorted.length; i++) {
-      const [userId, score] = sorted[i]
-      if (i > 0 && score < sorted[i - 1][1]) {
-        currentRank = i + 1
-      }
+    scenarios.push({
+      combination,
+      userScores: sorted
+    });
+  }
 
-      // Update positionCounts
-      if (!positionCounts.value[userId]) positionCounts.value[userId] = {}
-      if (!positionCounts.value[userId][currentRank]) positionCounts.value[userId][currentRank] = 0
-      positionCounts.value[userId][currentRank]++
+  // Deduplicate based on userScores
+  const deduplicatedScenarios = [];
+  const seen = new Set();
 
-      // Track worst position
-      if (!tempWorst[userId] || currentRank > tempWorst[userId]) {
-        tempWorst[userId] = currentRank
-      }
+  for (const scenario of scenarios) {
+    const key = JSON.stringify(
+      scenario.userScores
+        .map(u => ({ user: u.user, totalPoints: u.totalPoints, position: u.position }))
+        .sort((a, b) => a.user.localeCompare(b.user)) // sort to ensure stable key
+    );
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduplicatedScenarios.push(scenario);
     }
   }
 
-  // ✅ Move this outside the loop
-  worstPositions.value = tempWorst
+  return deduplicatedScenarios;
 }
 
+function computePositionMatrix(scenarios) {
+  const positionMap = new Map();
 
-// Generates all possible match outcomes for unfinished matches
-function generateAllMatchOutcomes(matches) {
-  const outcomes = []
-
-  function backtrack(i, acc) {
-    if (i === matches.length) {
-      outcomes.push({ ...acc })
-      return
+  for (const scenario of scenarios) {
+    for (const { user, position } of scenario.userScores) {
+      if (!positionMap.has(user)) {
+        positionMap.set(user, new Set());
+      }
+      positionMap.get(user).add(position);
     }
-
-    const match = matches[i]
-    const predictedScores = getDistinctPredictedScores(match.id) // ["1‑0","0‑0", …]
-
-    // 1️⃣  EXACT‑score branch
-    for (const scoreStr of predictedScores) {
-      acc[match.id] = strToScore(scoreStr)
-      backtrack(i + 1, acc)
-    }
-
-    // 2️⃣  NOT‑exact branch (pick one un‑predicted score with same result type)
-    // Use the first user’s prediction to decide desired result type
-    const firstPred = props.predictions.find(p => p.matchId === match.id)
-    const desiredResult =
-      firstPred.homeScore === firstPred.awayScore
-        ? 'draw'
-        : firstPred.homeScore > firstPred.awayScore
-        ? 'home'
-        : 'away'
-
-    acc[match.id] = randomUnpredictedScore(match.id, desiredResult)
-    backtrack(i + 1, acc)
   }
 
-  backtrack(0, {})
-  return outcomes          // ≤ 2^matches.length scenarios
+  return positionMap;
+}
+
+function getCellClass(username: string, pos: number) {
+  const possiblePositions = positionMap.value.get(username) ?? new Set();
+
+  if (!possiblePositions.has(pos)) {
+    return 'bg-gray-200';
+  }
+
+  const user = users.find(u => u.username === username);
+  const positions = Array.from(positionMap.value.get(username) ?? []);
+
+  const min = Math.min(...positions);
+  const max = Math.max(...positions);
+
+  if (user?.currentPosition === pos) return 'bg-blue-300'; // current
+  if (pos === min) return 'bg-green-300'; // best
+  if (pos === max) return 'bg-red-300'; // worst
+
+  return 'bg-yellow-100'; // other valid finish
 }
 
 // Cell class for grid visualization
@@ -197,8 +230,6 @@ function cellClass(userId, pos) {
   const isCurrentPos = pos === user.currentPosition
   const isWorstPos = pos === worstPositions[userId]
 
-  debugger
-
   return {
     'bg-purple-800 text-white': count === max && count > 0,
     'bg-purple-300': count && count < max,
@@ -208,49 +239,4 @@ function cellClass(userId, pos) {
   }
 }
 
-// Placeholder: replace with real rank based on current standings
-function getCurrentPosition(userId: string) {
-  const user = props.users.find(u => u.id === userId)
-  return user?.currentPosition ?? null
-}
-
-/** Distinct scores predicted for a match, e.g. ["1‑0","2‑1"] */
-function getDistinctPredictedScores(matchId: string) {
-  const set = new Set(
-    props.predictions
-      .filter(p => p.matchId === matchId)
-      .map(p => `${p.homeScore}-${p.awayScore}`)
-  )
-  return Array.from(set)
-}
-
-/** Convert "2-1" → {home:2, away:1} */
-function strToScore(scoreStr) {
-  const [h, a] = scoreStr.split('-').map(Number)
-  return { home: h, away: a }
-}
-
-/** Generate a score nobody predicted but with the same result type */
-function randomUnpredictedScore(matchId: string, desiredResult) {
-  const tried = new Set(getDistinctPredictedScores(matchId))
-  while (true) {
-    const home = Math.floor(Math.random() * 4)   // 0‑3
-    const away = Math.floor(Math.random() * 4)
-    const key = `${home}-${away}`
-    if (tried.has(key)) continue
-
-    const res =
-      home === away
-        ? 'draw'
-        : home > away
-        ? 'home'
-        : 'away'
-
-    if (res === desiredResult) return { home, away }
-  }
-}
-
-onMounted(() => {
-    simulateOutcomes()
-})
 </script>
