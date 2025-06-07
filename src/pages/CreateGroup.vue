@@ -164,7 +164,6 @@ const errorMessage = ref('');
 const isSubmitting = ref(false);
 const selectedFile = ref(undefined);
 
-// Reactive form data
 const groupData = ref({
   name: '',
   scoring_system: 'classic',

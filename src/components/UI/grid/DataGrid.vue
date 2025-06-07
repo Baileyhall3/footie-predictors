@@ -17,64 +17,112 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, computed, ref } from 'vue';
+import { onMounted, provide, computed, ref, reactive } from 'vue';
 import RowProvider from './RowProvider.vue';
+import { SortOrder } from '../SortButton.vue';
+import { GridColProps } from './GridCol.vue';
 
-const props = defineProps<{
+export interface GridProps {
     data: Record<string, any>[],
     hideVerticalLines?: boolean,
     hideHorizontalLines?: boolean,
     hideBorder?: boolean,
     headerBgColor?: string,
     sortField?: string,
-    sortOrder?: 'asc' | 'desc'
-}>();
+    sortOrder?: 'asc' | 'desc',
+    bgColor?: string
+}
+
+const props = defineProps<GridProps>();
+
+export type GridState = {
+    // data: Record<string, any>[],
+    currentSortField?: string,
+    currentSortOrder?: SortOrder
+    currentRow?: Record<string, any>
+    activeCell?: {
+        clickEvent: any,
+        row: Record<string, any> | undefined,
+        field: string,
+        colName: string,
+        width?: string,
+        colTitle?: string,
+        sortable?: boolean,
+        editable?: boolean,
+        type?: string,
+        isEditing: boolean
+    },
+    gridOptions: {
+        hasVerticalLines: boolean,
+        hasHorizontalLines: boolean,
+        hasBorder: boolean,
+        headerBgColor: string | undefined,
+        bgColor: string | undefined,
+    }
+    load: () => void
+    handleSort: (direction: SortOrder, field: string) => void
+}
+
+const gridState = reactive<GridState>({
+    // data: props.data,
+    currentSortField: props.sortField,
+    currentSortOrder: props.sortOrder,
+    gridOptions: {
+        hasVerticalLines: !props.hideVerticalLines,
+        hasHorizontalLines: !props.hideHorizontalLines,
+        hasBorder: !props.hideBorder,
+        headerBgColor: props.headerBgColor,
+        bgColor: 'white'
+    },
+    load: load,
+    handleSort: handleSort,
+});
 
 const emit = defineEmits<{
     (e: 'rowClick', row: Record<string, any>): void;
 }>();
 
-provide('hideHorizontalLines', props.hideHorizontalLines ?? false);
-provide('hideVerticalLines', props.hideVerticalLines ?? false);
-provide('handleSort', handleSort);
+provide('gridState', gridState);
 
 const gridKey = ref(0);
-const sortField = ref<string | undefined>(props.sortField);
-const sortOrder = ref<'asc' | 'desc' | undefined | null>(props.sortOrder);
 
 const sortedData = computed(() => {
-    if (!sortField.value || !sortOrder.value) return props.data;
+    if (!gridState.currentSortField || !gridState.currentSortOrder) return props.data;
 
     return [...props.data].sort((a, b) => {
-        const valA = a[sortField.value!];
-        const valB = b[sortField.value!];
+        const valA = a[gridState.currentSortField!];
+        const valB = b[gridState.currentSortField!];
 
         if (valA == null) return 1;
         if (valB == null) return -1;
 
         if (typeof valA === 'number' && typeof valB === 'number') {
-            return sortOrder.value === 'asc' ? valA - valB : valB - valA;
+            return gridState.currentSortOrder === 'asc' ? valA - valB : valB - valA;
         }
 
-        return sortOrder.value === 'asc'
+        return gridState.currentSortOrder === 'asc'
             ? String(valA).localeCompare(String(valB))
             : String(valB).localeCompare(String(valA));
     });
 });
 
-function onRowClick(row) {
+function onRowClick(row: Record<string, any>) {
     emit("rowClick", row);
-    console.log('row clicked: ', row)
+    gridState.currentRow = row;
 }
 
-function handleSort(direction: 'asc' | 'desc' | null, field: string) {
+function handleSort(direction: SortOrder, field: string) {
     if (direction === null) {
-        sortField.value = undefined;
-        sortOrder.value = undefined;
+        gridState.currentSortField = undefined;
+        gridState.currentSortOrder = undefined;
     } else {
-        sortField.value = field;
-        sortOrder.value = direction;
+        gridState.currentSortField = field;
+        gridState.currentSortOrder = direction;
     }
+    load();
+}
+
+function load() {
     gridKey.value++
 }
 
@@ -87,6 +135,7 @@ function handleSort(direction: 'asc' | 'desc' | null, field: string) {
   border-radius: 6px;
   overflow: hidden;
   overflow-x: auto;
+  background-color: white;
 }
 .data-grid.no-border {
     border: none;

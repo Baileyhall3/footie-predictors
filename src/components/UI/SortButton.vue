@@ -1,7 +1,7 @@
 <template>
     <div class="relative">
-        <component :is="currentSort === null ? ChevronUpDownIcon : currentSort === 'asc' ? ChevronUpIcon : ChevronDownIcon" 
-            :class="`size-${currentSort === null ? props.size : (props.size - 2)}`" @click="sortMenuOpen = !sortMenuOpen" 
+        <component :is="currentSort === null || currentSort === undefined ? ChevronUpDownIcon : currentSort === 'asc' ? ChevronUpIcon : ChevronDownIcon" 
+            :class="`size-${currentSort === null || currentSort === undefined ? props.size : (props.size - 2)}`" @click="sortMenuOpen = !sortMenuOpen" 
             style="margin-right: 0.2rem;"
         />
 
@@ -26,21 +26,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { ChevronUpDownIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/vue/24/solid';
 
+export type SortOrder = 'asc' | 'desc' | null | undefined;
+
 const props = withDefaults(defineProps<{
-    size?: number
+    size?: number,
+    currentSort?: SortOrder
 }>(), {
     size: 6
 });
 
 const emit = defineEmits<{
-    (e: 'sorted', direction: 'asc' | 'desc' | null): void;
+    (e: 'sorted', direction: SortOrder): void;
 }>();
 
 const sortMenuOpen = ref<boolean>(false);
-const currentSort = ref<null | 'asc' | 'desc'>(null);
+const currentSort = ref<SortOrder>(props.currentSort);
+
+watch(() => props.currentSort, (newVal) => {
+    currentSort.value = newVal;
+});
 
 function handleSort(direction: 'asc' | 'desc') {
     if (currentSort.value === direction) {

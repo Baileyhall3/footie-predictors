@@ -2,10 +2,11 @@
     <div class="grid-col" 
         :style="{ width }"
         :class="{ 
-            'no-border-right' : hideVerticalLines && !isColHeader,
-            'no-border-bottom' : hideHorizontalLines,
+            'no-border-right' : !gridState?.gridOptions.hasVerticalLines && !isColHeader,
+            'no-border-bottom' : !gridState?.gridOptions.hasHorizontalLines,
             'hover:bg-gray-100' : !isColHeader,
-            'hover:cursor-pointer' : sortable && isColHeader
+            'hover:cursor-pointer' : sortable && isColHeader,
+            'active-cell' : isActiveCell && !isColHeader
         }"
         @click="onCellClick"
     >
@@ -13,12 +14,17 @@
         <div v-if="isColHeader" :title="props.colTitle ?? props.colName" class="relative">
             <div class="flex items-center justify-between select-none">
                 {{ colName }}
-                <SortButton v-if="props.sortable" @sorted="handleSort" />
+                <SortButton 
+                    v-if="props.sortable" 
+                    :currentSort="gridState?.currentSortField === props.field ? gridState.currentSortOrder : null" 
+                    @sorted="handleSort" 
+                />
             </div>
         </div>
         <div v-else>
             <slot name="display" v-bind="{ row }" />
-            <div v-if="!slots.display">
+            <input id="colEditor" v-if="isEditingCell" :type="props.type" v-model="row[field]" style="width: -webkit-fill-available;"/>
+            <div v-if="!slots.display && !isEditingCell">
                 {{ row[field] }}
             </div>
         </div>
@@ -26,25 +32,31 @@
 </template>
 
 <script setup lang="ts">
-import { inject, useSlots, computed, ref } from 'vue';
+import { inject, useSlots, computed, ref, onMounted, onUnmounted } from 'vue';
 import SortButton from '../SortButton.vue';
+import { SortOrder } from '../SortButton.vue';
+import { GridState } from './DataGrid.vue';
 
-const props = defineProps<{
+type SupportedInput = 'string' | 'number'
+
+export interface GridColProps {
     field: string,
     colName: string,
     width?: string,
     colTitle?: string,
-    sortable?: boolean
-}>();
+    sortable?: boolean,
+    editable?: boolean,
+    type?: SupportedInput
+}
+
+const props = defineProps<GridColProps>();
 
 const emit = defineEmits<{
     (e: 'cellClick', row: Record<string, any>): void;
 }>();
 
 const row = inject<Record<string, any> | undefined>('row', undefined);
-const hideHorizontalLines = inject<boolean>('hideHorizontalLines', false);
-const hideVerticalLines = inject<boolean>('hideVerticalLines', false);
-const sortHandler = inject<(direction: 'asc' | 'desc' | null, field: string) => void>('handleSort');
+const gridState = inject<GridState>('gridState');
 
 const slots = useSlots();
 
@@ -52,17 +64,37 @@ const isColHeader = computed(() => {
     return row === undefined;
 });
 
-function handleSort(direction: 'asc' | 'desc') {
-    if (props.sortable && sortHandler) {
-        sortHandler(direction, props.field);
+const isActiveCell = computed(() => {
+    return gridState?.activeCell?.row === row && gridState?.activeCell?.field === props.field;
+});
+
+const isEditingCell = computed(() => {
+    return props.type && isActiveCell.value && gridState?.activeCell?.isEditing;
+})
+
+function handleSort(direction: SortOrder) {
+    if (props.sortable && gridState) {
+        gridState.handleSort(direction, props.field);
     }
 }
 
 function onCellClick(event) {
     emit("cellClick", event);
-    const clickedCell = { clickEvent: event, row, ...props }
-    console.log('cell clicked ', clickedCell)
+    const clickedCell = { clickEvent: event, row, ...props, isEditing: props.editable ? true : false }
+    if (gridState) {
+        gridState.activeCell = clickedCell;
+    }
+    console.log(gridState)
 }
+
+function stopEditing() {
+    if (isEditingCell.value && isActiveCell.value) {
+        gridState.activeCell.isEditing = false;
+    }
+}
+
+// onMounted(() => document.addEventListener('click', stopEditing));
+// onUnmounted(() => document.removeEventListener('click', stopEditing));
 </script>
 
 <style scoped>
@@ -76,5 +108,10 @@ function onCellClick(event) {
 }
 .grid-col.no-border-bottom {
     border-bottom: none;
+}
+.grid-col.active-cell {
+    border: green;
+    border-style: solid;
+    border-width: thin;
 }
 </style>
