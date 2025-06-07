@@ -168,7 +168,7 @@ const fetchUserData = async () => {
       // Fetch user's position in each group's leaderboard
       userPositions.value = [];
       for (const group of userGroups.value) {
-        const { data: leaderboard, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(group.id);
+        const { data: leaderboard, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(group.id, null, true);
         if (!leaderboardError && leaderboard) {
           const userPosition = leaderboard.find(entry => entry.user_id === userStore.user.id);
           if (userPosition) {

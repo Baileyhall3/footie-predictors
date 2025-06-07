@@ -145,12 +145,12 @@
               </div>
               <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
             </RoundedContainer>
-            <RoundedContainer headerText="Potential Finishes">
+            <!-- <RoundedContainer headerText="Potential Finishes">
               <PotentialFinishGrid 
                 :scoringSystem="potentialFinishData.scoringSystem"
                 :userPredictions="potentialFinishData.userPredictions"
               />
-            </RoundedContainer>
+            </RoundedContainer> -->
           </Tab>
         </Tabs>
       </template>

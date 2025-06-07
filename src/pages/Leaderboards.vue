@@ -57,11 +57,12 @@ import { leaderboardStore } from "../store/leaderboardStore";
 import { userStore } from "../store/userStore";
 import LeaderboardCard from "../components/LeaderboardCard.vue";
 import LoadingScreen from "../components/LoadingScreen.vue";
+import { Group } from "../types";
 
 // State
-const isLoading = ref(true);
-const error = ref(null);
-const userGroups = ref([]);
+const isLoading = ref<boolean>(true);
+const error = ref<string | null>(null);
+const userGroups = ref<Array<Group>>([]);
 
 onMounted(async () => {
     fetchAllData();
@@ -86,7 +87,7 @@ async function fetchAllData() {
             
             // Attach leaderboards to groups and filter out empty ones
             const groupsWithLeaderboards = await Promise.all(loadedGroups.map(async (group) => {
-                const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(group.id);
+                const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(group.id, null, true);
                 
                 if (leaderboardError) {
                     console.error(`Failed to load leaderboard for group ${group.id}`);

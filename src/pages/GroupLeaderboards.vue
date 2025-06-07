@@ -40,23 +40,23 @@
                     :data="leaderboard" 
                     hideVerticalLines 
                     hideBorder
-                    headerBgColor="rgb(22 157 74 /1)"
+                    headerBgColor="rgb(22 163 74 /1)"
                 >
                     <template #columns="{ row }">
-                        <GridCol field="position" colName="Pos" :row="row" width="40px">
+                        <GridCol field="position" colName="Pos"  width="40px">
                             <template #display="{ row }">
                                 <span class="font-medium w-6 text-center">{{ row.position }}.</span>
                             </template>
                         </GridCol>
-                        <GridCol field="username" colName="Username" :row="row" width="200px">
+                        <GridCol field="username" colName="Username" width="200px">
                             <template #display="{ row }">
                                 <UsernameDisplay :user="row" />
                             </template>
                         </GridCol>
-                        <GridCol field="total_points" colName="Pts" :row="row" width="60px" colTitle="Total Points" />
-                        <GridCol field="total_correct_scores" colName="CS" :row="row" width="60px" colTitle="Correct Scores" />
-                        <GridCol field="total_correct_results" colName="CR" :row="row" width="60px" colTitle="Correct Results" />
-                        <GridCol field="gameweek_wins" colName="GWW" :row="row" width="60px" colTitle="Gameweek Wins" />
+                        <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" />
+                        <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" />
+                        <GridCol field="total_correct_results" colName="CR"  width="60px" colTitle="Correct Results" />
+                        <GridCol field="gameweek_wins" colName="W"  width="60px" colTitle="Gameweek Wins" sortable />
                     </template>
                 </DataGrid>
             </RoundedContainer>
@@ -218,7 +218,7 @@ async function fetchAllData() {
         isAdmin.value = userIsAdmin(members.value);
     
         // Fetch all-time leaderboard
-        const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value);
+        const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(groupId.value, null, true);
         if (leaderboardError) throw new Error('Failed to load leaderboard');
         leaderboard.value = leaderboardData || [];
     

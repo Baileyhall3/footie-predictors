@@ -202,7 +202,7 @@ async function fetchAllData() {
             throw new Error('User ID or group ID is missing');
         }
 
-        const { data: leaderboardData, error: leaderboardError } = await leaderboardService.getGroupLeaderboard(groupId.value)
+        const { data: leaderboardData, error: leaderboardError } = await leaderboardService.getGroupLeaderboard(groupId.value, null, true)
         if (leaderboardError) {
             throw new Error(`Leaderboard error: ${leaderboardError}`)
         }

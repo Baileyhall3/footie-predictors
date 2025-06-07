@@ -8,21 +8,30 @@ export const leaderboardService = {
   /**
    * Get the leaderboard for a group
    * @param {string} groupId - Group ID
+   * @param {string | null} seasonId - Season ID
+   * @param {boolean} useActiveSeason - Whether to filter by active season
    * @returns {Promise<{data: Array, error: Object}>}
    */
-  async getGroupLeaderboard(groupId) {
+  async getGroupLeaderboard(groupId, seasonId = null, useActiveSeason = false) {
     try {
-      // Get current leaderboard
-      const { data, error } = await supabaseDb.customQuery((supabase) =>
-        supabase
+      const { data, error } = await supabaseDb.customQuery((supabase) => {
+        let query = supabase
           .from('group_members_and_leaderboard')
-          .select(`
-            *
-          `)
+          .select(`*`)
           .eq('group_id', groupId)
           .order('total_points', { ascending: false })
-          .order('total_correct_scores', { ascending: false })
-      );
+          .order('total_correct_scores', { ascending: false });
+
+        if (seasonId) {
+          query = query.eq('season_id', seasonId);
+        }
+
+        if (useActiveSeason) {
+          query = query.eq('is_active_season', true);
+        }
+
+        return query;
+      });
   
       if (error) throw error;
   

@@ -41,7 +41,7 @@ export const leaderboardStore = {
   },
 
   // Methods
-  async fetchGroupLeaderboard(groupId) {
+  async fetchGroupLeaderboard(groupId, seasonId = null, useActiveSeason = false) {
     try {
       state.loading = true
       state.error = null
@@ -52,7 +52,7 @@ export const leaderboardStore = {
       //   return { data: state.leaderboard, error: null }
       // }
 
-      const { data, error } = await leaderboardService.getGroupLeaderboard(groupId)
+      const { data, error } = await leaderboardService.getGroupLeaderboard(groupId, seasonId, useActiveSeason)
 
       if (error) throw error
 
