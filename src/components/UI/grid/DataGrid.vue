@@ -1,15 +1,13 @@
 <template>
     <div class="data-grid" :class="{ 'no-border': hideBorder }">
-        <div class="grid-header" :style="{ backgroundColor: headerBgColor }">
-            <slot name="columns" />
-        </div>
+        <GridHeader :columns="initialColumns" :bgColor="headerBgColor" :hideFilterRow="hideFilterRow" v-if="!hideHeader" />
         <div class="grid-body" :key="gridKey">
             <div v-for="(row, rowIndex) in sortedData" :key="rowIndex" 
                 class="grid-row hover:bg-gray-100"
                 @click="onRowClick(row)"
             >
                 <RowProvider :row="row">
-                    <slot name="columns" :row="row" />
+                    <slot name="columns" :row="row"></slot>
                 </RowProvider>
             </div>
         </div>
@@ -17,10 +15,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, computed, ref, reactive } from 'vue';
+import { onMounted, provide, computed, ref, reactive, useSlots } from 'vue';
 import RowProvider from './RowProvider.vue';
-import { SortOrder } from '../SortButton.vue';
-import { GridColProps } from './GridCol.vue';
+import type { SortOrder } from '../SortButton.vue';
+import { registerColumns } from './columns';
+import GridHeader from './GridHeader.vue';
+import type { GridFilterState } from './filters';
+import { gridFilterState } from './filters';
+
+export type DataObject = {
+    data: Record<string, any>[],
+    fields: string[],
+}
 
 export interface GridProps {
     data: Record<string, any>[],
@@ -30,10 +36,17 @@ export interface GridProps {
     headerBgColor?: string,
     sortField?: string,
     sortOrder?: 'asc' | 'desc',
-    bgColor?: string
+    bgColor?: string,
+    hideFilterRow?: boolean,
+    hideHeader?: boolean
 }
 
 const props = defineProps<GridProps>();
+
+export interface GridSlots {
+    default(props?: never): any,
+    columns(props?: { row: Record<string, any> | undefined }): any
+}
 
 export type GridState = {
     // data: Record<string, any>[],
@@ -58,7 +71,8 @@ export type GridState = {
         hasBorder: boolean,
         headerBgColor: string | undefined,
         bgColor: string | undefined,
-    }
+    },
+    filterState?: GridFilterState,
     load: () => void
     handleSort: (direction: SortOrder, field: string) => void
 }
@@ -74,6 +88,7 @@ const gridState = reactive<GridState>({
         headerBgColor: props.headerBgColor,
         bgColor: 'white'
     },
+    filterState: gridFilterState,
     load: load,
     handleSort: handleSort,
 });
@@ -87,7 +102,9 @@ provide('gridState', gridState);
 const gridKey = ref(0);
 
 const sortedData = computed(() => {
-    if (!gridState.currentSortField || !gridState.currentSortOrder) return props.data;
+    const data = filteredData.value;
+
+    if (!gridState.currentSortField || !gridState.currentSortOrder) return data;
 
     return [...props.data].sort((a, b) => {
         const valA = a[gridState.currentSortField!];
@@ -105,6 +122,30 @@ const sortedData = computed(() => {
             : String(valB).localeCompare(String(valA));
     });
 });
+
+const filters = reactive<Record<string, string>>({});
+
+const filteredData = computed(() => {
+    const activeFilters = gridState.filterState?.activeFilters;
+    if (!activeFilters || !activeFilters.length) return props.data;
+
+    return props.data.filter(row => {
+        return activeFilters.every((filter) => {
+            if (!filter.queryValue) return true;
+            const cellValue = row[filter.field];
+            return String(cellValue ?? '').toLowerCase().includes(filter.queryValue.toLowerCase());
+        });
+    });
+});
+
+const slots = defineSlots<GridSlots>();
+
+let initialColumns: any[] = [];
+if (slots.columns) {
+    const vNodes = slots.columns({ row: undefined });
+    initialColumns = registerColumns(vNodes);
+    console.log('colsss: ', initialColumns)
+}
 
 function onRowClick(row: Record<string, any>) {
     emit("rowClick", row);

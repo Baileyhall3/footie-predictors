@@ -14,15 +14,23 @@
                 </router-link>
             </div>
             
-            <RoundedContainer headerText="All-Time Grid">
+            <RoundedContainer>
+                <template #header>
+                    <h3 class="text-xl font-semibold">All-Time</h3>
+                    <button type="button" @click="hideGridFilterRow = !hideGridFilterRow; console.log(leaderboardGridRef);">
+                        <FunnelIcon v-if="!hideGridFilterRow" class="size-5 ms-2" />
+                        <FunnelIconOutline v-else class="size-5 ms-2"  />
+                    </button>
+                </template>
                 <DataGrid 
+                    ref="leaderboardGridRef"
                     :data="leaderboard" 
                     hideVerticalLines 
-                    hideBorder
                     headerBgColor="rgb(22 163 74 /1)"
+                    :hideFilterRow="hideGridFilterRow"
                 >
                     <template #columns="{ row }">
-                        <GridCol field="position" colName="Pos" width="40px">
+                        <GridCol field="position" colName="Pos" width="40px" disableFilter>
                             <template #display="{ row }">
                                 <span class="font-medium w-6 text-center">{{ row.position }}.</span>
                             </template>
@@ -166,6 +174,8 @@ import DataGrid from '../components/UI/grid/DataGrid.vue';
 import GridCol from '../components/UI/grid/GridCol.vue';
 import { LeaderboardEntry } from '../types';
 import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
+import { FunnelIcon } from '@heroicons/vue/24/solid';
+import { FunnelIcon as FunnelIconOutline } from '@heroicons/vue/24/outline';
 
 interface LeaderboardRecord {
     id: string;
@@ -193,6 +203,8 @@ const userLeaderboardHistory = ref([]);
 const gameweekLkp = ref<Array<LookupOption>>([]);
 const positionHistory = ref<LineData>({});
 const posXLabels = ref<string[]>([]);
+const hideGridFilterRow = ref<boolean>(true);
+const leaderboardGridRef = ref();
 
 onMounted(async () => {
     fetchAllData();

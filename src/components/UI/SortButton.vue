@@ -2,7 +2,7 @@
     <div class="relative">
         <component :is="currentSort === null || currentSort === undefined ? ChevronUpDownIcon : currentSort === 'asc' ? ChevronUpIcon : ChevronDownIcon" 
             :class="`size-${currentSort === null || currentSort === undefined ? props.size : (props.size - 2)}`" @click="sortMenuOpen = !sortMenuOpen" 
-            style="margin-right: 0.2rem;"
+            style="margin-right: 0.2rem; cursor: pointer;"
         />
 
         <!-- Sort dropdown -->
