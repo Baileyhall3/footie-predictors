@@ -15,38 +15,38 @@
         </p>
     </RoundedContainer>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 md:gap-8" v-if="groupOrSeasonStats.length > 0">
-        <div class="bg-white shadow-lg rounded-xl p-6">
+        <RoundedContainer>
             <Podium 
                 :podiumData="bestAvgPoints" 
                 header="Highest Points Per Gameweek" 
                 icon="🔥" 
                 displayField="avg_points_per_gameweek"
             />
-        </div>
-        <div class="bg-white shadow-lg rounded-xl p-6">
+        </RoundedContainer>
+        <RoundedContainer>
             <Podium 
                 :podiumData="mostGameweekWins" 
                 header="Most Gameweek Wins" 
                 icon="🥇" 
                 displayField="gameweek_wins"
             />
-        </div>
-        <div class="bg-white shadow-lg rounded-xl p-6">
+        </RoundedContainer>
+        <RoundedContainer>
             <Podium 
                 :podiumData="bestCorrectScores" 
                 header="Total Correct Scores" 
                 icon="🎯" 
                 displayField="total_correct_scores"
             />
-        </div>
-        <div class="bg-white shadow-lg rounded-xl p-6">
+        </RoundedContainer>
+        <RoundedContainer>
             <Podium 
                 :podiumData="bestScoreAccuracy" 
                 header="Best Score Accuracy" 
                 icon="📈" 
                 displayField="correct_score_ratio_percent"
             />
-        </div>
+        </RoundedContainer>
     </div>
 </template>
 

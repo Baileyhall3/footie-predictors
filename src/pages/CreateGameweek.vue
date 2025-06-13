@@ -9,8 +9,7 @@
   
       <h2 class="text-2xl font-semibold mb-4">Gameweek {{ weekNumber }}</h2>
       <!-- <span class="text-lg"><span class="font-semibold">Step 1:</span> Set a deadline for the gameweek. This will be the cut-off time for predictions to be made.</span> -->
-  
-      <!-- Deadline Input -->
+
       <div class="mb-8 mt-4">
         <label class="block text-sm font-medium text-gray-700">Deadline</label>
         <div class="p-2 border border-gray-300 rounded-md">
@@ -27,8 +26,14 @@
             />
         </div>
       </div>
+
+      <div class="mb-4 mt-4 flex items-center">
+          <input type="checkbox" id="setManually" v-model="setActive" class="mr-2">
+          <label for="setManually" class="text-sm font-medium text-gray-700">Set Active</label>
+      </div>
+      <p v-if="setActive" class="text-gray-600 text-sm">A group can only have 1 active gameweek. Setting this gameweek as active will end the current active season.</p>
   
-      <template v-if="deadline">
+      <div v-if="deadline" class="border-t mt-4">
         <AddMatches 
           :deadline="deadline"
           :selectedMatches="selectedMatches"
@@ -49,7 +54,7 @@
         <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
   
         <button v-if="selectedMatches.length > 0" @click="createGameweek" class="w-full bg-green-600 text-white py-2 rounded-md">Create Gameweek</button>
-      </template>
+      </div>
     </div>
   </div>
 </template>

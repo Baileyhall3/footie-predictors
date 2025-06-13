@@ -75,7 +75,7 @@ export const seasonsService = {
         try {
             const { data, error } = await supabaseDb.customQuery((supabase) =>
             supabase
-                .from('seasons')
+                .from('season_with_group')
                 .select(`*`)
                 .eq('group_id', groupId)
             );

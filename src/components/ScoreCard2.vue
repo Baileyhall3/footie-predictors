@@ -76,6 +76,17 @@
                             <div class="text-gray-500 text-sm mt-1" v-if="!props.disableMatchTime">
                                 {{ DateUtils.toTime(match.match_time) }}
                             </div>            
+
+                            <!-- <div class="justify-between flex gap-8 h-5" v-if="!props.locked">
+                                <div class="flex rounded overflow-hidden items-center flex-start">
+                                    <button @click="updatePrediction(match, 'predicted_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
+                                    <button @click="updatePrediction(match, 'predicted_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
+                                </div>
+                                <div class="flex rounded overflow-hidden items-center">
+                                    <button @click="updatePrediction(match, 'predicted_away_score', -1)" class="bg-gray-400 text-white px-2 py-1">-</button>
+                                    <button @click="updatePrediction(match, 'predicted_away_score', 1)" class="bg-blue-500 text-white px-2 py-1">+</button>
+                                </div>
+                            </div> -->
                         </component>
                     </div>
                 </div>
@@ -83,6 +94,16 @@
                 <h3 class="text-lg mt-4" v-if="props.totalPoints">
                     <span class="font-medium">Total Points:</span> {{ props.totalPoints }}
                 </h3>
+
+                <!-- <template v-if="props.includeSubmitBtn && !props.locked">
+                    <button v-if="!predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-5 flex items-center justify-center" disabled>
+                        Predictions Saved ✅
+                    </button>
+                    <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-5 disabled:opacity-50" 
+                        :disabled="isSubmitting || (!predictionsChanged)">
+                        Submit Predictions
+                    </button>
+                </template> -->
             </template>
         </TransitionGroup>
     </div>
@@ -93,6 +114,12 @@ import { computed, ref, useSlots } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Prediction } from '../types';
+
+export interface EditedPrediction {
+    matchId: string, 
+    field: string, 
+    value: number
+}
 
 export interface IProps {
     matches: Prediction[];
@@ -107,6 +134,7 @@ export interface IProps {
     matchesClickable?: boolean
     disableTimeHeader?: boolean
     disableMatchTime?: boolean
+    includeSubmitBtn?: boolean
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
@@ -114,6 +142,14 @@ const props = withDefaults(defineProps<IProps>(), {
     topMargin: 6,
 });
 const slots = useSlots();
+const emit = defineEmits<{
+    (e: 'prediction-updated', editedPrediction: EditedPrediction): void,
+    (e: 'predictions-submitted'): void,
+}>();
+
+const predictionsChanged = ref<boolean>(false);
+const matchesCollapsed = ref<boolean>(false);
+const isSubmitting = ref<boolean>(false);
 
 const groupedMatches = computed(() => {
     const groups: Record<string, Prediction[]> = {}
@@ -124,7 +160,7 @@ const groupedMatches = computed(() => {
         const date = DateUtils.toShortDayMonth(match.match_time, true);
 
         if (!groups[date]) {
-        groups[date] = []
+            groups[date] = []
         }
 
         groups[date].push(match)
@@ -133,7 +169,12 @@ const groupedMatches = computed(() => {
     return groups
 });
 
-const matchesCollapsed = ref(false);
+// const allPredictionsSubmitted = computed(() => {
+//     return props.matches.length > 0 && props.matches.every(match => {
+//         const prediction = props.predictions[match.id];
+//         return prediction?.predicted_home_score !== '' && prediction?.predicted_away_score !== '';
+//     });
+// });
 
 const toggleMatchesCollapse = () => {
     matchesCollapsed.value = !matchesCollapsed.value;
@@ -163,6 +204,28 @@ const getPredictionColor = (match: Prediction) => {
 
     return "text-red-500"; // Incorrect result
 };
+
+// Emit event when prediction changes
+const updatePrediction = (match: any, field: string, increment: number) => {
+    const currentScore = Number(match[field]) || 0; // Ensure it's a number
+    const newScore = Math.max(0, currentScore + increment); // Prevent negative values
+    match[field] = newScore;
+    predictionsChanged.value = true;
+    emit("prediction-updated", { matchId: match.id, field, value: newScore });
+};
+
+// Emit event when user submits predictions
+const submitPredictions = () => {
+    if (isSubmitting.value) return;
+
+    isSubmitting.value = true;
+    predictionsChanged.value = false;
+    emit("predictions-submitted");
+
+    setTimeout(() => {
+        isSubmitting.value = false;
+    }, 1500);
+}
 </script>
 
 <style scoped>

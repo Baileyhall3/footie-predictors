@@ -39,22 +39,27 @@
                   <router-link :to="`/season/${activeSeason?.id}`" class="text-blue-600 dropdown-item" v-if="activeSeason">
                     {{ activeSeason?.name }}
                   </router-link>
-                  <router-link :to="`/group/${group?.id}/update-group`" v-if="isGroupOwner">
-                    <button class="dropdown-item">
-                      Edit
-                    </button>
+                  <router-link :to="`/user-group-profile/${groupId}/${userStore.user?.id}`" class="text-blue-600 dropdown-item">
+                    My Group Profile
                   </router-link>
-                  <router-link :to="`/group/${group?.id}/create-gameweek`" v-if="isGroupOwner && !activeSeason?.is_finished">
-                    <button class="dropdown-item">
-                      Create Gameweek
-                    </button>
-                  </router-link>
-                  <router-link :to="`/group/${group?.id}/create-season`" v-if="isGroupOwner">
-                    <button class="dropdown-item">
-                      New season
-                    </button>
-                  </router-link>
-                  <template v-if="!isGroupOwner">
+                   <template v-if="isGroupOwner">
+                     <router-link :to="`/group/${group?.id}/update-group`" >
+                       <button class="dropdown-item">
+                         Edit
+                       </button>
+                     </router-link>
+                     <router-link :to="`/group/${group?.id}/create-gameweek`" v-if="!activeSeason?.is_finished">
+                       <button class="dropdown-item">
+                         Create Gameweek
+                       </button>
+                     </router-link>
+                     <router-link :to="`/group/${group?.id}/create-season`">
+                       <button class="dropdown-item">
+                         New season
+                       </button>
+                     </router-link>
+                   </template>
+                  <template v-else>
                     <button @click="updateMemberStatus(false)" 
                       class="dropdown-item text-red-700"
                     >
@@ -236,7 +241,7 @@
             <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" :seasonId="group?.active_season_id" />
           </Tab>
           <Tab header="Stats" v-if="activeGameweek">
-            <CombinedGroupStats :groupId="group.id" />
+            <CombinedGroupStats :groupId="group.id" :seasonId="group?.active_season_id" />
           </Tab>
           <Tab header="Members">
             <RoundedContainer :headerText="`Members (${members.length})`" v-if="!notInGroup || (notInGroup && group.is_public)">

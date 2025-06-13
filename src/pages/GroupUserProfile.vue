@@ -36,15 +36,20 @@
 
                 <template #details>
                     <p class="text-gray-500">Member of {{ groupName }} since {{ DateUtils.toShortDate(user?.joined_at) }}</p>
+                    <div class="flex mt-4">
+                        <Lookup displayText="Season: " :data="seasonLkp" @item-selected="setCurrentSeason" />
+                        {{ currentSeason?.name }}
+                    </div>
                 </template>
             </PageHeader>
-            <RoundedContainer v-if="!currentGameweek" class="mx-auto text-center">
+            <!-- <RoundedContainer v-if="!currentGameweek" class="mx-auto text-center">
                 <h2 class="text-xl font-semibold mb-2">No active gameweek</h2>
                 <p class="text-gray-600 mb-6">Once an active gameweek has been set and {{ user?.username }}'s' predictions have been made, they will show here!</p>
-            </RoundedContainer>
-            <Tabs v-else>
+            </RoundedContainer> -->
+            <Tabs>
                 <Tab header="Predictions">
                     <ScoreCard2
+                        v-if="userGameweekPredictions && userGameweekPredictions.length > 0"
                         :matches="userGameweekPredictions"
                         :header="currentGameweek?.name"
                         :totalPoints="gameweekTotalPoints"
@@ -54,70 +59,74 @@
                             <Lookup displayText="Showing: " :data="gameweekLkp" @item-selected="setCurrentGameweek" />
                         </template>
                     </ScoreCard2>
+                    <RoundedContainer v-else>
+                        <p class="text-gray-500 py-2">{{ user?.username }}'s predictions for the current gameweek are not available yet.</p>
+                    </RoundedContainer>
                 </Tab>
                 <Tab header="Performance">
-                    <RoundedContainer headerText="All-Time">
-                        <template #headerContent>
-                            <router-link 
-                            :to="`/group/${groupId}/leaderboards`" 
-                            class="text-sm text-blue-600 hover:underline"
-                            >
-                                View Full Leaderboard →
-                            </router-link>
-                        </template>
-                                
-                        <div v-if="groupLeaderboard.length > 0">
-                            <LeaderboardCard 
-                                :leaderboard="groupLeaderboard"
-                                headerText="All-Time"
-                                previewOnly
-                                :userId="userId"
+                    <template v-if="groupLeaderboard && groupLeaderboard.length > 0">
+                        <RoundedContainer headerText="Leaderboard">
+                            <template #headerContent>
+                                <router-link 
+                                :to="`/group/${groupId}/leaderboards`" 
+                                class="text-sm text-blue-600 hover:underline"
+                                >
+                                    View Full Leaderboard →
+                                </router-link>
+                            </template>
+                                    
+                            <div v-if="groupLeaderboard && groupLeaderboard.length > 0">
+                                <LeaderboardCard 
+                                    :leaderboard="groupLeaderboard"
+                                    headerText="All-Time"
+                                    previewOnly
+                                    :userId="userId"
+                                />
+                            </div>
+                        </RoundedContainer>
+                        <RoundedContainer v-if="currentGameweek">
+                            <div v-if="scores.length">
+                                <LeaderboardCard 
+                                    :leaderboard="scores"
+                                    includeHeader
+                                    allowCollapse
+                                    includeSearchBar
+                                    :gameweekId="currentGameweek?.id"
+                                    previewOnly
+                                    :userId="userId"
+                                >
+                                    <template #filter>
+                                        <Lookup displayText="Showing: " :data="gameweekLkp" @item-selected="setCurrentGameweek" />
+                                    </template>
+                                    <template #header>
+                                        <h3 class="text-xl font-semibold">                    
+                                            <router-link 
+                                                :to="`/gameweek/${currentGameweek?.id}`" 
+                                                class="text-blue-600 hover:underline"
+                                            >
+                                                {{ currentGameweek?.name }}
+                                            </router-link>
+                                        </h3>
+                                    </template>
+                                </LeaderboardCard>
+                            </div>
+                            <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
+                        </RoundedContainer>
+                        <RoundedContainer headerText="History" v-if="positionHistory">
+                            <LineChart 
+                                :lineData="positionHistory" 
+                                :xLabels="posXLabels"
+                                :options="{
+                                    stepSize: 1,
+                                    precision: 0,
+                                    beginAtZero: true,
+                                    reverse: true,
+                                    minY: 1
+                                }" 
                             />
-                        </div>
-                        <p v-if="groupLeaderboard.length === 0" class="text-gray-500 py-2">No leaderboard data available.</p>
-                    </RoundedContainer>
-
-                    <RoundedContainer v-if="currentGameweek">
-                        <div v-if="scores.length">
-                            <LeaderboardCard 
-                                :leaderboard="scores"
-                                includeHeader
-                                allowCollapse
-                                includeSearchBar
-                                :gameweekId="currentGameweek?.id"
-                                previewOnly
-                                :userId="userId"
-                            >
-                                <template #filter>
-                                    <Lookup displayText="Showing: " :data="gameweekLkp" @item-selected="setCurrentGameweek" />
-                                </template>
-                                <template #header>
-                                    <h3 class="text-xl font-semibold">                    
-                                        <router-link 
-                                            :to="`/gameweek/${currentGameweek?.id}`" 
-                                            class="text-blue-600 hover:underline"
-                                        >
-                                            {{ currentGameweek?.name }}
-                                        </router-link>
-                                    </h3>
-                                </template>
-                            </LeaderboardCard>
-                        </div>
-                        <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-                    </RoundedContainer>
-                    <RoundedContainer headerText="History" v-if="groupLeaderboard.length > 0">
-                        <LineChart 
-                            :lineData="positionHistory" 
-                            :xLabels="posXLabels"
-                            :options="{
-                                stepSize: 1,
-                                precision: 0,
-                                beginAtZero: true,
-                                reverse: true,
-                                minY: 1
-                            }" 
-                        />
-                    </RoundedContainer>
+                        </RoundedContainer>
+                    </template>
+                    <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
                 </Tab>
                 <Tab header="Stats">
                     <RoundedContainer>
@@ -139,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from "vue-router";
 import Tabs from "../components/UI/Tabs.vue";
 import Tab from "../components/UI/Tab.vue";
@@ -158,13 +167,12 @@ import { predictionsService } from '../api/predictionsService';
 import { userStore } from "../store/userStore";
 import { leaderboardService } from '../api/leaderboardService';
 import StatRow from '../components/StatRow.vue';
-import { groupsService } from '../api/groupsService';
 import Lookup from '../components/UI/Lookup.vue';
 import { LookupOption } from '../components/UI/Lookup.vue';
-import { gameweeksService } from '../api/gameweeksService';
 import LeaderboardCard from '../components/LeaderboardCard.vue';
 import LineChart from '../components/LineChart.vue';
 import { LineData } from '../components/LineChart.vue';
+import { seasonsService } from '../api/seasonsService';
 
 const route = useRoute();
 
@@ -186,6 +194,8 @@ const scores = ref<Array<LeaderboardEntry>>([]);
 const leaderboardHistory = ref([]);
 const positionHistory = ref<Array<LineData>>();
 const posXLabels = ref<string[]>([]);
+const seasonLkp = ref<Array<LookupOption>>([]);
+const currentSeason = ref<LookupOption>();
 
 onMounted(() => {
     fetchAllData();
@@ -202,7 +212,35 @@ async function fetchAllData() {
             throw new Error('User ID or group ID is missing');
         }
 
-        const { data: leaderboardData, error: leaderboardError } = await leaderboardService.getGroupLeaderboard(groupId.value, null, true)
+        const { data: seasonsData, error: seasonsError } = await seasonsService.getGroupSeasons(groupId.value);
+        if (seasonsError) throw new Error('Failed to load seasons');
+
+        const sortedSeasons = seasonsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        seasonLkp.value = sortedSeasons.map(x => {
+            return {
+                id: x.id,
+                name: `${x.name} ${x.is_active ? '(current)' : ''}`,
+                selected: x.is_active ? true : false
+            }
+        });
+        const activeSeason = seasonLkp.value.find(x => x.selected);
+        currentSeason.value = activeSeason;
+
+        await loadSeasonData(activeSeason?.id);
+    } catch(err) {
+        console.error(err);
+        error.value = err.message || 'An error occurred while loading season data';
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function loadSeasonData(seasonId: string) {
+    try {
+        loading.value = true;
+
+        const { data: leaderboardData, error: leaderboardError } = await seasonsService.getSeasonLeaderboard(seasonId)
         if (leaderboardError) {
             throw new Error(`Leaderboard error: ${leaderboardError}`)
         }
@@ -219,26 +257,32 @@ async function fetchAllData() {
             groupName.value = currentUser.group_name;
         }
 
-        // Fetch group leaderboard history
-        const { data: historyData, error: scoresError } = await leaderboardService.getUserGroupLeaderboardHistory(groupId.value, userId.value);
-        if (scoresError) throw new Error('Failed to load leaderboard history');
-        leaderboardHistory.value = (historyData || []);
+        // Fetch leaderboard history
+        const { data: historyData, error: historyError } = await seasonsService.getSeasonLeaderboardHistory(seasonId);
+        if (historyError) throw new Error('Failed to load leaderboard history');
+        leaderboardHistory.value = historyData || [];
 
         if (historyData.length > 0) {
             mapHistoryCharts(historyData);
         }
 
-        const { data: statsData, error: statsError } = await groupsService.getGroupStats(groupId.value);
-        if (statsError) throw new Error('Failed to load group stats');
-        const userRecord = statsData.find(x => x.user_id === userId.value);
-        userStats.value = userRecord;
+        // Fetch season stats
+        const { data: seasonStatsData, error: seasonStatsError } = await seasonsService.getSeasonStats(seasonId);
+        if (seasonStatsError) throw new Error('Error fetching season stats');
+        
+        if (seasonStatsData) {
+            const userRecord = seasonStatsData.find(x => x.user_id === userId.value);
+            userStats.value = userRecord;
+        }
 
-        const { data: gameweeksData, error: gameweeksError } = await gameweeksService.getGameweeks(groupId.value);
+        // Fetch season gameweeks
+        const { data: gameweeksData, error: gameweeksError } = await seasonsService.getSeasonGameweeks(seasonId);
         if (gameweeksError) throw new Error('Failed to load gameweeks');
+
         const sortedGameweeks = gameweeksData ? gameweeksData.sort((a, b) => b.week_number - a.week_number).filter(x => x.is_locked) : []
 
         if (sortedGameweeks.length > 0) {            
-            gameweekLkp.value = gameweeksData.map(x => {
+            gameweekLkp.value = sortedGameweeks.map(x => {
                 return {
                     id: x.id,
                     name: `Gameeek ${x.week_number} ${x.is_active ? '(current)' : ''}`,
@@ -246,14 +290,18 @@ async function fetchAllData() {
                 }
             });
             const activeGameweek = gameweekLkp.value.find(x => x.selected);
-            await setCurrentGameweek(activeGameweek);
+            await setCurrentGameweek(activeGameweek ?? gameweekLkp.value[0]);
         }
     } catch(err) {
         console.error(err);
-        error.value = err.message || 'An error occurred while loading season data';
     } finally {
         loading.value = false;
     }
+}
+
+async function setCurrentSeason(season: LookupOption) {
+    currentSeason.value = season;
+    loadSeasonData(season.id);
 }
 
 async function setCurrentGameweek(gameweek: LookupOption) {

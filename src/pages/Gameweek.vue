@@ -41,6 +41,9 @@
                     <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
                       {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                     </button>
+                    <button v-if="!gameweek?.is_active" @click="changeGameWeekActiveStatus" class="dropdown-item">
+                      Set Active
+                    </button>
                     <button @click="deleteGameweek" class="dropdown-item text-red-700">
                       Delete
                     </button>
@@ -73,9 +76,9 @@
                   <ScoreCard 
                       :matches="matches"
                       :predictions="predictions"
-                      :locked="gameweek?.is_locked || !gameweek?.is_active"
+                      :locked="gameweek?.is_locked || gameweek?.is_finished"
                       :totalPoints="userGameweekScore ?? null"
-                      :includeSubmitBtn="!gameweek?.is_locked && gameweek?.is_active"
+                      :includeSubmitBtn="!gameweek?.is_locked && !gameweek?.is_finished"
                       allowCollapse
                       header="Your Predictions"
                       :gameweekId="gameweekId"
@@ -157,7 +160,7 @@
     </div>
 
     <DeleteConfirm ref="deleteConfirm" title="Delete Gameweek" message="Are you sure you want to delete this gameweek?" />
-  </template>
+</template>
   
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';

@@ -17,8 +17,8 @@
                 {{ user.username }}
             </div>
         </component>
+        <span v-if="props.currentUserId && user.user_id === props.currentUserId" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
         <!-- <TrophyIcon v-if="user.user_id === props.winnerId" class="size-5 text-yellow-300" />
-        <span v-if="user.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
         <StarIcon v-else-if="props.userId && user.user_id === props.userId" class="size-5 text-yellow-300" /> -->
     </div>
 </template>
@@ -36,7 +36,8 @@ export interface User {
 const props = defineProps<{
     user: User,
     includeUserPredictionLink?: boolean,
-    gameweekId?: string
+    gameweekId?: string,
+    currentUserId?: string
 }>();
 
 </script>

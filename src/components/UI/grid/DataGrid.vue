@@ -1,14 +1,17 @@
 <template>
-    <div class="data-grid" :class="{ 'no-border': hideBorder }">
-        <GridHeader :columns="initialColumns" :bgColor="headerBgColor" :hideFilterRow="hideFilterRow" v-if="!hideHeader" />
-        <div class="grid-body" :key="gridKey">
-            <div v-for="(row, rowIndex) in sortedData" :key="rowIndex" 
-                class="grid-row hover:bg-gray-100"
-                @click="onRowClick(row)"
-            >
-                <RowProvider :row="row">
-                    <slot name="columns" :row="row"></slot>
-                </RowProvider>
+    <div class="bg-white shadow-lg rounded-xl">
+        <slot name="cardHeader"></slot>
+        <div class="data-grid" :class="{ 'no-border': hideBorder }">
+            <GridHeader :columns="initialColumns" :bgColor="headerBgColor" :hideFilterRow="hideFilterRow" v-if="!hideHeader" />
+            <div class="grid-body" :key="gridKey">
+                <div v-for="(row, rowIndex) in sortedData" :key="rowIndex" 
+                    class="grid-row hover:bg-gray-100"
+                    @click="onRowClick(row)"
+                >
+                    <RowProvider :row="row">
+                        <slot name="columns" :row="row"></slot>
+                    </RowProvider>
+                </div>
             </div>
         </div>
     </div>
@@ -44,6 +47,7 @@ export interface GridProps {
 const props = defineProps<GridProps>();
 
 export interface GridSlots {
+    cardHeader(props?: never): any,
     default(props?: never): any,
     columns(props?: { row: Record<string, any> | undefined }): any
 }
