@@ -1,11 +1,17 @@
 <template>
-    <div class="relative me-2">
-        <button @click="showLookupMenu = !showLookupMenu"
-            class="text-sm px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-200 transition"
-            :class="`bg-${props.bgColor ?? 'bg-gray-100'}`"
-        >
-            {{ props.displayText }}
-        </button>
+    <div class="relative me-2 border border-gray-300 rounded-md">
+        <div class="inline-flex items-center">
+            <button @click="showLookupMenu = !showLookupMenu"
+                class="text-sm px-3 py-1 border-r border-gray-300 rounded-md hover:bg-gray-200 transition"
+                :class="`bg-${props.bgColor ?? 'bg-gray-100'}`"
+            >
+                {{ props.displayText }}
+            </button>
+    
+            <div class="px-3 py-1 text-sm bg-gray-50 text-gray-700  border-gray-300" v-if="props.displayValue">
+                {{ props.displayValue }}
+            </div>
+        </div>
 
         <ul v-if="showLookupMenu"
             class="absolute mt-2 z-10 bg-white border border-gray-300 rounded-md shadow-md max-h-60 overflow-auto w-48"
@@ -37,6 +43,7 @@ export interface IProps {
     displayText: string | number | undefined,
     data: LookupOption[],
     bgColor?: string
+    displayValue?: string
 }
 
 export interface IEmits {

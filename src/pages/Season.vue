@@ -148,7 +148,7 @@
                     />
                 </Tab>
                 <Tab header="Stats">
-                    <CombinedGroupStats v-if="activeGameweek?.is_locked" :groupId="season?.group_id" :seasonId="season?.id" />
+                    <CombinedGroupStats v-if="gameweeks.length > 0" :groupId="season?.group_id" :seasonId="season?.id" />
                     <RoundedContainer v-else>
                         <p class="text-gray-500 py-2">No stats data to show yet.</p>
                     </RoundedContainer>

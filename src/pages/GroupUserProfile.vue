@@ -37,8 +37,13 @@
                 <template #details>
                     <p class="text-gray-500">Member of {{ groupName }} since {{ DateUtils.toShortDate(user?.joined_at) }}</p>
                     <div class="flex mt-4 items-end">
-                        <Lookup displayText="Season: " :data="seasonLkp" @item-selected="setCurrentSeason" bgColor="white" />
-                        {{ currentSeason?.name }}
+                        <Lookup 
+                            displayText="Season: " 
+                            :data="seasonLkp" 
+                            :displayValue="currentSeason?.name"
+                            bgColor="white" 
+                            @item-selected="setCurrentSeason" 
+                        />
                     </div>
                 </template>
             </PageHeader>

@@ -26,8 +26,8 @@
                     {{ props.recordLimit ? gridState.gridOptions.visibleRecordsCount : gridState.recordCount }} 
                     of {{ gridState.recordCount }} records
                 </p>
-                <button type="button" @click="load()" title="Reload the grid">
-                    <ArrowPathIcon class="size-5 ms-2" />
+                <button type="button" @click="load()" title="Reload grid">
+                    <ArrowPathIcon class="size-5 ms-4" />
                 </button>
                 <button type="button" @click="exportToExcel(gridState, props.exportOptions)" title="Export grid to Excel workbook" v-if="!props.disableExport">
                     <DocumentChartBarIcon class="size-5 ms-2" />
@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, computed, ref, reactive, useSlots } from 'vue';
+import { onMounted, provide, computed, ref, reactive } from 'vue';
 import RowProvider from './RowProvider.vue';
 import type { SortOrder } from '../SortButton.vue';
 import { registerColumns } from './columns';
@@ -272,7 +272,8 @@ function load() {
 }
 .grid-footer {
     display: flex;
-    padding: 10px 0px 10px 5px;
+    padding: 6px 0px 6px 5px;
     border-top: 1px solid #ccc;
+    align-items: center;
 }
 </style>

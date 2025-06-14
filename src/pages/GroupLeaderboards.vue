@@ -32,8 +32,14 @@
                 <template #details>
                     <!-- <p class="text-gray-500">{{ currentLeader }}</p> -->
                     <div class="flex items-end">
-                        <Lookup displayText="Season: " :data="seasonLkp" @item-selected="setCurrentSeason" />
-                        {{ currentSeason?.name }}
+                        <Lookup 
+                            displayText="Season: " 
+                            :data="seasonLkp" 
+                            @item-selected="setCurrentSeason" 
+                            bgColor="white" 
+                            :displayValue="currentSeason?.name"
+                        />
+                        <!-- {{ currentSeason?.name }} -->
                     </div>
                 </template>
             </PageHeader>
@@ -91,7 +97,11 @@
                                 includeUserPredictionLink
                             >
                                 <template #filter>
-                                    <Lookup displayText="Showing: " :data="gameweekLkp" @item-selected="setCurrentGameweek" />
+                                    <Lookup 
+                                        displayText="Showing: " 
+                                        :data="gameweekLkp" 
+                                        @item-selected="setCurrentGameweek" 
+                                    />
                                 </template>
                                 <template #header>
                                     <h3 class="text-xl font-semibold">                    
