@@ -19,7 +19,7 @@
                 </template>
 
                 <template #actionItems>
-                    <button @click="copyProfileLink()" class="p-1 rounded-md hover:bg-gray-200" title="Copy user profile link">
+                    <button @click="copyPageLink('Profile')" class="p-1 rounded-md hover:bg-gray-200" title="Copy user profile link">
                         <LinkIcon class="size-6 text-blue-500" />
                     </button>
                     <Dropdown>
@@ -28,7 +28,7 @@
                         </template>
                         <template #items>
                             <router-link :to="`/group/${groupId}`" class="text-blue-600 dropdown-item">
-                                Go to group
+                                Go to Group
                             </router-link>
                         </template>
                     </Dropdown>
@@ -36,8 +36,8 @@
 
                 <template #details>
                     <p class="text-gray-500">Member of {{ groupName }} since {{ DateUtils.toShortDate(user?.joined_at) }}</p>
-                    <div class="flex mt-4">
-                        <Lookup displayText="Season: " :data="seasonLkp" @item-selected="setCurrentSeason" />
+                    <div class="flex mt-4 items-end">
+                        <Lookup displayText="Season: " :data="seasonLkp" @item-selected="setCurrentSeason" bgColor="white" />
                         {{ currentSeason?.name }}
                     </div>
                 </template>
@@ -149,7 +149,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import Tabs from "../components/UI/Tabs.vue";
 import Tab from "../components/UI/Tab.vue";
 import LoadingScreen from '../components/LoadingScreen.vue';
@@ -160,8 +160,6 @@ import DateUtils from '../utils/dateUtils';
 import RoundedContainer from '../components/UI/RoundedContainer.vue';
 import Dropdown from "../components/UI/Dropdown.vue";
 import { EllipsisVerticalIcon, LinkIcon } from '@heroicons/vue/24/solid';
-import { toast } from "vue3-toastify";
-import "vue3-toastify/dist/index.css";
 import ScoreCard2 from '../components/ScoreCard2.vue';
 import { predictionsService } from '../api/predictionsService';
 import { userStore } from "../store/userStore";
@@ -173,6 +171,7 @@ import LeaderboardCard from '../components/LeaderboardCard.vue';
 import LineChart from '../components/LineChart.vue';
 import { LineData } from '../components/LineChart.vue';
 import { seasonsService } from '../api/seasonsService';
+import { copyPageLink } from '../utils/sharedFunctions';
 
 const route = useRoute();
 
@@ -371,15 +370,6 @@ function mapHistoryCharts(historyData: any[]) {
     }));
 
     posXLabels.value = sortedGameweeks.map(gw => `GW ${gw}`);
-}
-
-function copyProfileLink() {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    toast("Profile link copied!", {
-        "type": "info",
-        "position": "top-center"
-    });
 }
 
 </script>

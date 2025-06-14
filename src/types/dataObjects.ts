@@ -110,3 +110,13 @@ export interface UserStats {
     user_id: string;
     username: string;
 }
+
+export interface GwLeaderboardEntry {
+    bg_colour: string,
+    position: number,
+    total_correct_scores: number | undefined,
+    total_points: number,
+    updated_at: Date | undefined,
+    user_id: string,
+    username: string  
+}

@@ -6,6 +6,10 @@
   @apply block w-full text-left px-4 py-2 text-sm hover:bg-gray-200 disabled:opacity-50;
 }
 
+.item-separator {
+  @apply border-b border-gray-500 border-opacity-20;
+}
+
 @layer components {
   @import './button';
   @import './inputtext';

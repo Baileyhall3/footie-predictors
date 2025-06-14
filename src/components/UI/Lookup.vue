@@ -1,7 +1,8 @@
 <template>
     <div class="relative me-2">
         <button @click="showLookupMenu = !showLookupMenu"
-            class="text-sm px-3 py-1 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition"
+            class="text-sm px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-200 transition"
+            :class="`bg-${props.bgColor ?? 'bg-gray-100'}`"
         >
             {{ props.displayText }}
         </button>
@@ -34,7 +35,8 @@ export interface LookupOption {
 
 export interface IProps {
     displayText: string | number | undefined,
-    data: LookupOption[]
+    data: LookupOption[],
+    bgColor?: string
 }
 
 export interface IEmits {

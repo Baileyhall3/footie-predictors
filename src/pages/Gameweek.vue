@@ -23,7 +23,7 @@
             </div>
   
             <div class="flex flex-wrap gap-2 justify-end flex-shrink-0">
-              <button @click="copyGameweekLink()" class="p-1 rounded-md hover:bg-gray-200" title="Copy gameweek link">
+              <button @click="copyPageLink('Gameweek')" class="p-1 rounded-md hover:bg-gray-200" title="Copy gameweek link">
                 <LinkIcon class="size-6 text-blue-500" />
               </button>
               <Dropdown>
@@ -190,6 +190,7 @@ import Tab from '../components/UI/Tab.vue';
 import PotentialFinishGrid from '../components/PotentialFinishGrid.vue';
 import DoesNotExist from '../components/DoesNotExist.vue';
 import { Gameweek, Prediction } from '../types';
+import { copyPageLink } from '../utils/sharedFunctions';
 
 const route = useRoute();
 const router = useRouter();
@@ -370,7 +371,6 @@ function mapPotentialFinishData(leaderboardData: any[], groupData: any, matchDat
   }));
 }
 
-  
 function toggleEditMode() {
   editMode.value = !editMode.value;
   if (!editMode.value) {
@@ -452,15 +452,6 @@ async function submitPredictions() {
   });
 
   loading.value = false;
-}
-
-function copyGameweekLink() {
-  const url = window.location.href;
-  navigator.clipboard.writeText(url);
-  toast("Gameweek link copied!", {
-    "type": "info",
-    "position": "top-center"
-  });
 }
 
 async function saveScores() {

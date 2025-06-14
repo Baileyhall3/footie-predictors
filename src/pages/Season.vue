@@ -19,7 +19,7 @@
                 </template>
 
                 <template #actionItems>
-                    <button @click="copySeasonLink()" class="p-1 rounded-md hover:bg-gray-200" title="Copy season link">
+                    <button @click="copyPageLink('Season')" class="p-1 rounded-md hover:bg-gray-200" title="Copy season link">
                         <LinkIcon class="size-6 text-blue-500" />
                     </button>
                     <Dropdown>
@@ -162,7 +162,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { seasonsService } from '../api/seasonsService';
 import Tabs from "../components/UI/Tabs.vue";
 import Tab from "../components/UI/Tab.vue";
@@ -175,19 +175,16 @@ import DateUtils from '../utils/dateUtils';
 import RoundedContainer from '../components/UI/RoundedContainer.vue';
 import Dropdown from "../components/UI/Dropdown.vue";
 import { EllipsisVerticalIcon, LinkIcon } from '@heroicons/vue/24/solid';
-import { toast } from "vue3-toastify";
-import "vue3-toastify/dist/index.css";
 import ScoreCard2 from '../components/ScoreCard2.vue';
 import { predictionsService } from '../api/predictionsService';
 import { userStore } from "../store/userStore";
 import CombinedGroupStats from './CombinedGroupStats.vue';
-import StatRow from '../components/StatRow.vue';
 import GroupLeaderboard from './GroupLeaderboard.vue';
 import DeleteConfirm from '../components/DeleteConfirm.vue';
 import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
+import { copyPageLink } from '../utils/sharedFunctions';
 
 const route = useRoute();
-const router = useRouter();
 
 const loading = ref<boolean>(false);
 const seasonExists = ref<boolean>(true);
@@ -297,14 +294,5 @@ async function endSeason() {
             console.error(err);
         }
     }
-}
-
-function copySeasonLink() {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    toast("Season link copied!", {
-        "type": "info",
-        "position": "top-center"
-    });
 }
 </script>

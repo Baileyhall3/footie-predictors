@@ -3,8 +3,8 @@
         <slot name="cardHeader"></slot>
         <div class="data-grid" :class="{ 'no-border': hideBorder }">
             <GridHeader :columns="initialColumns" :bgColor="headerBgColor" :hideFilterRow="hideFilterRow" v-if="!hideHeader" />
-            <div class="grid-body" :key="gridKey">
-                <div v-for="(row, rowIndex) in sortedData" :key="rowIndex" 
+            <div class="grid-body" :key="gridState.key">
+                <div v-for="(row, rowIndex) in visibleData" :key="rowIndex" 
                     class="grid-row hover:bg-gray-100"
                     @click="onRowClick(row)"
                 >
@@ -12,6 +12,26 @@
                         <slot name="columns" :row="row"></slot>
                     </RowProvider>
                 </div>
+                <div v-if="props.lazyLoading && recordsNotLoaded > 0" class="text-center mt-4">
+                    <button 
+                        @click="gridState.gridOptions.visibleRecordsCount += props.recordLimit ?? 100"
+                        class="text-blue-600 hover:underline font-medium"
+                    >
+                        Show {{ Math.min(recordsNotLoaded, props.recordLimit ?? 100) }} more
+                    </button>
+                </div>
+            </div>
+            <div class="grid-footer" v-if="!props.hideFooter">
+                <p class="text-gray-500 py-2">Showing 
+                    {{ props.recordLimit ? gridState.gridOptions.visibleRecordsCount : gridState.recordCount }} 
+                    of {{ gridState.recordCount }} records
+                </p>
+                <button type="button" @click="load()" title="Reload the grid">
+                    <ArrowPathIcon class="size-5 ms-2" />
+                </button>
+                <button type="button" @click="exportToExcel(gridState, props.exportOptions)" title="Export grid to Excel workbook" v-if="!props.disableExport">
+                    <DocumentChartBarIcon class="size-5 ms-2" />
+                </button>
             </div>
         </div>
     </div>
@@ -25,6 +45,11 @@ import { registerColumns } from './columns';
 import GridHeader from './GridHeader.vue';
 import type { GridFilterState } from './filters';
 import { gridFilterState } from './filters';
+import type { GridColProps } from './GridCol.vue';
+import { ArrowPathIcon } from '@heroicons/vue/24/solid';
+import { DocumentChartBarIcon } from '@heroicons/vue/24/outline';
+import { exportToExcel } from './grid.ts';
+import type { GridExportOptions } from './grid.ts';
 
 export type DataObject = {
     data: Record<string, any>[],
@@ -33,15 +58,43 @@ export type DataObject = {
 
 export interface GridProps {
     data: Record<string, any>[],
+
+    /** Hides lines between cells */
     hideVerticalLines?: boolean,
+
+    /** Hides lines between rows */
     hideHorizontalLines?: boolean,
+
+    /** Hides the surrounding border of the grid */
     hideBorder?: boolean,
     headerBgColor?: string,
     sortField?: string,
     sortOrder?: 'asc' | 'desc',
     bgColor?: string,
+
+    /** Reactive - Hides the filter row on initial load */
     hideFilterRow?: boolean,
-    hideHeader?: boolean
+
+    /** Reactive - Hides the column headers & filter row on initial load  */
+    hideHeader?: boolean,
+
+    /** Number of records to initially show */
+    recordLimit?: number,
+
+    /**
+     * When set to true will load recordLimit, then show button for loading next batch of records.
+     * When false, only recordLimit number of rows will be displayed.
+     */
+    lazyLoading?: boolean
+
+    /** Hides the grid footer */
+    hideFooter?: boolean
+
+    /** Options for grid export feature */
+    exportOptions?: GridExportOptions
+
+    /** When set to true will not show export button in footer */
+    disableExport?: boolean
 }
 
 const props = defineProps<GridProps>();
@@ -53,10 +106,12 @@ export interface GridSlots {
 }
 
 export type GridState = {
-    // data: Record<string, any>[],
+    data: Record<string, any>[],
     currentSortField?: string,
     currentSortOrder?: SortOrder
     currentRow?: Record<string, any>
+    recordCount: number,
+    key: number,
     activeCell?: {
         clickEvent: any,
         row: Record<string, any> | undefined,
@@ -75,22 +130,33 @@ export type GridState = {
         hasBorder: boolean,
         headerBgColor: string | undefined,
         bgColor: string | undefined,
+        recordLimit: number,
+        lazyLoading: boolean,
+        allRecordsLoaded: boolean,
+        visibleRecordsCount: number
     },
+    columns?: GridColProps[],
     filterState?: GridFilterState,
     load: () => void
     handleSort: (direction: SortOrder, field: string) => void
 }
 
 const gridState = reactive<GridState>({
-    // data: props.data,
+    data: props.data,
     currentSortField: props.sortField,
     currentSortOrder: props.sortOrder,
+    recordCount: props.data.length,
+    key: 0,
     gridOptions: {
         hasVerticalLines: !props.hideVerticalLines,
         hasHorizontalLines: !props.hideHorizontalLines,
         hasBorder: !props.hideBorder,
         headerBgColor: props.headerBgColor,
-        bgColor: 'white'
+        bgColor: 'white',
+        recordLimit: props.recordLimit ?? 100,
+        lazyLoading: false,
+        allRecordsLoaded: false,
+        visibleRecordsCount: props.recordLimit ?? 100
     },
     filterState: gridFilterState,
     load: load,
@@ -101,9 +167,14 @@ const emit = defineEmits<{
     (e: 'rowClick', row: Record<string, any>): void;
 }>();
 
+const slots = defineSlots<GridSlots>();
+
+// Provide grid state to all children components
 provide('gridState', gridState);
 
-const gridKey = ref(0);
+const visibleData = computed(() => {
+    return sortedData.value.slice(0, gridState.gridOptions.visibleRecordsCount);
+});
 
 const sortedData = computed(() => {
     const data = filteredData.value;
@@ -127,8 +198,6 @@ const sortedData = computed(() => {
     });
 });
 
-const filters = reactive<Record<string, string>>({});
-
 const filteredData = computed(() => {
     const activeFilters = gridState.filterState?.activeFilters;
     if (!activeFilters || !activeFilters.length) return props.data;
@@ -142,14 +211,18 @@ const filteredData = computed(() => {
     });
 });
 
-const slots = defineSlots<GridSlots>();
 
 let initialColumns: any[] = [];
 if (slots.columns) {
     const vNodes = slots.columns({ row: undefined });
     initialColumns = registerColumns(vNodes);
+    gridState.columns = initialColumns;
     console.log('colsss: ', initialColumns)
 }
+
+const recordsNotLoaded = computed(() => {
+    return sortedData.value.length - gridState.gridOptions.visibleRecordsCount;
+});
 
 function onRowClick(row: Record<string, any>) {
     emit("rowClick", row);
@@ -168,7 +241,7 @@ function handleSort(direction: SortOrder, field: string) {
 }
 
 function load() {
-    gridKey.value++
+    gridState.key++
 }
 
 </script>
@@ -196,5 +269,10 @@ function load() {
 }
 .grid-row {
     display: flex;
+}
+.grid-footer {
+    display: flex;
+    padding: 10px 0px 10px 5px;
+    border-top: 1px solid #ccc;
 }
 </style>

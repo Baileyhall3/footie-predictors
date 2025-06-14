@@ -18,14 +18,14 @@
          <PageHeader>
           <template #header>
             <img 
-              :src="group.icon_url ?? '/images/green-football-md.png'" 
+              :src="group?.icon_url ?? '/images/green-football-md.png'" 
               class="w-10 h-10 flex-shrink-0" 
               alt="Group Logo"
             />
-            <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
+            <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
           </template>
           <template #actionItems>
-            <button @click="copyGroupLink()" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
+            <button @click="copyPageLink('Group')" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
                 <LinkIcon class="size-6 text-blue-500" />
               </button>
               <Dropdown>
@@ -33,23 +33,23 @@
                   <EllipsisVerticalIcon class="size-6 text-gray-500" />
                 </template>
                 <template #items>
-                  <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item" v-if="activeGameweek">
+                  <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item item-separator" v-if="activeGameweek">
                     Gameweek {{ activeGameweek?.week_number }}
                   </router-link>
-                  <router-link :to="`/season/${activeSeason?.id}`" class="text-blue-600 dropdown-item" v-if="activeSeason">
+                  <router-link :to="`/season/${activeSeason?.id}`" class="text-blue-600 dropdown-item item-separator" v-if="activeSeason">
                     {{ activeSeason?.name }}
                   </router-link>
-                  <router-link :to="`/user-group-profile/${groupId}/${userStore.user?.id}`" class="text-blue-600 dropdown-item">
+                  <router-link :to="`/user-group-profile/${groupId}/${userStore.user?.id}`" class="text-blue-600 dropdown-item item-separator">
                     My Group Profile
                   </router-link>
-                   <template v-if="isGroupOwner">
+                  <template v-if="isGroupOwner">
                      <router-link :to="`/group/${group?.id}/update-group`" >
-                       <button class="dropdown-item">
+                       <button class="dropdown-item item-separator">
                          Edit
                        </button>
                      </router-link>
                      <router-link :to="`/group/${group?.id}/create-gameweek`" v-if="!activeSeason?.is_finished">
-                       <button class="dropdown-item">
+                       <button class="dropdown-item item-separator">
                          Create Gameweek
                        </button>
                      </router-link>
@@ -58,7 +58,7 @@
                          New season
                        </button>
                      </router-link>
-                   </template>
+                  </template>
                   <template v-else>
                     <button @click="updateMemberStatus(false)" 
                       class="dropdown-item text-red-700"
@@ -78,7 +78,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 md:gap-8">
               <RoundedContainer headerText="Group Info">
                 <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
-                <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group.created_at) }}</p>
+                <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group?.created_at) }}</p>
                 <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
               </RoundedContainer>
               <RoundedContainer>
@@ -329,14 +329,14 @@ import StatRow from "../components/StatRow.vue";
 import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
 import Tabs from "../components/UI/Tabs.vue";
 import Tab from "../components/UI/Tab.vue";
-import GroupGameweeks from "../components/GroupGameweeks.vue";
 import RoundedContainer from "../components/UI/RoundedContainer.vue";
 import CombinedGroupStats from "./CombinedGroupStats.vue";
 import GroupLeaderboard from "./GroupLeaderboard.vue";
 import Dropdown from "../components/UI/Dropdown.vue";
 import { seasonsService } from "../api/seasonsService";
 import PageHeader from "../components/PageHeader.vue";
-import { Season, Gameweek, Group, GroupMember } from '../types';
+import { Season, Gameweek, Group, GroupMember, Prediction, LeaderboardEntry, GwLeaderboardEntry } from '../types';
+import { copyPageLink } from "../utils/sharedFunctions";
 
 const route = useRoute();
 const router = useRouter();
@@ -346,53 +346,35 @@ const removeMemberConfirm = ref(null);
 const createMemberDialog = ref(null);
 
 // State
-const loading = ref(true);
-const error = ref(null);
-const groupId = ref(null);
+const loading = ref<boolean>(true);
+const error = ref<string | null>(null);
+const groupId = ref<string | null>(null);
 const group = ref<Group>();
 const members = ref<Array<GroupMember>>([]);
 const gameweeks = ref<Array<Gameweek>>([]);
-const predictions = ref({});
-const matches = ref([]);
-const notInGroup = ref(true);
-const deleteConfirmMsg = ref('');
-const deleteConfirmTitle = ref('');
-const deleteConfirmText = ref('Confirm');
-const isAdmin = ref(false);
-const isGroupOwner = ref(false);
-const groupOwner = ref();
+const predictions = ref<Array<Prediction>>();
+const matches = ref<Array<any>>([]);
+const notInGroup = ref<boolean>(true);
+const deleteConfirmMsg = ref<string>('');
+const deleteConfirmTitle = ref<string>('');
+const deleteConfirmText = ref<string>('Confirm');
+const isAdmin = ref<boolean>(false);
+const isGroupOwner = ref<boolean>(false);
+const groupOwner = ref<{ email: string, id: string, username: string }>();
 const activeGameweek = ref<Gameweek>();
-const groupExists = ref(true);
+const groupExists = ref<boolean>(true);
 const gameweekWinner = ref({});
-const gwLeaderboard = ref([]);
-const gwLeaderboardLastUpdated = ref();
-const currentLeader = ref({});
-const currentUserGameweekData = ref({});
-const userMostCorrectScores = ref({});
+const gwLeaderboard = ref<Array<LeaderboardEntry>>([]);
+const gwLeaderboardLastUpdated = ref<Date | null>();
+const currentLeader = ref<GwLeaderboardEntry>();
+const currentUserGameweekData = ref<GwLeaderboardEntry>();
+const userMostCorrectScores = ref<GwLeaderboardEntry>();
 const activeSeason = ref<Season>();
 const seasons = ref<Array<Season>>();
 
 const adminName = computed(() => {
   const admin = members.value.find(member => member.is_admin);
   return admin ? admin.username : 'Unknown';
-});
-
-const progressPercent = computed(() => {
-  return Math.min(100, Math.max(0, 60 * 100));
-  const start = activeSeason.value.start_date ? new Date(activeSeason.value.start_date) : null;
-  const end = activeSeason.value.end_date ? new Date(activeSeason.value.end_date) : null;
-  const now = new Date();
-
-  if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
-    return 0;
-  }
-
-  const total = end.getTime() - start.getTime();
-  const elapsed = now.getTime() - start.getTime();
-
-  if (total <= 0) return 0;
-
-  return Math.min(100, Math.max(0, (elapsed / total) * 100));
 });
 
 // Fetch all data for the group
@@ -469,7 +451,6 @@ const fetchAllData = async () => {
         gameweekWinner.value = { ...winnerData, userIsGameweekWinner: userIsGameweekWinner }
       }
     }
-
   } catch (err) {
     console.error('Error fetching group data:', err);
     error.value = err.message || 'An error occurred while loading group data';
@@ -525,29 +506,33 @@ const handlePredictionUpdate = ({ matchId, field, value }) => {
 };
 
 async function submitPredictions() {
-  loading.value = true;
-
-  for (const [matchId, prediction] of Object.entries(predictions.value)) {
-    await predictionsService.savePrediction(
-      userStore.user?.id, 
-      matchId, 
-      prediction.predicted_home_score ? prediction.predicted_home_score : 0,
-      prediction.predicted_away_score ? prediction.predicted_away_score : 0
-    );
+  try {
+    loading.value = true;
+  
+    for (const [matchId, prediction] of Object.entries(predictions.value)) {
+      await predictionsService.savePrediction(
+        userStore.user?.id, 
+        matchId, 
+        prediction.predicted_home_score ? prediction.predicted_home_score : 0,
+        prediction.predicted_away_score ? prediction.predicted_away_score : 0
+      );
+    }
+  
+    toast("Your predictions have been saved!", {
+      "type": "success",
+      "position": "top-center"
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
   }
-
-  toast("Your predictions have been saved!", {
-    "type": "success",
-    "position": "top-center"
-  });
-
-  loading.value = false;
 }
 
-const updateMemberAdminStatus = async (member) => {
+const updateMemberAdminStatus = async (member: GroupMember) => {
   await groupsStore.updateMemberRole(member.membership_id, !member.is_admin, groupId.value);
-
-  toast("User admin status updated!", { // TODO: Make toast more intuitative
+  
+  toast(`${member.username}'s admin status updated!`, {
     "type": "success",
     "position": "top-center"
   });
@@ -556,7 +541,7 @@ const updateMemberAdminStatus = async (member) => {
   getGroupMembers();
 }
 
-const confirmRemoveMember = async (member) => {
+const confirmRemoveMember = async (member: GroupMember) => {
   deleteConfirmMsg.value = `Are you sure you want to remove ${member.username} from the group? ${member.is_fake ? ' This will also delete this user.' : ''}`;
   deleteConfirmTitle.value = 'Remove Member';
   deleteConfirmText.value = 'Confirm';
@@ -585,7 +570,7 @@ async function tryJoinGroup() {
   }
 }
 
-async function updateMemberStatus(isJoining) {
+async function updateMemberStatus(isJoining: boolean) {
   if (isJoining) {
     try {
       const { success, error: joinError } = await groupsStore.addMember(
@@ -634,7 +619,7 @@ async function updateMemberStatus(isJoining) {
   }
 }
 
-const removeMember = async (member) => {
+const removeMember = async (member: GroupMember) => {
   let memberUserId = member.is_fake ? member.id : null;
   try {
     loading.value = true;
@@ -689,15 +674,6 @@ async function getLeaderboard() {
 
 const openCreateMemberDialog = async() => {
   await createMemberDialog.value.show();
-}
-
-function copyGroupLink() {
-  const url = window.location.href;
-  navigator.clipboard.writeText(url);
-  toast("Group link copied!", {
-    "type": "info",
-    "position": "top-center"
-  });
 }
 
 function getScoringSystem(group) {

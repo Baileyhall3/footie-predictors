@@ -31,7 +31,7 @@
 
                 <template #details>
                     <!-- <p class="text-gray-500">{{ currentLeader }}</p> -->
-                    <div class="flex">
+                    <div class="flex items-end">
                         <Lookup displayText="Season: " :data="seasonLkp" @item-selected="setCurrentSeason" />
                         {{ currentSeason?.name }}
                     </div>
@@ -40,48 +40,43 @@
 
             <Tabs>
                 <Tab header="Season">
-                    <!-- <RoundedContainer v-if="leaderboard">
-                        <template #header>
-                            <h3 class="text-xl font-semibold">{{ currentSeason?.name }}</h3>
-                            <button type="button" @click="hideGridFilterRow = !hideGridFilterRow; console.log(leaderboardGridRef);">
-                                <FunnelIcon v-if="!hideGridFilterRow" class="size-5 ms-2" />
-                                <FunnelIconOutline v-else class="size-5 ms-2"  />
-                            </button>
-                        </template> -->
-                        <DataGrid 
-                            ref="leaderboardGridRef"
-                            :data="leaderboard" 
-                            hideVerticalLines 
-                            headerBgColor="rgb(22 163 74 /1)"
-                            :hideFilterRow="hideGridFilterRow"
-                        >
-                            <template #cardHeader>
-                                <div class="items-center flex py-6 ms-2">
-                                    <h3 class="text-xl font-semibold">{{ currentSeason?.name }}</h3>
-                                    <button type="button" @click="hideGridFilterRow = !hideGridFilterRow; console.log(leaderboardGridRef);">
-                                        <FunnelIcon v-if="!hideGridFilterRow" class="size-5 ms-2" />
-                                        <FunnelIconOutline v-else class="size-5 ms-2"  />
-                                    </button>
-                                </div>
-                            </template>
-                            <template #columns="{ row }">
-                                <GridCol field="position" colName="Pos" width="40px" disableFilter>
-                                    <template #display="{ row }">
-                                        <span class="font-medium w-6 text-center">{{ row.position }}.</span>
-                                    </template>
-                                </GridCol>
-                                <GridCol field="username" colName="Username" width="200px">
-                                    <template #display="{ row }">
-                                        <UsernameDisplay :user="row" :currentUserId="userStore.user?.id" />
-                                    </template>
-                                </GridCol>
-                                <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number" />
-                                <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable />
-                                <GridCol field="total_correct_results" colName="CR"  width="60px" colTitle="Correct Results" sortable />
-                                <GridCol field="gameweek_wins" colName="W"  width="60px" colTitle="Gameweek Wins" sortable />
-                            </template>
-                        </DataGrid>
-                    <!-- </RoundedContainer> -->
+                    <DataGrid 
+                        ref="leaderboardGridRef"
+                        :data="leaderboard" 
+                        hideVerticalLines 
+                        headerBgColor="rgb(22 163 74 /1)"
+                        :hideFilterRow="hideGridFilterRow"
+                        :exportOptions="{
+                            sheetTitle: 'Leaderboard',
+                            workBookTitle: `${group?.name}_${currentSeason?.name}_leaderboard`
+                        }"
+                    >
+                        <template #cardHeader>
+                            <div class="items-center flex py-6 ms-2">
+                                <h3 class="text-xl font-semibold">{{ currentSeason?.name }}</h3>
+                                <button type="button" @click="hideGridFilterRow = !hideGridFilterRow; console.log(leaderboardGridRef);">
+                                    <FunnelIcon v-if="!hideGridFilterRow" class="size-5 ms-2" />
+                                    <FunnelIconOutline v-else class="size-5 ms-2"  />
+                                </button>
+                            </div>
+                        </template>
+                        <template #columns="{ row }">
+                            <GridCol field="position" colName="Pos" width="40px" disableFilter>
+                                <template #display="{ row }">
+                                    <span class="font-medium w-6 text-center">{{ row.position }}.</span>
+                                </template>
+                            </GridCol>
+                            <GridCol field="username" colName="Username" width="200px">
+                                <template #display="{ row }">
+                                    <UsernameDisplay :user="row" :currentUserId="userStore.user?.id" />
+                                </template>
+                            </GridCol>
+                            <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number" />
+                            <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable />
+                            <GridCol field="total_correct_results" colName="CR"  width="60px" colTitle="Correct Results" sortable />
+                            <GridCol field="gameweek_wins" colName="W"  width="60px" colTitle="Gameweek Wins" sortable />
+                        </template>
+                    </DataGrid>
                 </Tab>
                 <Tab header="Gameweeks">
                     <RoundedContainer v-if="currentGameweek">

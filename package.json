@@ -26,6 +26,7 @@
     "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.9",
     "cors": "^2.8.5",
+    "exceljs": "^4.4.0",
     "node-cron": "^3.0.3",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.3",
