@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, computed, ref, reactive } from 'vue';
+import { onMounted, provide, computed, ref, reactive, watch } from 'vue';
 import RowProvider from './RowProvider.vue';
 import type { SortOrder } from '../SortButton.vue';
 import { registerColumns } from './columns';
@@ -275,6 +275,9 @@ function load() {
     gridState.key++
 }
 
+watch(() => props.data, (oldVal, newVal) => {
+    load();
+});
 </script>
 
 <style scoped>
