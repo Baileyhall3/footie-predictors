@@ -41,7 +41,7 @@
                     <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
                       {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                     </button>
-                    <button v-if="!gameweek?.is_active" @click="changeGameWeekActiveStatus" class="dropdown-item">
+                    <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="changeGameWeekActiveStatus" class="dropdown-item">
                       Set Active
                     </button>
                     <button @click="deleteGameweek" class="dropdown-item text-red-700">

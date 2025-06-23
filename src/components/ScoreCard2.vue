@@ -1,6 +1,7 @@
 <template>
     <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <div class="flex justify-between items-center mb-4" v-if="props.header">
+        <slot name="header"></slot>
+        <div class="flex justify-between items-center mb-4" v-if="props.header && !slots.header">
             <div class="items-center flex">
                 <slot name="filter"></slot>
                 <h3 class="text-xl font-semibold">{{ props.header }}</h3>
@@ -45,10 +46,9 @@
                                             class="w-6 h-6 flex-shrink-0"
                                         />
                                     </div>
-                                    <span
-                                        class="text-md font-bold" 
-                                        :class="getPredictionColor(match)">
-                                        {{ match.predicted_home_score }}
+                                    <span class="text-md font-bold" 
+                                        :class="!props.notPrediction ? getPredictionColor(match) : ''">
+                                        {{ props.notPrediction ? match.final_home_score : match.predicted_home_score }}
                                     </span>
                                 </div>
             
@@ -57,8 +57,8 @@
                                 <!-- Away Team and Score -->
                                 <div class="flex items-center space-x-2 justify-start" style="width: 45%;">
                                     <span class="text-md font-bold" 
-                                        :class="getPredictionColor(match)">
-                                        {{ match.predicted_away_score }}
+                                        :class="!props.notPrediction ? getPredictionColor(match) : ''">
+                                        {{ props.notPrediction ? match.final_away_score : match.predicted_away_score }}
                                     </span>
                                     <div class="flex items-center gap-2 min-w-0">
                                         <img
@@ -106,6 +106,7 @@
                 </template> -->
             </template>
         </TransitionGroup>
+        <slot></slot>
     </div>
 </template>
 
@@ -114,6 +115,7 @@ import { computed, ref, useSlots } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Prediction } from '../types';
+import { getPredictionColor } from '../utils/sharedFunctions';
 
 export interface EditedPrediction {
     matchId: string, 
@@ -130,11 +132,12 @@ export interface IProps {
     allowCollapse?: boolean;
     showLockedIcon?: boolean;
     oneMatchPerRow?: boolean;
-    gameweekId?: string
+    gameweekId?: string;
     matchesClickable?: boolean
     disableTimeHeader?: boolean
     disableMatchTime?: boolean
     includeSubmitBtn?: boolean
+    notPrediction?: boolean
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
@@ -179,31 +182,6 @@ const groupedMatches = computed(() => {
 const toggleMatchesCollapse = () => {
     matchesCollapsed.value = !matchesCollapsed.value;
 }
-
-// Function to determine color based on prediction accuracy
-const getPredictionColor = (match: Prediction) => {
-    if (match.final_home_score === null || match.final_away_score === null) {
-        return "test-gray-600"; // No color if match is not finished
-    }
-
-    const predictedHome = match.predicted_home_score;
-    const predictedAway = match.predicted_away_score;
-    const actualHome = match.final_home_score;
-    const actualAway = match.final_away_score;
-
-    if (predictedHome === actualHome && predictedAway === actualAway) {
-        return "text-green-500"; // Exact score
-    }
-
-    const predictedWinner = predictedHome > predictedAway ? "home" : predictedAway > predictedHome ? "away" : "draw";
-    const actualWinner = actualHome > actualAway ? "home" : actualAway > actualHome ? "away" : "draw";
-
-    if (predictedWinner === actualWinner) {
-        return "text-amber-500"; // Correct result but wrong score
-    }
-
-    return "text-red-500"; // Incorrect result
-};
 
 // Emit event when prediction changes
 const updatePrediction = (match: any, field: string, increment: number) => {

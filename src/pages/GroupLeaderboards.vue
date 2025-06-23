@@ -56,6 +56,7 @@
                             sheetTitle: 'Leaderboard',
                             workBookTitle: `${group?.name}_${currentSeason?.name}_leaderboard`
                         }"
+                        disableActiveCell
                     >
                         <template #cardHeader>
                             <div class="items-center flex py-6 ms-2">
@@ -181,12 +182,12 @@ import "vue3-toastify/dist/index.css";
 import NoAccess from '../components/NoAccess.vue';
 import { userStore } from '../store/userStore';
 import Lookup from '../components/UI/Lookup.vue';
+import type { LookupOption } from '../components/UI/Lookup.vue';
 import LineChart from '../components/LineChart.vue';
 import { LineData } from '../components/LineChart.vue';
 import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
 import PageHeader from '../components/PageHeader.vue';
-import { LookupOption } from '../components/UI/Lookup.vue';
 import RoundedContainer from '../components/UI/RoundedContainer.vue';
 import DataGrid from '../components/UI/grid/DataGrid.vue';
 import GridCol from '../components/UI/grid/GridCol.vue';
@@ -208,13 +209,13 @@ const members = ref([]);
 const isAdmin = ref<boolean>(false)
 const leaderboard = ref<Array<LeaderboardEntry>>([]);
 const currentGameweek = ref<LookupOption>();
+const gameweekLkp = ref<Array<LookupOption>>([]);
 const scores = ref([]);
 const leaderboardLastUpdated = ref<Date | null>();
 const scoresLastUpdated = ref<Date | null>();
 const error = ref<string>('');
 const leaderboardHistory = ref([]);
 const userLeaderboardHistory = ref([]);
-const gameweekLkp = ref<Array<LookupOption>>([]);
 const positionHistory = ref<LineData>();
 const posXLabels = ref<string[]>([]);
 const hideGridFilterRow = ref<boolean>(true);

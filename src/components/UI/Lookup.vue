@@ -2,13 +2,13 @@
     <div class="relative me-2 border border-gray-300 rounded-md">
         <div class="inline-flex items-center">
             <button @click="showLookupMenu = !showLookupMenu"
-                class="text-sm px-3 py-1 border-r border-gray-300 rounded-md hover:bg-gray-200 transition"
-                :class="`bg-${props.bgColor ?? 'bg-gray-100'}`"
+                class="text-sm px-3 py-1 border-gray-300 rounded-md hover:bg-gray-200 transition"
+                :class="`bg-${props.bgColor ?? 'bg-gray-100'} ${props.displayValue ? 'border-r' : ''}`"
             >
                 {{ props.displayText }}
             </button>
     
-            <div class="px-3 py-1 text-sm bg-gray-50 text-gray-700  border-gray-300" v-if="props.displayValue">
+            <div class="px-3 py-1 text-sm bg-gray-50 text-gray-700 rounded-md border-gray-300" v-if="props.displayValue">
                 {{ props.displayValue }}
             </div>
         </div>
@@ -47,7 +47,7 @@ export interface IProps {
 }
 
 export interface IEmits {
-    (e: 'item-selected', item: LookupOption): void,
+    (e: 'item-selected', item: LookupOption | null): void,
 }
 
 const props = defineProps<IProps>();
@@ -56,12 +56,16 @@ const emit = defineEmits<IEmits>();
 const showLookupMenu = ref(false);
 
 function selectItem(item: LookupOption) {
-    props.data.forEach(x => {
-        x.selected = false;
-    });
-    item.selected = true;
+    if (item.selected) {
+        emit("item-selected", null);
+    } else {
+        props.data.forEach(x => {
+            x.selected = false;
+        });
+        item.selected = true;
+        emit("item-selected", item);
+    }
     showLookupMenu.value = false;
-    emit("item-selected", item);
 }
 
 const closeLkpMenu = (event) => {

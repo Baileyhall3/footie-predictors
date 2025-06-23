@@ -1,6 +1,6 @@
 <template>
     <div ref="gridColRef" 
-        class="grid-col hover:bg-gray-100" 
+        class="grid-col" 
         :style="{ width }"
         :class="{ 
             'no-border-right' : !gridState?.gridOptions.hasVerticalLines,
@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import { inject, useSlots, computed, ref, onMounted, onUnmounted } from 'vue';
+import type { VNode } from 'vue';
 import { GridState } from './DataGrid.vue';
 
 type SupportedInput = 'string' | 'number'
@@ -34,7 +35,8 @@ export interface GridColProps {
     editable?: boolean,
     type?: SupportedInput,
     filterString?: string,
-    disableFilter?: boolean
+    disableFilter?: boolean,
+    headerSlot?: () => VNode[] | VNode
 }
 
 const props = defineProps<GridColProps>();
@@ -59,6 +61,7 @@ const isEditingCell = computed(() => {
 
 function onCellClick(event) {
     emit("cellClick", event);
+    if (gridState?.gridOptions.disableActiveCell) { return; }
     const clickedCell = { clickEvent: event, row, ...props, isEditing: props.editable ? true : false }
     if (gridState) {
         gridState.activeCell = clickedCell;
@@ -83,7 +86,11 @@ function stopEditing() {
 .grid-col {
     padding: 10px 0px 10px 5px;
     border-right: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+    /* border-bottom: 1px solid #ccc; */
+    border-bottom-width: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .grid-col.no-border-right {
     border-right: none;
@@ -96,4 +103,7 @@ function stopEditing() {
     border-style: solid;
     border-width: thin;
 }
+/* .grid-col:hover {
+  background-color: #f3f4f6;
+} */
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <div class="grid-header" :style="{ backgroundColor: bgColor }">
+    <div class="grid-header" :style="{ backgroundColor: bgColor, color: headerTextColor }">
         <div v-for="(col, colIndex) in props.columns" :key="colIndex" :style="{ width: col.width }">
             <div class="grid-col" 
                 :class="{ 
@@ -8,7 +8,10 @@
             >
                 <div :title="col.colTitle ?? col.colName" class="relative">
                     <div class="flex items-center justify-between select-none">
-                        {{ col.colName }}
+                        <component :is="col.headerSlot ? col.headerSlot : 'span'" v-if="col.headerSlot" />
+                        <template v-else>
+                            {{ col.colName }}
+                        </template>
                         <SortButton 
                             v-if="col.sortable" 
                             :currentSort="gridState?.currentSortField === col.field ? gridState.currentSortOrder : null" 
@@ -35,7 +38,8 @@ import GridFilterRow from './GridFilterRow.vue';
 export interface GridHeaderProps {
     columns: GridColProps[],
     bgColor: string,
-    hideFilterRow?: boolean
+    hideFilterRow?: boolean,
+    headerTextColor?: string
 }
 
 const props = defineProps<GridHeaderProps>();
@@ -62,6 +66,9 @@ function handleSort(direction: SortOrder, col: GridColProps) {
     padding: 10px 0px 10px 5px;
     border-right: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .grid-col.no-border-right {
     border-right: none;

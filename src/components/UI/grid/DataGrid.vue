@@ -1,17 +1,35 @@
 <template>
     <div class="bg-white shadow-lg rounded-xl">
+
+        <!-- Grid card header, will render above grid itself -->    
         <slot name="cardHeader"></slot>
+
         <div class="data-grid" :class="{ 'no-border': hideBorder }">
-            <GridHeader :columns="initialColumns" :bgColor="headerBgColor" :hideFilterRow="hideFilterRow" v-if="!hideHeader" />
+
+            <!-- Grid header with col headers and filter row -->
+            <GridHeader 
+                v-if="!hideHeader" 
+                :columns="initialColumns" 
+                :bgColor="headerBgColor" 
+                :hideFilterRow="hideFilterRow" 
+                :headerTextColor="headerTextColor"
+            />
+
+            <!-- Main grid body with all rows-->
             <div class="grid-body" :key="gridState.key">
-                <div v-for="(row, rowIndex) in visibleData" :key="rowIndex" 
-                    class="grid-row hover:bg-gray-100"
+                <div v-if="visibleData.length > 0" 
+                    v-for="(row, rowIndex) in visibleData" :key="rowIndex" 
+                    class="grid-row"
+                    :class="{ 'allow-hovering' : !props.disableActiveCell}"
                     @click="onRowClick(row)"
                 >
                     <RowProvider :row="row">
                         <slot name="columns" :row="row"></slot>
                     </RowProvider>
                 </div>
+                <!-- <div v-else>
+                    <p class="text-gray-500 py-2">No records to show.</p>
+                </div> -->
                 <div v-if="props.lazyLoading && recordsNotLoaded > 0" class="text-center mt-4">
                     <button 
                         @click="gridState.gridOptions.visibleRecordsCount += props.recordLimit ?? 100"
@@ -21,15 +39,22 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Grid footer, rendered under the last row -->
+            <!-- Could be made sticky to bottom of page? -->
             <div class="grid-footer" v-if="!props.hideFooter">
                 <p class="text-gray-500 py-2">Showing 
-                    {{ props.recordLimit ? gridState.gridOptions.visibleRecordsCount : gridState.recordCount }} 
+                    {{ visibleData.length }} 
                     of {{ gridState.recordCount }} records
                 </p>
                 <button type="button" @click="load()" title="Reload grid">
                     <ArrowPathIcon class="size-5 ms-4" />
                 </button>
-                <button type="button" @click="exportToExcel(gridState, props.exportOptions)" title="Export grid to Excel workbook" v-if="!props.disableExport">
+                <button v-if="!props.disableExport && props.exportOptions" 
+                    type="button" 
+                    @click="exportToExcel(gridState, props.exportOptions)" 
+                    title="Export grid to Excel workbook"
+                >
                     <DocumentChartBarIcon class="size-5 ms-2" />
                 </button>
             </div>
@@ -71,6 +96,7 @@ export interface GridProps {
     sortField?: string,
     sortOrder?: 'asc' | 'desc',
     bgColor?: string,
+    headerTextColor?: string,
 
     /** Reactive - Hides the filter row on initial load */
     hideFilterRow?: boolean,
@@ -95,6 +121,9 @@ export interface GridProps {
 
     /** When set to true will not show export button in footer */
     disableExport?: boolean
+
+    /** When set to true will not add any styling when rows/cells are clicked */
+    disableActiveCell?: boolean
 }
 
 const props = defineProps<GridProps>();
@@ -133,7 +162,8 @@ export type GridState = {
         recordLimit: number,
         lazyLoading: boolean,
         allRecordsLoaded: boolean,
-        visibleRecordsCount: number
+        visibleRecordsCount: number,
+        disableActiveCell: boolean
     },
     columns?: GridColProps[],
     filterState?: GridFilterState,
@@ -156,7 +186,8 @@ const gridState = reactive<GridState>({
         recordLimit: props.recordLimit ?? 100,
         lazyLoading: false,
         allRecordsLoaded: false,
-        visibleRecordsCount: props.recordLimit ?? 100
+        visibleRecordsCount: props.recordLimit ?? 100,
+        disableActiveCell: props.disableActiveCell ?? false
     },
     filterState: gridFilterState,
     load: load,
@@ -269,6 +300,9 @@ function load() {
 }
 .grid-row {
     display: flex;
+}
+.grid-row.allow-hovering:hover {
+  background-color: #f3f4f6 !important;
 }
 .grid-footer {
     display: flex;

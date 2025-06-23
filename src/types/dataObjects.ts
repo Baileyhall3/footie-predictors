@@ -120,3 +120,19 @@ export interface GwLeaderboardEntry {
     user_id: string,
     username: string  
 }
+
+export interface Match {
+    home_team: string,
+    away_team: string,
+    match_time: Date | string,
+    id: string,
+    api_match_id?: string,
+    home_team_crest?: string,
+    home_team_api_id?: string,
+    away_team_crest?: string,
+    away_team_api_id?: string,
+    group_id: string,
+    gameweek_id: string
+    final_home_score?: number,
+    final_away_score?: number
+}
