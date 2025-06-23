@@ -66,7 +66,7 @@ function handleSort(direction: SortOrder, col: GridColProps) {
     padding: 10px 0px 10px 5px;
     border-right: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
-    overflow: hidden;
+    /* overflow: hidden; */
     text-overflow: ellipsis;
     white-space: nowrap;
 }

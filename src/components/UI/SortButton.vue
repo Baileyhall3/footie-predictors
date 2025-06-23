@@ -1,5 +1,5 @@
 <template>
-    <div class="relative">
+    <div class="relative z-[1]">
         <component :is="currentSort === null || currentSort === undefined ? ChevronUpDownIcon : currentSort === 'asc' ? ChevronUpIcon : ChevronDownIcon" 
             :class="`size-${currentSort === null || currentSort === undefined ? props.size : (props.size - 2)}`" @click="sortMenuOpen = !sortMenuOpen" 
             style="margin-right: 0.2rem; cursor: pointer;"
@@ -8,7 +8,7 @@
         <!-- Sort dropdown -->
         <transition name="fade">
             <div v-if="sortMenuOpen"
-                class="absolute top-full right-0 mt-1 bg-white shadow-lg rounded z-10"
+                class="absolute top-full right-0 mt-1 bg-white shadow-lg rounded z-[999]"
             >
                 <div class="flex items-center justify-center px-2 py-1 hover:bg-gray-200 cursor-pointer"
                     @click.stop="handleSort('asc')"

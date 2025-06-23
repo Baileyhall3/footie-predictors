@@ -127,27 +127,45 @@
             </RoundedContainer>
           </Tab>
           <Tab header="Leaderboard">
-            <!-- Leaderboard Section -->
-            <RoundedContainer headerText="Leaderboard">
-              <template #headerContent>
-                <router-link 
-                  :to="`/group/${gameweek?.group_id}/leaderboards`" 
-                  class="text-sm text-blue-600 hover:underline"
-                >
-                  View Full Leaderboard →
-                </router-link>
-              </template>
-              <p v-if="leaderboardLastUpdated" class="text-gray-500">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
-              <div v-if="leaderboard.length">
-                <LeaderboardCard 
-                  :leaderboard="leaderboard"
-                  :gameweekId="gameweekId"
-                  :includeUserPredictionLink="gameweek?.is_locked"
-                  :winnerId="gameweek?.winner_id"
-                />
-              </div>
-              <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-            </RoundedContainer>
+            <DataGrid 
+                ref="leaderboardGridRef"
+                :data="leaderboard" 
+                hideVerticalLines 
+                headerBgColor="rgb(22 163 74 /1)"
+                :hideFilterRow="!isFiltering"
+                :exportOptions="{
+                    sheetTitle: 'Gameweek Leaderboard',
+                    workBookTitle: `gameweek${gameweek?.week_number}_leaderboard`
+                }"
+                disableActiveCell
+            >
+                <template #cardHeader>
+                    <div class="items-center flex py-6 ms-2">
+                        <h3 class="text-xl font-semibold">Leaderboard</h3>
+                        <FilterButton :filterActive="isFiltering" @onFilter="isFiltering = $event" />
+                    </div>
+                    <p v-if="leaderboardLastUpdated" class="text-gray-500 ms-2 mb-2">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
+                </template>
+                <template #columns="{ row }">
+                    <GridCol field="position" colName="Pos" width="40px" disableFilter>
+                        <template #display="{ row }">
+                            <span class="font-medium w-6 text-center">{{ row.position }}.</span>
+                        </template>
+                    </GridCol>
+                    <GridCol field="username" colName="Username" width="200px">
+                        <template #display="{ row }">
+                            <UsernameDisplay 
+                              :user="row" 
+                              :currentUserId="userStore.user?.id" 
+                              includeUserPredictionLink
+                              :gameweekId="gameweekId"
+                            />
+                        </template>
+                    </GridCol>
+                    <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number" />
+                    <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable />
+                </template>
+            </DataGrid>
             <!-- <RoundedContainer headerText="Potential Finishes">
               <PotentialFinishGrid 
                 :scoringSystem="potentialFinishData.scoringSystem"
@@ -191,6 +209,10 @@ import PotentialFinishGrid from '../components/PotentialFinishGrid.vue';
 import DoesNotExist from '../components/DoesNotExist.vue';
 import { Gameweek, Prediction } from '../types';
 import { copyPageLink } from '../utils/sharedFunctions';
+import FilterButton from '../components/UI/FilterButton.vue';
+import DataGrid from '../components/UI/grid/DataGrid.vue';
+import GridCol from '../components/UI/grid/GridCol.vue';
+import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -211,6 +233,7 @@ const gameweekWinner = ref();
 const leaderboardLastUpdated = ref();
 const potentialFinishData = ref({ scoringSystem: {}, userPredictions: [] });
 const gameweekExists = ref<boolean>(true);
+const isFiltering = ref<boolean>(false);
 
 const isAdmin = ref(false);
 

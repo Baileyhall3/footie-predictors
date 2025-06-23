@@ -86,38 +86,56 @@
                     </DataGrid>
                 </Tab>
                 <Tab header="Gameweeks">
-                    <RoundedContainer v-if="currentGameweek">
-                        <div v-if="scores.length">
-                            <LeaderboardCard 
-                                :leaderboard="scores"
-                                includeHeader
-                                allowCollapse
-                                includeSearchBar
-                                :gameweekId="currentGameweek.id"
-                                :lastUpdated="scoresLastUpdated"
-                                includeUserPredictionLink
-                            >
-                                <template #filter>
-                                    <Lookup 
-                                        displayText="Showing: " 
-                                        :data="gameweekLkp" 
-                                        @item-selected="setCurrentGameweek" 
+                    <DataGrid 
+                        ref="gwLeaderboardGridRef"
+                        :data="scores" 
+                        hideVerticalLines 
+                        headerBgColor="rgb(22 163 74 /1)"
+                        :hideFilterRow="!isFilteringGw"
+                        :exportOptions="{
+                            sheetTitle: 'Gameweek Leaderboard',
+                            workBookTitle: `gameweek${currentGameweek?.name}_leaderboard`
+                        }"
+                        disableActiveCell
+                    >
+                        <template #cardHeader>
+                            <div class="items-center flex py-6 ms-2">
+                                <Lookup 
+                                    displayText="Showing: " 
+                                    :data="gameweekLkp" 
+                                    @item-selected="setCurrentGameweek" 
+                                />
+                                <h3 class="text-xl font-semibold">                    
+                                    <router-link 
+                                        :to="`/gameweek/${currentGameweek?.id}`" 
+                                        class="text-blue-600 hover:underline"
+                                    >
+                                        {{ currentGameweek?.name }}
+                                    </router-link>
+                                </h3>
+                                <FilterButton :filterActive="isFilteringGw" @onFilter="isFilteringGw = $event" />
+                            </div>
+                        </template>
+                        <template #columns="{ row }">
+                            <GridCol field="position" colName="Pos" width="40px" disableFilter>
+                                <template #display="{ row }">
+                                    <span class="font-medium w-6 text-center">{{ row.position }}.</span>
+                                </template>
+                            </GridCol>
+                            <GridCol field="username" colName="Username" width="200px">
+                                <template #display="{ row }">
+                                    <UsernameDisplay 
+                                        :user="row" 
+                                        :currentUserId="userStore.user?.id" 
+                                        includeUserPredictionLink
+                                        :gameweekId="currentGameweek?.id"
                                     />
                                 </template>
-                                <template #header>
-                                    <h3 class="text-xl font-semibold">                    
-                                        <router-link 
-                                            :to="`/gameweek/${currentGameweek.id}`" 
-                                            class="text-blue-600 hover:underline"
-                                        >
-                                            {{ currentGameweek.name }}
-                                        </router-link>
-                                    </h3>
-                                </template>
-                            </LeaderboardCard>
-                        </div>
-                        <p v-else class="text-gray-500 py-2">No leaderboard data available.</p>
-                    </RoundedContainer>
+                            </GridCol>
+                            <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number" />
+                            <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable />
+                        </template>
+                    </DataGrid>
                 </Tab>
                 <Tab header="History">
                     <RoundedContainer>
@@ -198,6 +216,7 @@ import { FunnelIcon as FunnelIconOutline } from '@heroicons/vue/24/outline';
 import { copyPageLink } from '../utils/sharedFunctions';
 import Dropdown from "../components/UI/Dropdown.vue";
 import { seasonsService } from '../api/seasonsService';
+import FilterButton from '../components/UI/FilterButton.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -224,6 +243,7 @@ const group = ref<Group>();
 const groupExists = ref<boolean>(true);
 const seasonLkp = ref<Array<LookupOption>>([]);
 const currentSeason = ref<LookupOption>();
+const isFilteringGw = ref<boolean>(false);
 
 onMounted(async () => {
     fetchAllData();
