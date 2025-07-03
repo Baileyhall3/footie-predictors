@@ -11,54 +11,50 @@
       </div>
 
       <template v-else>
-        <div class="px-2 mb-4">
-          <!-- Header Row -->
-          <div class="flex items-center justify-between gap-4 mb-4 flex-nowrap">
-            <div class="flex items-center gap-3 min-w-0 max-w-full flex-1">
-              <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
-              <LockClosedIcon class="size-6 ms-1" v-if="gameweek?.is_locked" />
-              <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
-                Active
-              </div>
+        <PageHeader>
+          <template #header>
+            <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
+            <LockClosedIcon class="size-6 ms-1" v-if="gameweek?.is_locked" />
+            <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
+              Active
             </div>
-  
-            <div class="flex flex-wrap gap-2 justify-end flex-shrink-0">
-              <button @click="copyPageLink('Gameweek')" class="p-1 rounded-md hover:bg-gray-200" title="Copy gameweek link">
-                <LinkIcon class="size-6 text-blue-500" />
-              </button>
-              <Dropdown>
-                <template #trigger>
-                  <EllipsisVerticalIcon class="size-6 text-gray-500" />
+          </template>
+          <template #actionItems>
+            <button @click="copyPageLink('Gameweek')" class="p-1 rounded-md hover:bg-gray-200" title="Copy gameweek link">
+              <LinkIcon class="size-6 text-blue-500" />
+            </button>
+            <Dropdown>
+              <template #trigger>
+                <EllipsisVerticalIcon class="size-6 text-gray-500" />
+              </template>
+              <template #items>
+                <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
+                  Go to Group
+                </router-link>
+                <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item">
+                  {{ gameweek?.season_name }}
+                </router-link>
+                <template v-if="isAdmin">
+                  <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
+                    {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
+                  </button>
+                  <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="changeGameWeekActiveStatus" class="dropdown-item">
+                    Set Active
+                  </button>
+                  <button @click="deleteGameweek" class="dropdown-item text-red-700">
+                    Delete
+                  </button>
                 </template>
-                <template #items>
-                  <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
-                    Go to Group
-                  </router-link>
-                  <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item">
-                    {{ gameweek?.season_name }}
-                  </router-link>
-                  <template v-if="isAdmin">
-                    <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
-                      {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
-                    </button>
-                    <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="changeGameWeekActiveStatus" class="dropdown-item">
-                      Set Active
-                    </button>
-                    <button @click="deleteGameweek" class="dropdown-item text-red-700">
-                      Delete
-                    </button>
-                  </template>
-                </template>
-              </Dropdown>
-            </div>
-          </div>
-          <!-- Gameweek deadline -->
-          <p class="text-lg">
-            <span class="font-semibold">Deadline: </span>
-            <DeadlineCountdown :deadline="new Date(gameweek?.deadline)" v-if="gameweek?.deadline" />
-          </p>
-        </div>
-        
+              </template>
+            </Dropdown>
+          </template>
+          <template #details>
+            <p class="text-lg">
+              <span class="font-semibold">Deadline: </span>
+              <DeadlineCountdown :deadline="new Date(gameweek?.deadline)" v-if="gameweek?.deadline" />
+            </p>
+          </template>
+        </PageHeader>
         <Tabs @tab-selected="handleTabSelected">
           <Tab header="Predictions">
             <template v-if="gameweek?.is_finished">
@@ -147,7 +143,7 @@
                     <p v-if="leaderboardLastUpdated" class="text-gray-500 ms-2 mb-2">Last Updated: {{ DateUtils.toDateTime(leaderboardLastUpdated) }}</p>
                 </template>
                 <template #columns="{ row }">
-                    <GridCol field="position" colName="Pos" width="40px" disableFilter>
+                    <GridCol field="position" colName="Pos" width="40px" disableFilter alignContent="center">
                         <template #display="{ row }">
                             <span class="font-medium w-6 text-center">{{ row.position }}.</span>
                         </template>
@@ -162,8 +158,16 @@
                             />
                         </template>
                     </GridCol>
-                    <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number" />
-                    <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable />
+                    <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number">
+                      <template #display="{ row }">
+                            <span class="text-green-600 font-semibold">{{ row.total_points }}</span>
+                        </template>
+                    </GridCol>
+                    <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable>
+                      <template #display="{ row }">
+                        {{ row.total_correct_scores ?? 0 }}
+                      </template>
+                    </GridCol>
                 </template>
             </DataGrid>
             <!-- <RoundedContainer headerText="Potential Finishes">
@@ -213,6 +217,7 @@ import FilterButton from '../components/UI/FilterButton.vue';
 import DataGrid from '../components/UI/grid/DataGrid.vue';
 import GridCol from '../components/UI/grid/GridCol.vue';
 import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
+import PageHeader from '../components/PageHeader.vue';
 
 const route = useRoute();
 const router = useRouter();

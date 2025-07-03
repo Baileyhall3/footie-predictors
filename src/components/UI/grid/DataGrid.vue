@@ -17,35 +17,43 @@
 
             <!-- Main grid body with all rows-->
             <div class="grid-body" :key="gridState.key">
-                <div v-if="visibleData.length > 0" 
-                    v-for="(row, rowIndex) in visibleData" :key="rowIndex" 
-                    class="grid-row"
-                    :class="{ 'allow-hovering' : !props.disableActiveCell}"
-                    @click="onRowClick(row)"
-                >
-                    <RowProvider :row="row">
-                        <slot name="columns" :row="row"></slot>
-                    </RowProvider>
-                </div>
-                <!-- <div v-else>
-                    <p class="text-gray-500 py-2">No records to show.</p>
-                </div> -->
-                <div v-if="props.lazyLoading && recordsNotLoaded > 0" class="text-center mt-4">
-                    <button 
-                        @click="gridState.gridOptions.visibleRecordsCount += props.recordLimit ?? 100"
-                        class="text-blue-600 hover:underline font-medium"
+                <LoadingContainer v-if="gridState.loading" hideLoadingMessage />
+                <template v-else>
+                    <div v-for="(row, rowIndex) in visibleData" 
+                        :key="rowIndex" 
+                        class="grid-row"
+                        :class="{ 'allow-hovering' : !props.disableActiveCell}"
+                        @click="onRowClick(row)"
                     >
-                        Show {{ Math.min(recordsNotLoaded, props.recordLimit ?? 100) }} more
-                    </button>
-                </div>
+                        <RowProvider :row="row">
+                            <component
+                                v-for="(col, colIndex) in gridState.columns"
+                                :is="col.component"
+                                :key="colIndex"
+                                v-bind="col"
+                                :row="row"
+                            />
+                        </RowProvider>
+                    </div>
+                    <!-- <div v-else>
+                        <p class="text-gray-500 py-2">No records to show.</p>
+                    </div> -->
+                    <div v-if="props.lazyLoading && recordsNotLoaded > 0" class="text-center mt-4">
+                        <button 
+                            @click="gridState.gridOptions.visibleRecordsCount += props.recordLimit ?? 100"
+                            class="text-blue-600 hover:underline font-medium"
+                        >
+                            Show {{ Math.min(recordsNotLoaded, props.recordLimit ?? 100) }} more
+                        </button>
+                    </div>
+                </template>
             </div>
 
             <!-- Grid footer, rendered under the last row -->
             <!-- Could be made sticky to bottom of page? -->
             <div class="grid-footer" v-if="!props.hideFooter">
-                <p class="text-gray-500 py-2">Showing 
-                    {{ visibleData.length }} 
-                    of {{ gridState.recordCount }} records
+                <p class="text-gray-500 py-2">
+                    Showing {{ visibleData.length }} of {{ gridState.recordCount }} records
                 </p>
                 <button type="button" @click="load()" title="Reload grid">
                     <ArrowPathIcon class="size-5 ms-4" />
@@ -63,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, computed, ref, reactive, watch } from 'vue';
+import { onMounted, provide, computed, ref, reactive, watch, nextTick } from 'vue';
 import RowProvider from './RowProvider.vue';
 import type { SortOrder } from '../SortButton.vue';
 import { registerColumns } from './columns';
@@ -75,6 +83,7 @@ import { ArrowPathIcon } from '@heroicons/vue/24/solid';
 import { DocumentChartBarIcon } from '@heroicons/vue/24/outline';
 import { exportToExcel } from './grid.ts';
 import type { GridExportOptions } from './grid.ts';
+import LoadingContainer from '../../LoadingContainer.vue';
 
 export type DataObject = {
     data: Record<string, any>[],
@@ -167,6 +176,7 @@ export type GridState = {
     },
     columns?: GridColProps[],
     filterState?: GridFilterState,
+    loading: boolean,
     load: () => void
     handleSort: (direction: SortOrder, field: string) => void
 }
@@ -190,12 +200,14 @@ const gridState = reactive<GridState>({
         disableActiveCell: props.disableActiveCell ?? false
     },
     filterState: gridFilterState,
+    loading: false,
     load: load,
     handleSort: handleSort,
 });
 
 const emit = defineEmits<{
     (e: 'rowClick', row: Record<string, any>): void;
+    (e: 'loaded'): void;
 }>();
 
 const slots = defineSlots<GridSlots>();
@@ -271,12 +283,21 @@ function handleSort(direction: SortOrder, field: string) {
     load();
 }
 
-function load() {
+async function load() {
+    gridState.loading = true;
     gridState.key++
+    await nextTick();
+    gridState.loading = false;
 }
 
 watch(() => props.data, (oldVal, newVal) => {
     load();
+});
+
+onMounted(() => {
+    gridState.loading = true;
+    emit('loaded')
+    gridState.loading = false;
 });
 </script>
 

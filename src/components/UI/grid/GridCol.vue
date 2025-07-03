@@ -1,7 +1,10 @@
 <template>
     <div ref="gridColRef" 
         class="grid-col" 
-        :style="{ width }"
+        :style="{ 
+            width, 
+            justifyContent: props.alignContent 
+        }"
         :class="{ 
             'no-border-right' : !gridState?.gridOptions.hasVerticalLines,
             'no-border-bottom' : !gridState?.gridOptions.hasHorizontalLines,
@@ -36,7 +39,9 @@ export interface GridColProps {
     type?: SupportedInput,
     filterString?: string,
     disableFilter?: boolean,
+    alignContent?: 'left' | 'center' | 'right'
     headerSlot?: () => VNode[] | VNode
+    component?: VNode
 }
 
 const props = defineProps<GridColProps>();
@@ -91,6 +96,7 @@ function stopEditing() {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
 }
 .grid-col.no-border-right {
     border-right: none;

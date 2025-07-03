@@ -43,7 +43,6 @@
                     </div>
                 </template>
             </PageHeader>
-
             <Tabs>
                 <Tab header="Season">
                     <DataGrid 
@@ -68,7 +67,7 @@
                             </div>
                         </template>
                         <template #columns="{ row }">
-                            <GridCol field="position" colName="Pos" width="40px" disableFilter>
+                            <GridCol field="position" colName="Pos" width="40px" disableFilter alignContent="center">
                                 <template #display="{ row }">
                                     <span class="font-medium w-6 text-center">{{ row.position }}.</span>
                                 </template>
@@ -78,7 +77,11 @@
                                     <UsernameDisplay :user="row" :currentUserId="userStore.user?.id" />
                                 </template>
                             </GridCol>
-                            <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number" />
+                            <GridCol field="total_points" colName="Pts" width="60px" colTitle="Total Points" sortable type="number">
+                                <template #display="{ row }">
+                                    <span class="text-green-600 font-semibold">{{ row.total_points }}</span>
+                                </template>
+                            </GridCol>
                             <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable />
                             <GridCol field="total_correct_results" colName="CR"  width="60px" colTitle="Correct Results" sortable />
                             <GridCol field="gameweek_wins" colName="W"  width="60px" colTitle="Gameweek Wins" sortable />
@@ -117,7 +120,7 @@
                             </div>
                         </template>
                         <template #columns="{ row }">
-                            <GridCol field="position" colName="Pos" width="40px" disableFilter>
+                            <GridCol field="position" colName="Pos" width="40px" disableFilter alignContent="center">
                                 <template #display="{ row }">
                                     <span class="font-medium w-6 text-center">{{ row.position }}.</span>
                                 </template>
@@ -132,8 +135,16 @@
                                     />
                                 </template>
                             </GridCol>
-                            <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number" />
-                            <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable />
+                            <GridCol field="total_points" colName="Pts"  width="60px" colTitle="Total Points" sortable type="number">
+                                <template #display="{ row }">
+                                    <span class="text-green-600 font-semibold">{{ row.total_points }}</span>
+                                </template>
+                            </GridCol>
+                            <GridCol field="total_correct_scores" colName="CS"  width="60px" colTitle="Correct Scores" sortable>
+                                <template #display="{ row }">
+                                    {{ row.total_correct_scores ?? 0 }}
+                                </template>
+                            </GridCol>
                         </template>
                     </DataGrid>
                 </Tab>
