@@ -237,7 +237,9 @@ const selectMatch = (match: any) => {
         away_team_api_id: match.awayTeam.id,
         home_team_crest: match.homeTeam.crest,
         away_team_crest: match.awayTeam.crest,
-        match_time: match.utcDate
+        match_time: match.utcDate,
+        competition: match.competition.name,
+        competition_emblem_url: match.competition.emblem
     };
     props.selectedMatches.push(mappedMatch);
     emit("match-added", match);
