@@ -231,7 +231,7 @@ export const groupsService = {
     // Insert the new user into the leaderboard with total_points = 0
     let leaderboardData = {}
     if (!isRequesting) {
-      const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
+      const { data: lbData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
         user_id: userId,
         group_id: groupId,
       }); // need to add seasonID here too
@@ -241,7 +241,7 @@ export const groupsService = {
         return { data: null, error: leaderboardError };
       }
 
-      leaderboardData = leaderboardData;
+      leaderboardData = lbData;
     }
 
     return { data: { groupMemberData, leaderboardData }, error: null };
