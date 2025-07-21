@@ -28,7 +28,10 @@ export interface Group {
     max_members: number,
     group_pin: number | null,
     icon_url: string | null,
-    active_season_id: string
+    active_season_id: string,
+    iAmMember: boolean,
+    joinRequestSent: boolean,
+    member_count: number
 }
 
 export interface Gameweek {

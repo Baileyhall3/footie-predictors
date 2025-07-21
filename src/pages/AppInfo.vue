@@ -13,6 +13,9 @@
                     <li>To start using the app, you must first join or <router-link to="/create-group" class="text-blue-600 hover:underline">create a group</router-link>.</li>
                     <li>By creating your own group, you decide on things like the scoring system for gameweek predictions, the maximum amount of members, and whether your group is private or public.</li>
                     <li>Once you have created your group, click the 'share' button to copy the gameweek link. This will take people straight to your group so they can join.</li>
+                    <li>Upon creating a group, you also create your first season. You choose when your season starts and ends. Every group must have at least 1 season. When a season ends and
+                        a new one is created, all leaderboard data is reset giving group members a fresh shot at glory for the new season!
+                    </li>
                 </ul>
             </div>
 
@@ -59,7 +62,7 @@
                 <ul class="list-disc pl-5">
                     <li>After each match's final scores have been saved and the predictions for them have been marked, the gameweek leaderboard is updated with everyone's scores.</li>
                     <li>Once all matches in the gameweek have finished and everyone's predictions have been marked, the gameweek winner is announced. This can be found on the gameweek's page.</li>
-                    <li>Members' scores from the gameweek are added to the main group's all-time leaderboard, which can be found on the group's page and shows the total points for each member across all gameweeks.</li>
+                    <li>Members' scores from the gameweek are added to the group's current season leaderboard, which can be found on the group's page and shows the total points for each member across all gameweeks.</li>
                 </ul>
             </div>
         </div>

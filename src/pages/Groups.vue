@@ -36,38 +36,44 @@
                 <GroupCard v-for="group in publicGroups" :key="group.id" :group="group" />
             </div>
         </div>
+
+        <div class="mb-6" v-if="privateGroups.length > 0">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Private Groups</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <GroupCard v-for="group in privateGroups" :key="group.id" :group="group" />
+            </div>
+        </div>
     </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed } from "vue";
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
 import GroupCard from "../components/GroupCard.vue";
 import { userStore } from "../store/userStore";
-import { groupsStore } from "../store/groupsStore";
 import LoadingScreen from "../components/LoadingScreen.vue";
+import { groupsService } from "../api/groupsService";
+import type { Group } from "../types";
 
-// State
-const isLoading = ref(true);
-const error = ref(null);
-const userGroups = ref([]);
-const publicGroups = ref([]);
+const isLoading = ref<boolean>(true);
+const error = ref<string | null>(null);
+const userGroups = ref<Array<Group>>([]);
+const publicGroups = ref<Array<Group>>([]);
+const privateGroups = ref<Array<Group>>([]);
 
-// Fetch all user data
 const fetchUserData = async () => {
   try {
     isLoading.value = true;
     error.value = null;
     
-    // Only fetch data if user is authenticated
-    if (userStore.isAuthenticated) {
-      // Fetch user's groups
-      const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
-      if (groupsError) throw new Error('Failed to load your groups');
-      userGroups.value = groups || [];
+    const { data: groups, error: groupsError } = await groupsService.getAllGroupsUsingView();
+    if (groupsError) throw new Error('Failed to load groups');
 
-      const { data: fetchedPublicGroups, error: publicGroupsError } = await groupsStore.fetchPublicGroups();
-      if (publicGroupsError) throw new Error('Failed to load public groups');
-      publicGroups.value = fetchedPublicGroups || [];
+    if (groups.length > 0) {
+      userGroups.value = groups.filter(x => x.iAmMember && !x.joinRequestSent);
+      publicGroups.value = groups.filter(x => x.is_public && !x.iAmMember);
+      privateGroups.value = groups.filter(x => !x.is_public && (!x.iAmMember || x.joinRequestSent))
     }
   } catch (err) {
     console.error('Error fetching user data:', err);
@@ -76,7 +82,6 @@ const fetchUserData = async () => {
   isLoading.value = false;
 };
 
-// Fetch data when component is mounted
 onMounted(async () => {
   if (userStore.isAuthenticated) {
     await fetchUserData();

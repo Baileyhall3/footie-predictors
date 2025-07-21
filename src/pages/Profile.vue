@@ -60,11 +60,11 @@
               <div>
                 <p class="text-sm text-gray-500">Display Picture</p>
                 <div class="flex items-center">
-                  <div v-if="userStore.userProfile.profile_picture_url" class=" w-6 h-6 flex items-center justify-center rounded-full overflow-hidden">
+                  <div v-if="userStore.userProfile.profile_picture_url" class=" w-10 h-10 flex items-center justify-center rounded-full overflow-hidden">
                       <img :src="userStore.userProfile.profile_picture_url" alt="Profile Image" class="object-cover w-full h-full" />
                   </div>
                   <div v-else
-                      class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
+                      class="flex items-center justify-center rounded-full w-10 h-10 text-white text-sm font-medium me-2"
                       :style="{ backgroundColor: userStore.userProfile.bg_colour || '#ccc' }"
                   >
                       {{ userStore.userProfile.username.charAt(0).toUpperCase() }}

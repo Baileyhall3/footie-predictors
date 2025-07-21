@@ -1,5 +1,6 @@
 <template>
-    <RoundedContainer headerText="Your Stats">
+    <LoadingContainer v-if="loading" bgColor="none" />
+    <RoundedContainer headerText="Your Stats" v-else>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" v-if="Object.keys(userStats).length > 0">
             <StatRow icon="🔥" label="Avg. Points / Gameweek" :value="userStats.avg_points_per_gameweek" />
             <StatRow icon="🎯" label="Correct Scores" :value="userStats.total_correct_scores" />
@@ -57,7 +58,7 @@ import Podium from '../components/Podium.vue';
 import { ref, onMounted } from 'vue';
 import { groupsService } from '../api/groupsService';
 import { userStore } from '../store/userStore';
-import LoadingScreen from '../components/LoadingScreen.vue';
+import LoadingContainer from '../components/LoadingContainer.vue';
 import { seasonsService } from '../api/seasonsService';
 
 const loading = ref(false);

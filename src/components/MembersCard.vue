@@ -49,6 +49,14 @@
                     </button>
 
                     <RouterLink
+                        v-if="props.groupId && props.includeProfileLink"
+                        :to="`/user-group-profile/${props.groupId}/${member.id}`"
+                        class="dropdown-item item-separator text-blue-600"
+                    >
+                        Group Profile
+                    </RouterLink>
+
+                    <RouterLink
                         v-if="member.is_fake && props.gameweek && !props.gameweek?.is_locked"
                         :to="`/admin-gameweek-predictions/${props.gameweek.id}/${member.id}`"
                         class="dropdown-item"

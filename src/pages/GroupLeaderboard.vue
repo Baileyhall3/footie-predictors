@@ -1,5 +1,5 @@
 <template>
-    <LoadingScreen v-if="loading" />
+    <LoadingContainer v-if="loading" bgColor="none" />
     <template v-else>
         <RoundedContainer headerText="This Season">
             <template #headerContent>
@@ -50,6 +50,7 @@ import { leaderboardService } from '../api/leaderboardService';
 import LeaderboardCard from '../components/LeaderboardCard.vue';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import { seasonsService } from '../api/seasonsService';
+import LoadingContainer from '../components/LoadingContainer.vue';
 
 const props = defineProps<{
     groupId: string, 

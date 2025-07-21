@@ -212,13 +212,15 @@ export const groupsService = {
    * @param {string} groupId - Group ID
    * @param {string} userId - User ID
    * @param {boolean} isAdmin - Whether the user is an admin
+   * @param {boolean} isRequesting - Whether the user is requesting to join group
    * @returns {Promise<{data: Object, error: Object}>}
    */
-  async addMember(groupId, userId, isAdmin = false) {
+  async addMember(groupId, userId, isAdmin = false, isRequesting = false) {
     const { data: groupMemberData, error: groupMemberError } = await supabaseDb.create('group_members', {
       group_id: groupId,
       user_id: userId,
-      is_admin: isAdmin
+      is_admin: isAdmin,
+      has_requested: isRequesting
     });
 
     if (groupMemberError) {
@@ -227,14 +229,19 @@ export const groupsService = {
     }
 
     // Insert the new user into the leaderboard with total_points = 0
-    const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
-      user_id: userId,
-      group_id: groupId,
-    }); // need to add seasonID here too
+    let leaderboardData = {}
+    if (!isRequesting) {
+      const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
+        user_id: userId,
+        group_id: groupId,
+      }); // need to add seasonID here too
+  
+      if (leaderboardError) {
+        console.error('Error adding user to leaderboard:', leaderboardError);
+        return { data: null, error: leaderboardError };
+      }
 
-    if (leaderboardError) {
-      console.error('Error adding user to leaderboard:', leaderboardError);
-      return { data: null, error: leaderboardError };
+      leaderboardData = leaderboardData;
     }
 
     return { data: { groupMemberData, leaderboardData }, error: null };
@@ -414,6 +421,24 @@ export const groupsService = {
       console.error('Error fetching group stats:', error)
       return { data: null, error }
     }
+  },
+
+  /**
+   * Get all groups using view
+   * @param {Object} options - Query options
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getAllGroupsUsingView(options = {}) {
+    return supabaseDb.getAll('groups_view', options)
+  },
+
+  /**
+   * Get group by ID using view
+   * @param {number} groupId - The ID of the group for which to retrieve data
+   * @returns {Promise<{data: Array, error: Object}>}
+   */
+  async getGroupByIdUsingView(groupId) {
+    return supabaseDb.getById('groups_view', groupId)
   },
   
 

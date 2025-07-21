@@ -75,6 +75,23 @@ export const groupsStore = {
     }
   },  
 
+  async fetchAllGroups() {
+    try {
+      state.loading = true
+      state.error = null
+
+      const { data, error } = await groupsService.getAllGroups();
+      if (error) throw error
+
+      return { data, error: null }
+    } catch (error) {
+      state.error = error.message
+      return { data: null, error }
+    } finally {
+      state.loading = false
+    }
+  },
+
   async fetchGroupById(groupId) {
     try {
       state.loading = true
@@ -191,12 +208,12 @@ export const groupsStore = {
     }
   },
 
-  async addMember(groupId, userId, isAdmin = false) {
+  async addMember(groupId, userId, isAdmin = false, isRequesting = false) {
     try {
       state.loading = true
       state.error = null
 
-      const { data, error } = await groupsService.addMember(groupId, userId, isAdmin)
+      const { data, error } = await groupsService.addMember(groupId, userId, isAdmin, isRequesting)
 
       if (error) throw error
 

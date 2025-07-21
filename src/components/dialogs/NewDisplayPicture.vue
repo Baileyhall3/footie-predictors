@@ -1,6 +1,6 @@
 <template>
-    <Dialog title="Edit Display Picture" v-if="isVisible">
-        <template #details>
+    <Dialog title="Edit Display Picture" v-model="isVisible" bgBlur @hidden="hideEvent">
+        <template #body>
             <div class="flex flex-col w-full gap-6">
                 <div class="flex gap-4 mt-4 items-start justify-center mb-4">
                     <div class="relative flex items-center justify-center" style="width: 10rem; height: 10rem;">
@@ -68,7 +68,7 @@
                 <p class="text-red-500 mt-3">{{ errorMsg }}</p>
             </div>
         </template>
-        <template #dialogFooter>
+        <template #footer>
             <button @click="cancel" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
                 Cancel
             </button>
@@ -181,6 +181,10 @@ async function saveChanges() {
         hasRemovedProfilePicture.value = false;
         userProfileImageUrl.value = userStore.userProfile.profile_picture_url;
     }
+}
+
+function hideEvent() {
+    userDisplayPicColour.value = userStore.userProfile.bg_colour;
 }
 
 const cancel = () => {

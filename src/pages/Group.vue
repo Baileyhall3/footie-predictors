@@ -13,7 +13,7 @@
 
     <!-- Content (only shown when not loading and no error) -->
     <div v-if="!error && !loading && groupExists">
-      <template v-if="!notInGroup">
+      <template v-if="group?.iAmMember && !group?.joinRequestSent">
         <!-- Group header Section -->
          <PageHeader>
           <template #header>
@@ -60,7 +60,7 @@
                      </router-link>
                   </template>
                   <template v-else>
-                    <button @click="updateMemberStatus(false)" 
+                    <button @click="updateMemberStatus(false, false)" 
                       class="dropdown-item text-red-700"
                     >
                       Leave Group
@@ -244,7 +244,7 @@
             <CombinedGroupStats :groupId="group.id" :seasonId="group?.active_season_id" />
           </Tab>
           <Tab header="Members">
-            <RoundedContainer :headerText="`Members (${members.length})`" v-if="!notInGroup || (notInGroup && group.is_public)">
+            <RoundedContainer :headerText="`Members (${members.length})`" v-if="!group?.iAmMember || (group?.iAmMember && group.is_public)">
               <template #headerContent v-if="isAdmin">
                 <button 
                   v-if="members.length != group.max_members" 
@@ -287,17 +287,25 @@
         </div>
         <h2 class="text-xl font-semibold mb-2">You're not part of this group yet</h2>
         <p class="text-gray-600 mb-6">Join now to start predicting, competing on the leaderboard, and more!</p>
-
         <button @click="tryJoinGroup" 
-          class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
+          class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition mb-6"
         >
-          Join Group
+          {{ group?.is_public ? 'Join Group' : 'Enter PIN' }}
         </button>
+        <p class="text-gray-600 mb-6" v-if="!group?.is_public && !group?.joinRequestSent">
+          Don't know the PIN? 
+          <span class="text-blue-600 hover:underline cursor-pointer" @click="updateMemberStatus(true, true)">Send a join request</span>
+           and the group admin can approve your membership.
+        </p>
+        <p class="text-gray-600 mb-6" v-else-if="!group?.is_public && group?.joinRequestSent">
+          Join request sent. 
+          <span class="text-red-600 hover:underline cursor-pointer" @click="updateMemberStatus(false, true)">Cancel</span> 
+        </p>
       </RoundedContainer>
     </div>  
   </div>
 
-  <PinDialog ref="pinDialog" :groupPin="String(group?.group_pin)" @submit-pin="updateMemberStatus(true)" />
+  <PinDialog ref="pinDialog" :groupPin="String(group?.group_pin)" @submit-pin="updateMemberStatus(true, false)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
   <CreateGroupMember ref="createMemberDialog" :groupId="groupId" :seasonId="activeSeason?.id" @user-created="getGroupMembers(); getLeaderboard();" />
 </template>
@@ -354,7 +362,6 @@ const members = ref<Array<GroupMember>>([]);
 const gameweeks = ref<Array<Gameweek>>([]);
 const predictions = ref<Array<Prediction>>();
 const matches = ref<Array<any>>([]);
-const notInGroup = ref<boolean>(true);
 const deleteConfirmMsg = ref<string>('');
 const deleteConfirmTitle = ref<string>('');
 const deleteConfirmText = ref<string>('Confirm');
@@ -391,7 +398,7 @@ const fetchAllData = async () => {
     }
     
     // Fetch group details
-    const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(groupId.value);
+    const { data: groupData, error: groupError } = await groupsService.getGroupByIdUsingView(groupId.value);
     console.log(groupError)
     if (groupError && groupError.code === "PGRST116") {
       groupExists.value = false;
@@ -403,16 +410,6 @@ const fetchAllData = async () => {
     
     // Fetch group members
     await getGroupMembers();
-
-    // Check if user is in the group
-    const isMember = userInGroup(members.value)
-    if (!isMember) {
-      loading.value = false;
-      notInGroup.value = true;
-      return;
-    } else {
-      notInGroup.value = false;
-    }
 
     isAdmin.value = userIsAdmin(members.value);
     isGroupOwner.value = userIsGroupOwner(group.value);
@@ -564,38 +561,38 @@ async function tryJoinGroup() {
     return;
   }
   if (group.value.is_public) {
-      updateMemberStatus(true);
+      updateMemberStatus(true, false);
   } else {
     await pinDialog.value?.show();
   }
 }
 
-async function updateMemberStatus(isJoining: boolean) {
+async function updateMemberStatus(isJoining: boolean, isRequesting: boolean) {
   if (isJoining) {
     try {
       const { success, error: joinError } = await groupsStore.addMember(
         groupId.value,
         userStore.user.id,
-        // activeSeason.value?.id
+        false,
+        isRequesting
       );
   
       if (joinError) throw new Error('Failed to join group');
       else {
-        toast("Successfully joined group!", {
+        toast(isRequesting ? "Join request sent!" : "Successfully joined group!", {
           "type": "success",
           "position": "top-center"
-        });
-        window.location.reload();
+        }); 
+        fetchAllData();
       }
     } catch(err) {
       error.value = err.message || 'An error occurred while joining group';
     }
-
   } else {
     const userMembership = members.value.filter(x => x.id === userStore.user.id);
-    deleteConfirmMsg.value = `Are you sure you want to leave ${group.value.name}? All of your leaderboard data will be erased.`;
-    deleteConfirmTitle.value = 'Leave Group';
-    deleteConfirmText.value = 'Leave';
+    deleteConfirmMsg.value = isRequesting ? 'Please confirm' : `Are you sure you want to leave ${group.value.name}? All of your leaderboard data will be erased.`;
+    deleteConfirmTitle.value = isRequesting ? 'Cancel Join Request' : 'Leave Group';
+    deleteConfirmText.value = isRequesting ? 'Confirm' : 'Leave';
     const confirmed = await removeMemberConfirm.value?.show();
     if (confirmed) {
       try {
@@ -606,7 +603,7 @@ async function updateMemberStatus(isJoining: boolean) {
     
         if (leaveError) throw new Error('Failed to leave group');
         else {
-          toast("Successfully left group.", {
+          toast(isRequesting ? 'Join Request Cancelled' : 'Successfully left group.', {
             "type": "success",
             "position": "top-center"
           });
