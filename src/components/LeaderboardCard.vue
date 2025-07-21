@@ -33,29 +33,17 @@
       </template>
       
       <div v-for="player in visibleLeaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
-        <div class="flex items-center gap-2">
-          <span class="font-medium w-6 text-center">{{ player.position }}.</span>
-          <ArrowUpIcon class="size-3 text-green-600" v-if="player.movement == 'up'" />
-          <ArrowDownIcon class="size-3 text-red-600" v-else-if="player.movement == 'down'" />
-          <EqualsIcon class="size-3 text-gray-600" v-else-if="player.movement == 'same'" />
-          <component
-            :is="props.includeUserPredictionLink && props.gameweekId ? 'router-link' : 'span'"
-            :to="props.includeUserPredictionLink && props.gameweekId ? `/user-gameweek-predictions/${props.gameweekId}/${player.user_id}` : undefined"
-          >
-            <div class="flex items-center space-x-2">
-              <div
-                  class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
-                  :style="{ backgroundColor: player.bg_colour || '#ccc' }"
-              >
-                  {{ player.username.charAt(0).toUpperCase() }}
-              </div>
-              {{ player.username }}
-            </div>
-          </component>
+        <UsernameDisplay 
+          :user="player" 
+          :includeUserPredictionLink="props.includeUserPredictionLink" 
+          :gameweek-id="gameweekId"
+          :currentUserId="userStore.user.id"
+        >
+        <template #additionalDisplay>
           <TrophyIcon v-if="player.user_id === props.winnerId" class="size-5 text-yellow-300" />
-          <span v-if="player.user_id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">You</span>
           <StarIcon v-else-if="props.userId && player.user_id === props.userId" class="size-5 text-yellow-300" />
-        </div>
+        </template>
+        </UsernameDisplay>
         
         <div class="text-right">
           <span v-if="!isEditing" class="font-semibold text-green-600">{{ player.total_points }} pts</span>
@@ -88,10 +76,11 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue';
 import { userStore } from "../store/userStore";
-import { ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, ChevronUpIcon, EqualsIcon, StarIcon, TrophyIcon } from "@heroicons/vue/24/solid";
+import { ChevronDownIcon, ChevronUpIcon, StarIcon, TrophyIcon } from "@heroicons/vue/24/solid";
 import DateUtils from '../utils/dateUtils';
 import SearchBar from './UI/SearchBar.vue';
 import { LeaderboardEntry } from '../types';
+import UsernameDisplay from './UI/UsernameDisplay.vue';
   
 export interface IProps {
   leaderboard: LeaderboardEntry[];

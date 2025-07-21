@@ -16,8 +16,10 @@
                     :to="props.includeProfileLink ? `/user-group-profile/${props.groupId}/${member.id}` : undefined"
                 >
                     <div class="flex items-center space-x-2">
-                        <div
-                            class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
+                        <div v-if="member.profile_picture_url" class=" w-6 h-6 flex items-center justify-center rounded-full overflow-hidden me-2">
+                            <img :src="member.profile_picture_url" alt="Profile Image" class="object-cover w-full h-full" />
+                        </div>
+                        <div v-else class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
                             :style="{ backgroundColor: member.bg_colour || '#ccc' }"
                         >
                             {{ member.username.charAt(0).toUpperCase() }}

@@ -10,7 +10,10 @@
         <template v-else>
             <PageHeader>
                 <template #header>
-                    <div class="flex items-center justify-center rounded-full w-8 h-8 text-white text-sm font-medium"
+                    <div v-if="user?.profile_picture_url" class="w-8 h-8 flex items-center justify-center rounded-full overflow-hidden">
+                        <img :src="user.profile_picture_url" alt="Profile Image" class="object-cover w-full h-full" />
+                    </div>
+                    <div v-else class="flex items-center justify-center rounded-full w-8 h-8 text-white text-sm font-medium"
                         :style="{ backgroundColor: user?.bg_colour || '#ccc' }"
                     >
                         {{ user?.username.charAt(0).toUpperCase() }}

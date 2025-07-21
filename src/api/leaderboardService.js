@@ -112,7 +112,8 @@ export const leaderboardService = {
             users (
               id,
               username,
-              bg_colour
+              bg_colour,
+              profile_picture_url
             )
           `)
           .eq('group_id', groupId)
@@ -140,7 +141,8 @@ export const leaderboardService = {
           total_points: userScore.total_points,
           total_correct_scores: userScore.total_correct_scores,
           updated_at: userScore.updated_at,
-          bg_colour: member.users.bg_colour
+          bg_colour: member.users.bg_colour,
+          profile_picture_url: member.users.profile_picture_url
         }
       })
 
