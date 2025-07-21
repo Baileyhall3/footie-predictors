@@ -135,7 +135,9 @@ async function doUpdates() {
                     home_team_api_id: match.home_team_api_id,
                     away_team_api_id: match.away_team_api_id,
                     home_team_crest: match.home_team_crest,
-                    away_team_crest: match.away_team_crest
+                    away_team_crest: match.away_team_crest,
+                    competition: match.competition,
+                    competition_emblem_url: match.competition_emblem_url
                 });
             } catch (err) {
                 errorMessage.value = err;

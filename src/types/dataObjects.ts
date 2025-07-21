@@ -78,7 +78,8 @@ export interface GroupMember {
     joined_at: Date | string;
     membership_id: string;
     username: string;
-    bg_colour?: string
+    bg_colour?: string;
+    profile_picture_url?: string;
 }
 
 export interface LeaderboardEntry {
@@ -93,6 +94,7 @@ export interface LeaderboardEntry {
     bg_colour?: string;
     season_id: string;
     gameweek_wins?: number | null;
+    profile_picture_url?: string;
 }
 
 export interface UserStats {
@@ -118,7 +120,8 @@ export interface GwLeaderboardEntry {
     total_points: number,
     updated_at: Date | undefined,
     user_id: string,
-    username: string  
+    username: string
+    profile_picture_url?: string;
 }
 
 export interface Match {

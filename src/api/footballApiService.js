@@ -127,6 +127,7 @@ const footballApiService = {
         response = await fetch(`${BASE_URL}/teams/${teamId}/matches`, this._getFetchOptions());
       }
       const data = await response.json();
+      console.log(data)
 
       return { data: data.matches, error: null };
     } catch (error) {

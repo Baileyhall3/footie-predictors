@@ -4,9 +4,18 @@
       <!-- Profile Header -->
       <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
         <h1 class="text-3xl font-bold">My Profile</h1>
-        <p v-if="userStore.user" class="mt-2 text-green-100">
-          {{ userStore.userProfile.username }}
-        </p>
+        <div class="flex items-center space-x-2" v-if="userStore.user">
+            <div v-if="userStore.userProfile.profile_picture_url" class=" w-6 h-6 flex items-center justify-center rounded-full overflow-hidden me-2">
+                <img :src="userStore.userProfile.profile_picture_url" alt="Profile Image" class="object-cover w-full h-full" />
+            </div>
+            <div v-else
+                class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
+                :style="{ backgroundColor: userStore.userProfile.bg_colour || '#ccc' }"
+            >
+                {{ userStore.userProfile.username.charAt(0).toUpperCase() }}
+            </div>
+            {{ userStore.userProfile.username }}
+        </div>
       </div>
 
       <!-- Profile Content -->
@@ -48,6 +57,23 @@
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p class="text-sm text-gray-500">Display Picture</p>
+                <div class="flex items-center">
+                  <div v-if="userStore.userProfile.profile_picture_url" class=" w-6 h-6 flex items-center justify-center rounded-full overflow-hidden">
+                      <img :src="userStore.userProfile.profile_picture_url" alt="Profile Image" class="object-cover w-full h-full" />
+                  </div>
+                  <div v-else
+                      class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
+                      :style="{ backgroundColor: userStore.userProfile.bg_colour || '#ccc' }"
+                  >
+                      {{ userStore.userProfile.username.charAt(0).toUpperCase() }}
+                  </div>
+                  <button type="button" @click="openDisplayPictureDialog">
+                    <PaintBrushIcon class="size-4 ms-2" v-if="editMode" />
+                  </button>
+                </div>
+              </div>
               <div>
                 <p class="text-sm text-gray-500">Email</p>
                 <p class="text-gray-800">{{ userStore.user.email }}</p>
@@ -92,6 +118,8 @@
       </div>
     </div>
   </div>
+
+  <NewDisplayPicture ref="displayPictureDialog" />
 </template>
 
 <script setup>
@@ -101,10 +129,13 @@ import { userStore } from '../store/userStore';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import DateUtils from '../utils/dateUtils';
+import { PaintBrushIcon } from '@heroicons/vue/24/solid';
+import NewDisplayPicture from '../components/dialogs/NewDisplayPicture.vue';
 
 const router = useRouter();
 const editMode = ref(false);
 const errorMessage = ref('');
+const displayPictureDialog = ref(null);
 const userData = ref({ username: userStore.userProfile.username });
 
 const toggleEditMode = () => {
@@ -145,6 +176,10 @@ const handleLogout = async () => {
   if (!error) {
     router.push('/login')
   }
+}
+
+const openDisplayPictureDialog = () => {
+  displayPictureDialog.value.show();
 }
 </script>
 

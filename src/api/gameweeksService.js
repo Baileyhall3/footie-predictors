@@ -189,6 +189,7 @@ export const gameweeksService = {
    * @returns {Promise<{data: Object, error: Object}>}
    */
   async createMatch(match) {
+    console.log('match to insert ', match)
 
     if (match.api_match_id) {
       // Ensure home team exists in the 'clubs' table
@@ -205,8 +206,9 @@ export const gameweeksService = {
       away_team: match.away_team,
       match_time: match.match_time,
       home_team_api_id: match.home_team_api_id,
-      away_team_api_id: match.away_team_api_id
-
+      away_team_api_id: match.away_team_api_id,
+      competition: match.competition,
+      competition_emblem_url: match.competition_emblem_url
     }
 
     return supabaseDb.create('matches', matchesTableValues)
