@@ -63,6 +63,8 @@ import NoAccess from '../components/NoAccess.vue';
 
 const route = useRoute();
 
+// TODO: use scoreCard2 component
+
 const loading = ref(true);
 const matches = ref([]);
 const gameweekId = ref();
@@ -102,7 +104,7 @@ async function fetchGameweek() {
     await fetchPredictions();
 }
 
-async function fetchPredictions(searchQuery: string = null) {
+async function fetchPredictions(searchQuery: string | null = null) {
     const [{ data: matchData }, { data: predictionsData }, { data: scoresData }] = await Promise.all([
         gameweeksService.getMatches(gameweekId.value),
         predictionsService.getGameweekPredictions(gameweekId.value),

@@ -17,6 +17,8 @@ export function copyPageLink(entity: string) {
  * @returns color string to be used as a class
  */
 export const getPredictionColor = (match: Prediction) => {
+    if (!match) { return "test-gray-600"; }
+    if (match.final_home_score === undefined || match.final_away_score === undefined) { return "test-gray-600"; }
     if (match.final_home_score === null || match.final_away_score === null) {
         return "test-gray-600"; // No color if match is not finished
     }

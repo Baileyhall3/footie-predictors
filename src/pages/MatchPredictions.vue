@@ -59,7 +59,6 @@
               <template #cardHeader>
                   <div class="items-center flex py-6 ms-2">
                       <h3 class="text-xl font-semibold">Predictions</h3>
-                      <!-- <CollapseButton :collapsed="isCollapsed" @onCollapse="isCollapsed = $event" /> -->
                       <button type="button" @click="hideGridFilterRow = !hideGridFilterRow">
                           <FunnelIcon v-if="!hideGridFilterRow" class="size-5 ms-2" />
                           <FunnelIconOutline v-else class="size-5 ms-2"  />
@@ -79,7 +78,7 @@
                           <UsernameDisplay :user="row" :currentUserId="userStore.user?.id" />
                       </template>
                   </GridCol>
-                  <GridCol field="predicted_home_score" colName="H" width="60px" colTitle="Predicted Home Score" type="number">
+                  <GridCol field="predicted_home_score" colName="H" width="60px" colTitle="Predicted Home Score" type="number" alignContent="center">
                     <template #headercontent>
                       <div class="flex items-center gap-2 min-w-0">
                           <div class="truncate text-sm font-medium min-w-0">
@@ -92,8 +91,8 @@
                           />
                       </div>
                     </template>
-                    <template #display>
-                      <div class="justify-end flex me-2">
+                    <template #display="{ row }">
+                      <div class="justify-end flex me-2"> <!-- TODO: Check why styling does not get applied-->
                         <span class="text-md font-bold" 
                             :class="getPredictionColor(row)">
                             {{ row.predicted_home_score }}
@@ -101,7 +100,7 @@
                       </div>
                     </template>
                   </GridCol>
-                  <GridCol field="predicted_away_score" colName="A" width="60px" colTitle="Predicted Away Score" type="number">
+                  <GridCol field="predicted_away_score" colName="A" width="60px" colTitle="Predicted Away Score" type="number" alignContent="center">
                     <template #headercontent>
                       <div class="flex items-center gap-2 min-w-0">
                         <img
@@ -114,7 +113,7 @@
                         </div>
                       </div>
                     </template>
-                    <template #display>
+                    <template #display="{ row }">
                       <div class="justify-start flex ms-2">
                         <span class="text-md font-bold" 
                             :class="getPredictionColor(row)">
@@ -212,7 +211,7 @@ async function fetchMatchData() {
     if (predictionsError) throw new Error('Failed to load match predictions');
     gridPredictionsData.value = predictionsData || [];
     originalPredictionsData.value = predictionsData || [];
-
+    
     groupMembersLength.value = predictionsData?.length;
     
     await fetchUserPredictions(null, false, gridPredictionsData.value);
