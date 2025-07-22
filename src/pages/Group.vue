@@ -607,7 +607,8 @@ async function updateMemberStatus(isJoining: boolean, isRequesting: boolean) {
         groupId.value,
         userStore.user.id,
         false,
-        isRequesting
+        isRequesting,
+        group.value?.active_season_id
       );
   
       if (joinError) throw new Error('Failed to join group');

@@ -208,12 +208,12 @@ export const groupsStore = {
     }
   },
 
-  async addMember(groupId, userId, isAdmin = false, isRequesting = false) {
+  async addMember(groupId, userId, isAdmin = false, isRequesting = false, seasonId) {
     try {
       state.loading = true
       state.error = null
 
-      const { data, error } = await groupsService.addMember(groupId, userId, isAdmin, isRequesting)
+      const { data, error } = await groupsService.addMember(groupId, userId, isAdmin, isRequesting, seasonId)
 
       if (error) throw error
 

@@ -215,9 +215,10 @@ export const groupsService = {
    * @param {string} userId - User ID
    * @param {boolean} isAdmin - Whether the user is an admin
    * @param {boolean} isRequesting - Whether the user is requesting to join group
+   * @param {boolean} seasonId - Active season ID for the group
    * @returns {Promise<{data: Object, error: Object}>}
    */
-  async addMember(groupId, userId, isAdmin = false, isRequesting = false) {
+  async addMember(groupId, userId, isAdmin = false, isRequesting = false, seasonId) {
     const { data: groupMemberData, error: groupMemberError } = await supabaseDb.create('group_members', {
       group_id: groupId,
       user_id: userId,
@@ -236,7 +237,8 @@ export const groupsService = {
       const { data: lbData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
         user_id: userId,
         group_id: groupId,
-      }); // need to add seasonID here too
+        season_id: seasonId
+      });
   
       if (leaderboardError) {
         console.error('Error adding user to leaderboard:', leaderboardError);
