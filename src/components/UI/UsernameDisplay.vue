@@ -1,5 +1,6 @@
 <template>
     <div class="flex items-center gap-2">
+        <span class="font-medium w-6 text-center" v-if="props.showUserPosition">{{ user.position }}.</span>
         <ArrowUpIcon class="size-3 text-green-600" v-if="user.movement == 'up'" />
         <ArrowDownIcon class="size-3 text-red-600" v-else-if="user.movement == 'down'" />
         <EqualsIcon class="size-3 text-gray-600" v-else-if="user.movement == 'same'" />
@@ -35,13 +36,13 @@ export interface User {
     user_id: string,
     bg_colour: string,
     username: string,
-    profile_picture_url: string
+    profile_picture_url: string,
 }
 const props = defineProps<{
     user: User,
     includeUserPredictionLink?: boolean,
     gameweekId?: string,
     currentUserId?: string
+    showUserPosition?: boolean
 }>();
-
 </script>

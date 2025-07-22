@@ -72,13 +72,13 @@ export const groupsService = {
       
       if (seasonError) throw seasonError;
 
-      const { error: leaderboardError } = await supabaseDb.create('leaderboard', {
-        user_id: adminId,
-        group_id: group.id,
-        season_id: sznData.id
-      });
+      // const { error: leaderboardError } = await supabaseDb.create('leaderboard', {
+      //   user_id: adminId,
+      //   group_id: group.id,
+      //   season_id: sznData.id
+      // });
 
-      if (leaderboardError) throw leaderboardError;
+      // if (leaderboardError) throw leaderboardError;
 
       await supabaseDb.update('groups', group.id, { active_season_id: sznData.id });
   
@@ -342,7 +342,7 @@ export const groupsService = {
   },
 
   /**
-   * Add an image to a group
+   * Add an image to a group TODO: Make upload to buckets a general fn
    * @param {File} file - File to use as group icon
    * @param {string} groupId - Group ID
    * @returns {Promise<{url: string|null, error: any|null}>}
@@ -374,6 +374,47 @@ export const groupsService = {
   
     return { url: publicUrlData.publicUrl };
   },
+
+  /**
+   * Delete a group's icon from Supabase Storage
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{ success: boolean, error: any|null }>}
+   */
+  async deleteGroupIcon(groupId) {
+      if (!groupId) return { success: false, error: 'Missing group ID' };
+
+      const { data: files, error: listError } = await supabase.storage
+        .from('group-icons')
+        .list('', { search: `group-${groupId}` });
+
+      if (listError) {
+        console.error('Error listing files:', listError.message);
+        return { success: false, error: listError };
+      }
+
+      const fileToDelete = files?.find(f => f.name.startsWith(`group-${groupId}`));
+      if (!fileToDelete) {
+        console.warn('No icon found for this group.');
+        // Still update the DB just in case
+        await supabaseDb.update('groups', groupId, { icon_url: null });
+        return { success: true, error: null };
+      }
+
+      const { error: deleteError } = await supabase.storage
+        .from('group-icons')
+        .remove([fileToDelete.name]);
+
+      if (deleteError) {
+        console.error('Delete error:', deleteError.message);
+        return { success: false, error: deleteError };
+      }
+
+      // Update the database to reflect the deletion
+      await supabaseDb.update('groups', groupId, { icon_url: null });
+
+      return { success: true, error: null };
+    },
+
 
   /**
    * Get user stats across groups

@@ -40,9 +40,9 @@
                   <FileUpload 
                     :fileTypes="['image/png', 'image/jpeg']" 
                     :maxFileSizeMB="8" 
-                    :modelValue="selectedFile" 
+                    v-model="selectedFile" 
                     :currentFileUrl="group.icon_url"
-                    @update:modelValue="handleFileChange" 
+                    @file-removed="handleFileRemoved"
                   />
                 </div>
 
@@ -157,7 +157,7 @@ const group = ref<{
   group_pin?: number | String;
   max_members?: number;
   description?: string;
-  icon_url?: string;
+  icon_url?: string | null;
 }>({});
 
 const pin = ref(["", "", "", ""]);
@@ -169,13 +169,13 @@ const isSubmitting = ref(false);
 const admin = ref({});
 const numberOfMembers = ref();
 const selectedFile = ref(null);
-const previewUrl = ref(null);
+const hadIcon = ref<boolean>();
 
 // Computed properties
 const isAdmin = ref(false);
 
-function handleFileChange(file: File | null) {
-  selectedFile.value = file;
+function handleFileRemoved() {
+  group.value.icon_url = null;
 }
 
 // Handle typing a digit
@@ -229,6 +229,7 @@ const fetchAllData = async () => {
     if (groupError) throw new Error('Failed to load group details');
 
     group.value = groupData;
+    hadIcon.value = group.value.icon_url ? true : false;
 
     if (groupData.group_pin !== null && groupData.group_pin !== undefined) {
       pin.value = String(groupData.group_pin).padStart(4, "0").split(""); 
@@ -289,16 +290,18 @@ const updateGroup = async () => {
     const { data: user, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user?.user) {
-      throw new Error('You must be logged in to create a group.');
+      throw new Error('You must be logged in to update a group.');
     }
-
-    let iconUrl = group.value.icon_url
+    
+    if ((hadIcon.value && selectedFile.value) || (hadIcon.value && !group.value.icon_url)) {
+      const { success, error } = await groupsService.deleteGroupIcon(group.value.id);
+      if (error) throw new Error('Error deleting current group icon.');
+    }
 
     if (selectedFile.value) {
       const { url, error } = await groupsService.uploadGroupIcon(selectedFile.value, group.value.id)
       if (error) {
         console.error('Failed to upload icon:', error)
-        // optionally show user feedback
       } else {
         group.value.icon_url = url;
       }
@@ -341,10 +344,6 @@ const deleteGroup = async () => {
     console.log("Deletion cancelled!");
   }
 };
-
-function redirectToGroup() {
-  router.push(`/group/${group.value.id}`);
-}
 
 // Watch for route changes to reload data
 watch(() => route.params.id, (newId) => {

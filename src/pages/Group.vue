@@ -70,7 +70,7 @@
               </Dropdown>
           </template>
           <template #details>
-            <p class="text-gray-500">{{ group?.description || 'No description available' }}</p>
+            <p class="text-gray-500" v-if="group?.description">{{ group?.description }}</p>
           </template>
         </PageHeader>
         <Tabs>
@@ -240,12 +240,15 @@
           <Tab header="Leaderboard">
             <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" :seasonId="group?.active_season_id" />
           </Tab>
-          <Tab header="Stats" v-if="activeGameweek">
-            <CombinedGroupStats :groupId="group.id" :seasonId="group?.active_season_id" />
+          <Tab header="Stats">
+            <CombinedGroupStats v-if="activeGameweek?.is_locked" :groupId="group.id" :seasonId="group?.active_season_id" />
+            <RoundedContainer v-else>
+              <p class="text-gray-500 py-2">No stats data to show yet.</p>
+            </RoundedContainer>
           </Tab>
           <Tab header="Members" v-if="group?.iAmMember || (group?.iAmMember && group.is_public)">
             <RoundedContainer :headerText="`Join Requests (${requestMembers.length})`" v-if="group?.iAmAdmin && requestMembers.length > 0">
-              <template #headerContent>
+              <!-- <template #headerContent>
                 <div class="flex">
                   <button 
                     @click="approveAllRequests()"
@@ -260,7 +263,7 @@
                     Reject All
                   </button>
                 </div>
-              </template>            
+              </template>             -->
               <div v-if="members.length">
                 <MembersCard :members="requestMembers">
                   <template #additionalContent="{ member }">

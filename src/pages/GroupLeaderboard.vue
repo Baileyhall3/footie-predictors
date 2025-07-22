@@ -24,7 +24,7 @@
             </div>
             <p v-if="leaderboard.length === 0" class="text-gray-500 py-2">No leaderboard data available.</p>
         </RoundedContainer>
-        <RoundedContainer headerText="History" v-if="leaderboard.length > 0">
+        <RoundedContainer headerText="History" v-if="leaderboardHistory.length > 0">
             <LineChart 
                 :lineData="positionHistory" 
                 :xLabels="posXLabels"

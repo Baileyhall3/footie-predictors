@@ -38,6 +38,7 @@
           :includeUserPredictionLink="props.includeUserPredictionLink" 
           :gameweek-id="gameweekId"
           :currentUserId="userStore.user.id"
+          showUserPosition
         >
         <template #additionalDisplay>
           <TrophyIcon v-if="player.user_id === props.winnerId" class="size-5 text-yellow-300" />
