@@ -302,6 +302,7 @@ export const userStore = {
             id,
             is_admin,
             joined_at,
+            has_requested,
             groups (
               id,
               name,
@@ -320,6 +321,7 @@ export const userStore = {
             )
           `)
           .eq('user_id', state.user.id)
+          .eq('has_requested', false)
       );
   
       if (error) throw error;

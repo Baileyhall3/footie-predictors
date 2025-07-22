@@ -30,13 +30,17 @@
                 <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                     You
                 </span>
-                <span v-if="member.is_admin && groupOwner.id !== member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                    Admin
-                </span>
-                <span v-if="groupOwner.id === member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                    Owner
-                </span>
+                <template v-if="props.groupOwner">
+                    <span v-if="member.is_admin && groupOwner.id !== member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                        Admin
+                    </span>
+                    <span v-if="groupOwner.id === member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                        Owner
+                    </span>
+                </template>
             </div>
+
+            <slot name="additionalContent" v-bind="{ member }"></slot>
 
             <Dropdown v-if="isAdmin && userStore.user?.id !== member.id && groupOwner.id !== member.id">
                 <template #items>
@@ -96,12 +100,12 @@ interface Owner {
 }
   
 export interface IProps {
-  members: GroupMember[];
-  groupOwner: Owner;
-  gameweek?: Gameweek;
-  memberLimit?: number;
-  includeProfileLink?: boolean;
-  groupId?: string;
+    members: GroupMember[];
+    groupOwner?: Owner;
+    gameweek?: Gameweek;
+    memberLimit?: number;
+    includeProfileLink?: boolean;
+    groupId?: string;
 }
 const props = withDefaults(defineProps<IProps>(), {
     memberLimit: 10

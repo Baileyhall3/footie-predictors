@@ -11,7 +11,12 @@
           <PaperAirplaneIcon class="size-4 me-2" v-if="group.joinRequestSent" title="Join requested for this group" />
           <h3 class="text-lg font-semibold">{{ group[groupNameField] }}</h3>
         </div>
-        <p class="text-gray-500" v-if="!props.hideMemberCount">{{ group.member_count }} members</p>
+        <p v-if="!props.hideMemberCount">
+          <div class="flex items-center">
+            <UsersIcon class="size-5 me-1" />
+            {{ group.member_count }}
+          </div>
+        </p>
       </div>
     </div>
     <slot name="additionalGroupInfo"></slot>
@@ -21,6 +26,8 @@
 <script setup lang="ts">
 import type { Group } from '../types';
 import { PaperAirplaneIcon } from '@heroicons/vue/24/outline';
+import { UserGroupIcon } from '@heroicons/vue/24/solid';
+import {UsersIcon} from '@heroicons/vue/24/solid';
 
 export interface IProps {
   group: Group,

@@ -31,7 +31,10 @@ export interface Group {
     active_season_id: string,
     iAmMember: boolean,
     joinRequestSent: boolean,
-    member_count: number
+    member_count: number,
+    iAmAdmin: boolean,
+    iAmOwner: boolean,
+    owner: string
 }
 
 export interface Gameweek {
@@ -83,6 +86,7 @@ export interface GroupMember {
     username: string;
     bg_colour?: string;
     profile_picture_url?: string;
+    has_requested: boolean
 }
 
 export interface LeaderboardEntry {

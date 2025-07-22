@@ -35,16 +35,11 @@
 import { ref, nextTick } from "vue";
 import { groupsService } from "../api/groupsService";
 
-const props = defineProps({
-  groupId: {
-    type: Number,
-    required: true,
-  },
-  seasonId: {
-    type: Number,
-    required: true,
-  },
-});
+const props = defineProps<{
+  groupId?: string,
+  seasonId?: string
+}>();
+
 const emit = defineEmits(["user-created"]);
 
 const isVisible = ref(false);

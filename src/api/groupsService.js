@@ -122,6 +122,7 @@ export const groupsService = {
             id,
             is_admin,
             joined_at,
+            has_requested,
             users (
               id,
               username,
@@ -155,7 +156,8 @@ export const groupsService = {
         membership_id: membership.id,
         is_fake: membership.users.is_fake,
         bg_colour: membership.users.bg_colour,
-        profile_picture_url: membership.users.profile_picture_url
+        profile_picture_url: membership.users.profile_picture_url,
+        has_requested: membership.has_requested
       }))
 
       return { data: members, error: null }
@@ -441,5 +443,28 @@ export const groupsService = {
     return supabaseDb.getById('groups_view', groupId)
   },
   
+  /**
+   * Add a user to a group who has requested access
+   * @param {string} groupId - Group ID
+   * @param {string} userId - User ID
+   * @param {string} membershipId - Membership ID
+   * @returns {Promise<{data: Object, error: Object}>}
+   */
+  async approveMemberRequest(groupId, userId, membershipId) {
+    await supabaseDb.update('group_members', membershipId, { has_requested: false })
+
+    // Insert the new user into the leaderboard
+    const { data: leaderboardData, error: leaderboardError } = await supabaseDb.create('leaderboard', {
+      user_id: userId,
+      group_id: groupId,
+    }); // need to add seasonID here too
+
+    if (leaderboardError) {
+      console.error('Error adding user to leaderboard:', leaderboardError);
+      return { data: null, error: leaderboardError };
+    }
+
+    return { data: { groupMemberData, leaderboardData }, error: null };
+  },
 
 }

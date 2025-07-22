@@ -42,7 +42,7 @@
                   <router-link :to="`/user-group-profile/${groupId}/${userStore.user?.id}`" class="text-blue-600 dropdown-item item-separator">
                     My Group Profile
                   </router-link>
-                  <template v-if="isGroupOwner">
+                  <template v-if="group?.iAmOwner">
                      <router-link :to="`/group/${group?.id}/update-group`" >
                        <button class="dropdown-item item-separator">
                          Edit
@@ -77,7 +77,7 @@
           <Tab header="Overview">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 md:gap-8">
               <RoundedContainer headerText="Group Info">
-                <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ adminName }}</p>
+                <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ group?.owner }}</p>
                 <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group?.created_at) }}</p>
                 <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
               </RoundedContainer>
@@ -107,7 +107,7 @@
                     </span>
                   </div>
                 </div>
-                <p class="text-sm text-gray-500" v-if="isGroupOwner && activeSeason?.is_finished">
+                <p class="text-sm text-gray-500" v-if="group?.iAmOwner && activeSeason?.is_finished">
                   This season has now ended. 
                   <router-link :to="`/group/${group?.id}/create-season`" class="text-blue-600 hover:underline hover:cursor-pointer">
                     Create a new season
@@ -243,9 +243,49 @@
           <Tab header="Stats" v-if="activeGameweek">
             <CombinedGroupStats :groupId="group.id" :seasonId="group?.active_season_id" />
           </Tab>
-          <Tab header="Members">
-            <RoundedContainer :headerText="`Members (${members.length})`" v-if="!group?.iAmMember || (group?.iAmMember && group.is_public)">
-              <template #headerContent v-if="isAdmin">
+          <Tab header="Members" v-if="group?.iAmMember || (group?.iAmMember && group.is_public)">
+            <RoundedContainer :headerText="`Join Requests (${requestMembers.length})`" v-if="group?.iAmAdmin && requestMembers.length > 0">
+              <template #headerContent>
+                <div class="flex">
+                  <button 
+                    @click="approveAllRequests()"
+                    class="text-sm bg-green-600 text-white px-3 py-1 me-2 rounded hover:bg-green-700 transition"
+                  >
+                    Approve All
+                  </button>
+                  <button 
+                    @click="rejectAllRequests()"
+                    class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded transition"
+                  >
+                    Reject All
+                  </button>
+                </div>
+              </template>            
+              <div v-if="members.length">
+                <MembersCard :members="requestMembers">
+                  <template #additionalContent="{ member }">
+                    <Dropdown>
+                      <template #items>
+                          <button
+                              @click="approveMember(member)"
+                              class="dropdown-item item-separator"
+                          >
+                              Approve
+                          </button>
+                          <button
+                              @click="removeMember(member)"
+                              class="dropdown-item text-red-600"
+                          >
+                              Reject
+                          </button>
+                        </template>
+                    </Dropdown>
+                  </template>
+                </MembersCard>
+              </div>
+            </RoundedContainer>
+            <RoundedContainer :headerText="`Members (${members.length})`" v-if="group?.iAmMember || (group?.iAmMember && group.is_public)">
+              <template #headerContent v-if="group?.iAmAdmin">
                 <button 
                   v-if="members.length != group.max_members" 
                   @click="openCreateMemberDialog()"
@@ -279,11 +319,11 @@
       <RoundedContainer v-else class="max-w-xl mx-auto mt-10 text-center">
         <div class="flex justify-center items-center gap-3 min-w-0 max-w-full flex-1 mb-4">
           <img 
-            :src="group.icon_url ?? '/images/green-football-md.png'" 
+            :src="group?.icon_url ?? '/images/green-football-md.png'" 
             class="w-10 h-10 flex-shrink-0" 
             alt="Group Logo"
             />
-          <h2 class="text-2xl font-bold truncate">{{ group.name }}</h2>
+          <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
         </div>
         <h2 class="text-xl font-semibold mb-2">You're not part of this group yet</h2>
         <p class="text-gray-600 mb-6">Join now to start predicting, competing on the leaderboard, and more!</p>
@@ -317,7 +357,6 @@ import { groupsStore } from "../store/groupsStore";
 import { leaderboardStore } from "../store/leaderboardStore";
 import { userStore } from "../store/userStore";
 import { gameweeksService } from "../api/gameweeksService";
-import { userIsAdmin, userInGroup, userIsGroupOwner } from "../utils/checkPermissions";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
 import { ShareIcon, LinkIcon, EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
@@ -365,8 +404,6 @@ const matches = ref<Array<any>>([]);
 const deleteConfirmMsg = ref<string>('');
 const deleteConfirmTitle = ref<string>('');
 const deleteConfirmText = ref<string>('Confirm');
-const isAdmin = ref<boolean>(false);
-const isGroupOwner = ref<boolean>(false);
 const groupOwner = ref<{ email: string, id: string, username: string }>();
 const activeGameweek = ref<Gameweek>();
 const groupExists = ref<boolean>(true);
@@ -378,11 +415,7 @@ const currentUserGameweekData = ref<GwLeaderboardEntry>();
 const userMostCorrectScores = ref<GwLeaderboardEntry>();
 const activeSeason = ref<Season>();
 const seasons = ref<Array<Season>>();
-
-const adminName = computed(() => {
-  const admin = members.value.find(member => member.is_admin);
-  return admin ? admin.username : 'Unknown';
-});
+const requestMembers = ref<Array<GroupMember>>([]);
 
 // Fetch all data for the group
 const fetchAllData = async () => {
@@ -410,9 +443,6 @@ const fetchAllData = async () => {
     
     // Fetch group members
     await getGroupMembers();
-
-    isAdmin.value = userIsAdmin(members.value);
-    isGroupOwner.value = userIsGroupOwner(group.value);
 
     const { data: adminData, error: adminError } = await groupsService.getGroupAdmin(groupId.value); // could be optimised by making group view with this data
     if (adminError) throw new Error('Failed to load group admin');
@@ -645,7 +675,10 @@ const removeMember = async (member: GroupMember) => {
 async function getGroupMembers() {
   const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(groupId.value);
   if (membersError) throw new Error('Failed to load group members');
-  members.value = membersData || [];
+  if (membersData && membersData.length > 0) {
+    members.value = membersData.filter(x => !x.has_requested);
+    requestMembers.value = membersData.filter(x => x.has_requested);
+  }
 }
 
 async function getLeaderboard() {
@@ -678,6 +711,45 @@ function getScoringSystem(group) {
     return `Classic (3 points for correct score, 1 point for correct result)`;
   } else {
     return `Custom (${group.exact_score_points} points for correct score, ${group.correct_result_points} for correct result and ${group.incorrect_points} for incorrect result)`;
+  }
+}
+
+async function approveMember(member: GroupMember) {
+  try {
+    loading.value = true;
+    const { data, error } = await groupsService.approveMemberRequest(groupId.value, member.id, member.membership_id);
+    if (error) throw new Error('Failed to approve member');
+    
+    toast('Member Request Approved!', {
+      "type": "success",
+      "position": "top-center"
+    });
+  } catch(err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
+    getGroupMembers();
+  }
+}
+
+async function rejectAllRequests() {
+  if (requestMembers.value.length === 0) { return; }
+  try {
+    loading.value = true;
+    requestMembers.value.forEach(async(x) => {
+      const { success, error: removeError } = await groupsStore.removeMember(
+        x.membership_id, 
+        groupId.value
+      );
+      
+      if (removeError) throw new Error('Failed to remove member');
+    });
+  } catch(err) {
+    error.value = err.message || 'An error occurred while removing member';
+    console.error(err);
+  } finally {
+    loading.value = false;
+    getGroupMembers();
   }
 }
 
