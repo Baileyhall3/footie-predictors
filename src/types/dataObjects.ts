@@ -1,3 +1,5 @@
+import { Data } from "vue3-toastify"
+
 export interface Season {
     id: string,
     name: string,
@@ -145,4 +147,32 @@ export interface Match {
     gameweek_id: string
     final_home_score?: number,
     final_away_score?: number
+}
+
+export type NotificationType = 
+    'gameweek_created' | 
+    'gameweek_deadline' 
+
+export type NotificationPriority = 'info' | 'success' | 'warning' | 'urgent'
+
+export interface Notification {
+    id: string
+    user_id: string,
+    group_id?: string,
+    template_data: Object,
+    type: NotificationType
+    priority: NotificationPriority
+    expires_at?: Date
+    link?: string
+    read: boolean
+    created_at: Date
+}
+
+export interface NotificationPreference {
+    id: string,
+    created_at: Date,
+    user_id: string,
+    group_id?: string,
+    allow_push: boolean,
+    type: NotificationType
 }

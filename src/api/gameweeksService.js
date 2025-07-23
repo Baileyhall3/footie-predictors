@@ -551,4 +551,38 @@ export const gameweeksService = {
       return { data: null, error }
     }
   },
+
+  /**
+   * Creates a gameweek and notifies users who are part of the group and are subscribed
+   * @param {*} gameweek 
+   * @returns {Promise<{data: Object | null, error: Object | null}>}
+   */
+  async createGameweekWithNotifications(gameweek) {
+    try {
+      const { data, error } = await this.createGameweek(gameweek);
+  
+      if (error) return { data, error };
+  
+      // Now notify users in the group
+      const { error: notifyError } = await supabase.rpc('notify_users', {
+        notif_type: 'gameweek_created',
+        group_id: gameweek.group_id,
+        template_data: {
+          week_number: gameweek.week_number,
+          deadline: gameweek.deadline,
+        },
+        priority: 'info',
+        link: `/gameweek/${data.id}`
+      });
+  
+      if (notifyError) {
+        console.error('Failed to notify users:', notifyError.message);
+      }
+  
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error creating gameweek / notifying users:', error)
+      return { data: null, error }
+    }
+  },
 }

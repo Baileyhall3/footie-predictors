@@ -25,7 +25,7 @@
             <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
           </template>
           <template #actionItems>
-            <button @click="copyPageLink('Group')" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
+              <button @click="copyPageLink('Group')" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
                 <LinkIcon class="size-6 text-blue-500" />
               </button>
               <Dropdown>
@@ -41,6 +41,9 @@
                   </router-link>
                   <router-link :to="`/user-group-profile/${groupId}/${userStore.user?.id}`" class="text-blue-600 dropdown-item item-separator">
                     My Group Profile
+                  </router-link>
+                  <router-link :to="`/group/${groupId}/notifications`" class="text-blue-600 dropdown-item item-separator">
+                    Notifications
                   </router-link>
                   <template v-if="group?.iAmOwner">
                      <router-link :to="`/group/${group?.id}/update-group`" >
@@ -362,7 +365,7 @@ import { userStore } from "../store/userStore";
 import { gameweeksService } from "../api/gameweeksService";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
-import { ShareIcon, LinkIcon, EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
+import { LinkIcon, EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
 import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";

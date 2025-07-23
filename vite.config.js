@@ -6,7 +6,9 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      'UI-Buttons': path.resolve(__dirname, './src/components/UI/buttons')
+      'UI-Buttons': path.resolve(__dirname, './src/components/UI/buttons'),
+      'UI': path.resolve(__dirname, './src/components/UI'),
+      'UI-Input': path.resolve(__dirname, './src/components/UI/input'),
     }
   }
   // server: {

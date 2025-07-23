@@ -13,6 +13,7 @@ import AddGameweekMatches from '../pages/AddGameweekMatches.vue';
 import AppInfo from '../pages/AppInfo.vue';
 import UserStats from '../pages/UserStats.vue';
 import GroupStats from '../pages/GroupStats.vue';
+import GroupNotifications from '../pages/GroupNotifications.vue';
 
 import Predictions from '../pages/Predictions.vue';
 import Login from '../pages/Login.vue';
@@ -144,6 +145,15 @@ const router = createRouter({
       component: UpdateGroup,
       meta: {
         title: 'Update Group - Footie Predictors',
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/group/:id/notifications',
+      name: 'GroupNotifications',
+      component: GroupNotifications,
+      meta: {
+        title: 'Group Notifications - Footie Predictors',
         requiresAuth: true
       }
     },

@@ -479,7 +479,7 @@ export const groupsService = {
 
   /**
    * Get group by ID using view
-   * @param {number} groupId - The ID of the group for which to retrieve data
+   * @param {string} groupId - The ID of the group for which to retrieve data
    * @returns {Promise<{data: Array, error: Object}>}
    */
   async getGroupByIdUsingView(groupId) {

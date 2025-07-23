@@ -15,12 +15,10 @@
           </span>
           <h3 class="text-lg font-semibold">{{ group[groupNameField] }}</h3>
         </div>
-        <p v-if="!props.hideMemberCount">
-          <div class="flex items-center">
-            <UsersIcon class="size-5 me-1 text-black" />
-            {{ group.member_count }}
-          </div>
-        </p>
+        <div class="flex items-center" v-if="!props.hideMemberCount">
+          <UsersIcon class="size-5 me-1 text-black" />
+          {{ group.member_count }}
+        </div>
       </div>
     </div>
     <slot name="additionalGroupInfo"></slot>
