@@ -191,7 +191,7 @@ import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
-import { ShareIcon, LockClosedIcon, LinkIcon, EllipsisVerticalIcon, PencilSquareIcon, XMarkIcon, PlusIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon, PencilSquareIcon, XMarkIcon, PlusIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";

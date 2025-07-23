@@ -44,16 +44,14 @@
           <div class="border-b pb-6">
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-xl font-semibold text-gray-800">Account Information</h2>
-                <div class="mt-4 flex flex-wrap gap-2">
-                    <button v-if="!editMode" @click="toggleEditMode" class="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition">
-                        Edit
+                <div class="flex flex-wrap gap-2">
+                    <button v-if="!editMode" @click="editMode = true" class="p-1 rounded-md hover:bg-gray-200" title="Edit profile">
+                      <PencilSquareIcon class="size-5 text-gray-500" />
                     </button>
-                    <button v-if="editMode" @click="cancelChanges" class="px-3 py-1 bg-gray-300 text-gray-800 rounded-md text-sm hover:bg-gray-400">
-                        Cancel
-                    </button>
-                    <button v-if="editMode" @click="saveChanges" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
-                        Save
-                    </button>
+                    <template v-else>
+                      <SaveBtn @saved="saveChanges" />
+                      <CancelBtn @cancelled="cancelChanges" />
+                    </template>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,8 +127,10 @@ import { userStore } from '../store/userStore';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import DateUtils from '../utils/dateUtils';
-import { PaintBrushIcon } from '@heroicons/vue/24/solid';
+import {  } from '@heroicons/vue/24/solid';
 import NewDisplayPicture from '../components/dialogs/NewDisplayPicture.vue';
+import { PencilSquareIcon, XMarkIcon, PaintBrushIcon, CheckIcon } from "@heroicons/vue/24/solid";
+import { SaveBtn, CancelBtn } from '../components/UI/buttons';
 
 const router = useRouter();
 const editMode = ref(false);

@@ -34,8 +34,8 @@
                     <span v-if="member.is_admin && groupOwner.id !== member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
                         Admin
                     </span>
-                    <span v-if="groupOwner.id === member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                        Owner
+                    <span title="User is the owner of this group">
+                        <Crown v-if="groupOwner.id === member.id" class="text-xs text-yellow-300 me-1" />
                     </span>
                 </template>
             </div>
@@ -92,6 +92,7 @@ import { userIsAdmin } from '../utils/checkPermissions';
 import Dropdown from './UI/Dropdown.vue';
 import { GroupMember, Gameweek } from '../types';
 import { RouterLink } from 'vue-router';
+import { Crown } from 'lucide-vue-next';
 
 interface Owner {
     email: string;

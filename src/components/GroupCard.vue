@@ -2,18 +2,22 @@
   <router-link 
     :to="`/group/${group[groupIdField]}`" 
     class="bg-white shadow-md rounded-xl p-4 transition hover:shadow-lg"
-    :title="group.joinRequestSent ? 'Join requested for this group' : ''"
   >
     <div class=" flex items-center">
       <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
       <div>
         <div class="flex items-center">
-          <PaperAirplaneIcon class="size-4 me-2" v-if="group.joinRequestSent" title="Join requested for this group" />
+          <span title="Join requested for this group">
+            <Send class="size-4 me-2" v-if="group.joinRequestSent" />
+          </span>
+          <span title="You are the owner of this group">
+            <Crown v-if="group.iAmOwner" class="size-5 text-yellow-300 me-1" />
+          </span>
           <h3 class="text-lg font-semibold">{{ group[groupNameField] }}</h3>
         </div>
         <p v-if="!props.hideMemberCount">
           <div class="flex items-center">
-            <UsersIcon class="size-5 me-1" />
+            <UsersIcon class="size-5 me-1 text-black" />
             {{ group.member_count }}
           </div>
         </p>
@@ -25,9 +29,9 @@
 
 <script setup lang="ts">
 import type { Group } from '../types';
-import { PaperAirplaneIcon } from '@heroicons/vue/24/outline';
-import { UserGroupIcon } from '@heroicons/vue/24/solid';
-import {UsersIcon} from '@heroicons/vue/24/solid';
+import { UsersIcon } from '@heroicons/vue/24/solid';
+import { Crown } from 'lucide-vue-next'; 
+import { Send } from 'lucide-vue-next';
 
 export interface IProps {
   group: Group,
