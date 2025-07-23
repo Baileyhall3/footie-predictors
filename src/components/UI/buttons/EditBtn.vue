@@ -1,26 +1,26 @@
 <template>
     <button 
         type="button"
-        @click="cancelChanges" 
-        class="p-1 rounded-md hover:bg-red-200 disabled:opacity-50" 
+        @click="beginEdit" 
+        class="p-1 rounded-md hover:bg-gray-200 disabled:opacity-50" 
         :title="props.title"
         :disabled="props.disabled"
     >
-        <XMarkIcon class="size-5 text-red-700" />
+        <PencilSquareIcon class="size-5 text-gray-500" />
     </button>
 </template>
 
 <script setup lang="ts">
-import { XMarkIcon } from "@heroicons/vue/24/solid";
+import { PencilSquareIcon } from "@heroicons/vue/24/solid";
 import { ActionButtonsProps } from "./componentProps";
 
 const props = defineProps<ActionButtonsProps>();
 
 const emit = defineEmits<{
-    (e: 'cancelled'): void
+    (e: 'begin-edit'): void
 }>();
 
-function cancelChanges() {
-    emit("cancelled");
+function beginEdit() {
+    emit("begin-edit");
 }
 </script>

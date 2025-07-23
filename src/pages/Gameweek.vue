@@ -92,19 +92,15 @@
               <template #headerContent>
                 <div class="flex items-center" v-if="isAdmin">
                   <router-link :to="`/gameweek/${gameweekId}/add-matches`">
-                    <button @click="editMode = true" v-if="!gameweek?.is_locked && gameweek?.is_active"
+                    <button v-if="!gameweek?.is_locked && gameweek?.is_active"
                       class="p-1 rounded-md hover:bg-green-200" title="Add matches to gameweek"
                     >
                       <PlusIcon class="size-5 text-green-600" />
                     </button>
                   </router-link>
                   <template v-if="!gameweek?.is_finished">
-                    <button v-if="!editMode" @click="editMode = true" class="p-1 rounded-md hover:bg-gray-200" title="Edit this gameweek">
-                      <PencilSquareIcon class="size-5 text-gray-500" />
-                    </button>
-                    <button v-else @click="editMode = false" class="p-1 rounded-md hover:bg-red-200" title="Stop editing">
-                      <XMarkIcon class="size-5 text-red-700" />
-                    </button>
+                    <EditBtn v-if="!editMode" @begin-edit="editMode = true" title="Edit this gameweek" />
+                    <CancelBtn v-else @cancelled="editMode = false" title="Stop editing" />
                   </template>
                 </div>
               </template>
@@ -191,7 +187,7 @@ import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
-import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon, PencilSquareIcon, XMarkIcon, PlusIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon, PlusIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -218,6 +214,7 @@ import DataGrid from '../components/UI/grid/DataGrid.vue';
 import GridCol from '../components/UI/grid/GridCol.vue';
 import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
 import PageHeader from '../components/PageHeader.vue';
+import { SaveBtn, CancelBtn, EditBtn } from '../components/UI/buttons';
 
 const route = useRoute();
 const router = useRouter();

@@ -45,12 +45,10 @@
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-xl font-semibold text-gray-800">Account Information</h2>
                 <div class="flex flex-wrap gap-2">
-                    <button v-if="!editMode" @click="editMode = true" class="p-1 rounded-md hover:bg-gray-200" title="Edit profile">
-                      <PencilSquareIcon class="size-5 text-gray-500" />
-                    </button>
+                    <EditBtn v-if="!editMode" @begin-edit="editMode = true" title="Edit profile" />
                     <template v-else>
                       <SaveBtn @saved="saveChanges" />
-                      <CancelBtn @cancelled="cancelChanges" />
+                      <CancelBtn @cancelled="cancelChanges" title="Cancel changes" />
                     </template>
                 </div>
             </div>
@@ -127,10 +125,9 @@ import { userStore } from '../store/userStore';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import DateUtils from '../utils/dateUtils';
-import {  } from '@heroicons/vue/24/solid';
 import NewDisplayPicture from '../components/dialogs/NewDisplayPicture.vue';
-import { PencilSquareIcon, XMarkIcon, PaintBrushIcon, CheckIcon } from "@heroicons/vue/24/solid";
-import { SaveBtn, CancelBtn } from '../components/UI/buttons';
+import { PaintBrushIcon } from "@heroicons/vue/24/solid";
+import { SaveBtn, CancelBtn, EditBtn } from '../components/UI/buttons';
 
 const router = useRouter();
 const editMode = ref(false);

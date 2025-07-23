@@ -14,11 +14,16 @@
                     <button 
                         @click="toggleLeagueDropdown"
                         class="mt-1 p-2 w-full border rounded-md flex justify-between items-center"
-                    >
-                        <span v-if="selectedLeague">
-                            <img :src="selectedLeague.emblem" alt="League Emblem" class="w-6 h-6 inline-block mr-2">
-                            {{ selectedLeague.name }}
-                        </span>
+                    >   
+                        <template v-if="selectedLeague">
+                            <span>
+                                <img :src="selectedLeague.emblem" alt="League Emblem" class="w-6 h-6 inline-block mr-2">
+                                {{ selectedLeague.name }}
+                            </span>
+                            <button type="button" @mousedown.stop="clearLeague">
+                                <XMarkIcon class="size-5" />
+                            </button>
+                        </template>
                         <span v-else>Select...</span>
                     </button>
                     
@@ -40,10 +45,15 @@
                         @click="toggleTeamsDropdown"
                         class="mt-1 p-2 w-full border rounded-md flex justify-between items-center"
                     >
-                        <span v-if="selectedTeam">
-                            <img :src="selectedTeam.crest" alt="Team Crest" class="w-6 h-6 inline-block mr-2">
-                            {{ selectedTeam.shortName }}
-                        </span>
+                        <template v-if="selectedTeam">
+                            <span>
+                                <img :src="selectedTeam.crest" alt="Team Crest" class="w-6 h-6 inline-block mr-2">
+                                {{ selectedTeam.shortName }}
+                            </span>
+                            <button type="button" @mousedown.stop="clearTeam">
+                                <XMarkIcon class="size-5" />
+                            </button>
+                        </template>
                         <span v-else>Select...</span>
                     </button>
                     
@@ -137,6 +147,7 @@
 import { ref, onMounted, watch, onUnmounted, computed } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { footballApiService } from '../api/footballApiService';
+import { XMarkIcon } from '@heroicons/vue/24/solid';
 
 interface MatchItem {
     id: string;
@@ -211,16 +222,27 @@ const handleClickOutside = (event: any) => {
 };
 
 const selectLeague = async(league: any) => {
-  selectedLeague.value = league;
-  leagueDropdownOpen.value = false;
-  const { data: teamsData } = await footballApiService.getTeams(league.id);
-  teams.value = teamsData;
+    selectedLeague.value = league;
+    leagueDropdownOpen.value = false;
+    const { data: teamsData } = await footballApiService.getTeams(league.id);
+    teams.value = teamsData;
+};
+
+const clearLeague = () => {
+    selectedLeague.value = null;
+    leagueDropdownOpen.value = false;
+    selectedTeam.value = null;
+    teams.value = null;
 };
 
 const selectTeam = async(team: any) => {
   selectedTeam.value = team;
   teamsDropdownOpen.value = false;
 };
+
+const clearTeam = () => {
+    selectedTeam.value = null;
+}
 
 const selectMatch = (match: any) => {
   // Toggle the selection of the match
