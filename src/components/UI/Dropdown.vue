@@ -12,7 +12,7 @@
             <Transition name="fade-slide">
                 <template v-if="dropdownOpen">
                     <div class="absolute right-0 bg-white shadow-lg rounded-md border z-50" style="width: max-content;">
-                        <slot name="items"></slot>
+                        <slot name="items" :close="closeDropdown"></slot>
                     </div>
                 </template>
             </Transition>
@@ -30,6 +30,12 @@ let isMounted = false;
 const toggleDropdown = () => {
     if (!isMounted) return;
     dropdownOpen.value = !dropdownOpen.value;
+}
+
+const closeDropdown = () => {
+    if (dropdownOpen.value) {
+        dropdownOpen.value = false;
+    }
 }
 
 const slots = useSlots();

@@ -92,11 +92,7 @@
               <template #headerContent>
                 <div class="flex items-center" v-if="isAdmin">
                   <router-link :to="`/gameweek/${gameweekId}/add-matches`">
-                    <button v-if="!gameweek?.is_locked && gameweek?.is_active"
-                      class="p-1 rounded-md hover:bg-green-200" title="Add matches to gameweek"
-                    >
-                      <PlusIcon class="size-5 text-green-600" />
-                    </button>
+                    <AddBtn v-if="!gameweek?.is_locked && gameweek?.is_active" title="Add matches to gameweek" />
                   </router-link>
                   <template v-if="!gameweek?.is_finished">
                     <EditBtn v-if="!editMode" @begin-edit="editMode = true" title="Edit this gameweek" />
@@ -187,7 +183,7 @@ import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
-import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon, PlusIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -214,7 +210,7 @@ import DataGrid from '../components/UI/grid/DataGrid.vue';
 import GridCol from '../components/UI/grid/GridCol.vue';
 import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
 import PageHeader from '../components/PageHeader.vue';
-import { SaveBtn, CancelBtn, EditBtn } from '../components/UI/buttons';
+import { CancelBtn, EditBtn, AddBtn } from '../components/UI/buttons';
 
 const route = useRoute();
 const router = useRouter();

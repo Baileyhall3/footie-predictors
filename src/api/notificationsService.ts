@@ -31,7 +31,7 @@ export const notificationsService = {
                 .from('notifications')
                 .select('*')
                 .eq('user_id', userId)
-                .order('created_at', { ascending: true })
+                .order('created_at', { ascending: false })
             )
 
             if (error) throw error
@@ -57,7 +57,7 @@ export const notificationsService = {
                 .select('*')
                 .eq('user_id', userId)
                 .eq('group_id', groupId)
-                .order('created_at', { ascending: true })
+                .order('created_at', { ascending: false })
             )
 
             if (error) throw error
@@ -111,7 +111,8 @@ export const notificationsService = {
                 .from('notification_preferences')
                 .select('*')
                 .eq('user_id', userId)
-                .eq('group_id', null)
+                .is('group_id', null)
+                .order('id', { ascending: true })
             )
 
             if (error) throw error
@@ -137,6 +138,7 @@ export const notificationsService = {
                 .select('*')
                 .eq('user_id', userId)
                 .eq('group_id', groupId)
+                .order('id', { ascending: true })
             )
 
             if (error) throw error

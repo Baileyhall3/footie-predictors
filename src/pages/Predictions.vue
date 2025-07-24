@@ -1,7 +1,23 @@
 <template>
     <div class="container mx-auto py-8">
         <div class="mb-6">
-            <h2 class="text-2xl font-bold mb-4">Your Predictions</h2>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                <h2 class="text-2xl font-bold">Your Predictions</h2>
+                <div class="relative w-full md:w-64">
+                    <input
+                        type="text"
+                        v-model="searchQuery"
+                        placeholder="Search for group..."
+                        @keydown.enter="handleSearchQuery"
+                        class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
+                        stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                    </svg>
+                </div>
+            </div>
             <LoadingScreen v-if="isLoading" />
             <template v-else>
                 <template v-if="userGroups.length > 0">
@@ -64,10 +80,12 @@ import ScoreCard from "../components/ScoreCard.vue";
 import { LockClosedIcon } from "@heroicons/vue/24/solid";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { Group } from "../types";
 
-// State
-const isLoading = ref(true);
-const userGroups = ref([]);
+const isLoading = ref<boolean>(true);
+const userGroups = ref<Array<Group>>([]); // incorrect type
+const searchQuery = ref<string>('');
+const allUserGroups = ref<Array<Group>>([]);
 
 onMounted(async () => {
     await fetchAllData();
@@ -122,7 +140,7 @@ async function fetchAllData() {
         );
 
         // Now, map over the active groups, and assign matches and predictions
-        userGroups.value = activeGroups.map((group, index) => {
+        const finalGroups = activeGroups.map((group, index) => {
             const gameweek = activeGameweeks[index];  // Ensure that active gameweeks correspond correctly to groups
             const matches = matchesResults[index].data || [];
             const predictionsData = predictionsResults[index].data || [];
@@ -162,10 +180,25 @@ async function fetchAllData() {
             };
         });
 
+        userGroups.value = finalGroups;
+        allUserGroups.value = finalGroups;
+
     } catch (error) {
         console.error(error);
     } finally {
         isLoading.value = false;
+    }
+}
+
+function handleSearchQuery() {
+    const query = searchQuery.value.trim().toLowerCase();
+
+    if (query) {
+        userGroups.value = allUserGroups.value.filter(group =>
+            group.name.toLowerCase().includes(query)
+        );
+    } else {
+        userGroups.value = allUserGroups.value;
     }
 }
 

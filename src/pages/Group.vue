@@ -292,15 +292,15 @@
             </RoundedContainer>
             <RoundedContainer :headerText="`Members (${members.length})`" v-if="group?.iAmMember || (group?.iAmMember && group.is_public)">
               <template #headerContent v-if="group?.iAmAdmin">
-                <button 
+                <!-- <button 
                   v-if="members.length != group.max_members" 
                   @click="openCreateMemberDialog()"
                   class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
                 >
                   + Add Member
-                </button>
+                </button> -->
                 <button 
-                  v-else
+                  v-if="members.length === group.max_members"
                   class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded transition cursor-default"
                 >
                   Max Members Reached

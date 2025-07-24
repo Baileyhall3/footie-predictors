@@ -2,35 +2,22 @@
     <div class="container mx-auto px-6 py-8">
         <LoadingScreen v-if="loading" />
         <template v-else>
-            <div class="flex items-center mb-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Your Stats</h2>
-                <!-- <div class="relative flex items-center ms-4">
-                    <button
-                    class="flex items-center justify-between bg-white border border-gray-300 rounded-full px-4 py-2 text-sm shadow-sm hover:border-gray-400 transition-all w-64"
-                    @click="toggleSortSelect"
-                    >
-                    <span>{{ selectedLabel }}</span>
-                    <ArrowsUpDownIcon class="size-4 text-gray-500 ml-2" />
-                    </button>
-
-                    <transition name="fade-slide">
-                    <div
-                        v-if="showSortSelect"
-                        class="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-20"
-                    >
-                        <ul>
-                        <li
-                            v-for="option in sortOptions"
-                            :key="option.value"
-                            @click="selectOption(option)"
-                            class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                        >
-                            {{ option.label }}
-                        </li>
-                        </ul>
-                    </div>
-                    </transition>
-                </div> -->
+                <div class="relative w-full md:w-64">
+                    <input
+                        type="text"
+                        v-model="searchQuery"
+                        placeholder="Search for group..."
+                        @keydown.enter="handleSearchQuery"
+                        class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
+                        stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                    </svg>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" v-if="groupStats.length > 0">
@@ -72,14 +59,14 @@ import { groupsService } from '../api/groupsService';
 import { userStore } from '../store/userStore';
 import StatRow from '../components/StatRow.vue';
 import GroupCard from '../components/GroupCard.vue';
-import { ArrowsUpDownIcon } from '@heroicons/vue/24/outline';
-import SelectInput from '../components/UI/SelectInput.vue';
 import { UserStats } from '../types';
 
 const loading = ref(false);
 const groupStats = ref<Array<UserStats>>([]);
 const sortField = ref(null);
 const showSortSelect = ref(false);
+const searchQuery = ref<string>('');
+const allGroupStats = ref([]);
 
 const sortOptions = [
   { value: null, label: 'Select Sort' },
@@ -99,8 +86,9 @@ async function fetchAllData() {
 
         const { data, error } = await groupsService.getGroupStats(null, userStore.user?.id);
         if (error) throw new Error('Failed to load user stats');
+        
         groupStats.value = data || [];
-
+        allGroupStats.value = data || [];
     } catch(err) {
         console.error(err);
     } finally {
@@ -108,18 +96,17 @@ async function fetchAllData() {
     }
 }
 
-const selectOption = (value) => {
-    sortField.value = value
-    showSortSelect.value = false
-}
+function handleSearchQuery() {
+    const query = searchQuery.value.trim().toLowerCase();
 
-const toggleSortSelect = () => {
-    showSortSelect.value = !showSortSelect.value;
+    if (query) {
+        groupStats.value = allGroupStats.value.filter(group =>
+            group.group_name.toLowerCase().includes(query)
+        );
+    } else {
+        groupStats.value = allGroupStats.value;
+    }
 }
-
-const selectedLabel = computed(() => {
-  return sortOptions.find(opt => opt.value === sortField.value)?.label || 'Select Sort'
-})
 </script>
 
 <style scoped>

@@ -1,5 +1,6 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <LoadingScreen v-if="loading" />
+  <div class="container mx-auto px-4 py-8" v-else>
     <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
       <!-- Profile Header -->
       <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
@@ -90,7 +91,16 @@
             </div>
             <p v-if="errorMessage" class="text-red-500 text-center mt-4">{{ errorMessage }}</p>
           </div>
-
+          
+          <div class="border-b pb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-1">Notification Preferences</h2>
+            <p class="text-gray-500 text-sm">
+              These are global preferences, meaning if you disable them here, the global preference will be used instead of your group preference.
+            </p>
+            <div class="mt-4">
+              <NotificationPreferences :preferences="preferences" />
+            </div>
+          </div>
           <!-- Account Actions -->
           <div>
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Account Actions</h2>
@@ -118,8 +128,8 @@
   <NewDisplayPicture ref="displayPictureDialog" />
 </template>
 
-<script setup>
-import { ref } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/userStore';
 import { toast } from "vue3-toastify";
@@ -128,15 +138,36 @@ import DateUtils from '../utils/dateUtils';
 import NewDisplayPicture from '../components/dialogs/NewDisplayPicture.vue';
 import { PaintBrushIcon } from "@heroicons/vue/24/solid";
 import { SaveBtn, CancelBtn, EditBtn } from '../components/UI/buttons';
+import { notificationsService } from '../api/notificationsService';
+import type { NotificationPreference } from '../types';
+import NotificationPreferences from '../components/NotificationPreferences.vue';
+import LoadingScreen from '../components/LoadingScreen.vue';
 
 const router = useRouter();
 const editMode = ref(false);
 const errorMessage = ref('');
 const displayPictureDialog = ref(null);
 const userData = ref({ username: userStore.userProfile.username });
+const preferences = ref<Array<NotificationPreference>>([]);
+const loading = ref<boolean>();
 
-const toggleEditMode = () => {
-  editMode.value = true;
+onMounted(() => {
+  getPreferences();
+});
+
+async function getPreferences() {
+    try {
+        loading.value = true;
+        const { data, error } = await notificationsService.getUserGeneralPreferences(userStore.user?.id);
+        if (error) throw new Error('Failed to load preferences');
+
+        preferences.value = data || []
+
+    } catch(err) {
+        console.error(err);
+    } finally {
+        loading.value = false;
+    }
 }
 
 const cancelChanges = () => {

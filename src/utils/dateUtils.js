@@ -109,6 +109,29 @@ class DateUtils {
     
         return last7Days;
     }
+
+    static toRelevantDateOrTime(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+
+        const isSameDay = (a, b) =>
+            a.getFullYear() === b.getFullYear() &&
+            a.getMonth() === b.getMonth() &&
+            a.getDate() === b.getDate();
+
+        const yesterday = new Date();
+        yesterday.setDate(now.getDate() - 1);
+
+        if (isSameDay(date, now)) {
+            // Show time if today
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else if (isSameDay(date, yesterday)) {
+            return 'Yesterday';
+        } else {
+            // Show formatted date otherwise
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+    }
 }
 
 export default DateUtils;

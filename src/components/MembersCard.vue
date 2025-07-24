@@ -1,8 +1,9 @@
 <template>
     <TransitionGroup name="member-list" tag="div">
-        <div v-for="member in visibleMembers"
+        <div v-for="(member, index) in visibleMembers"
             :key="member.id"
-            class="flex justify-between items-center border-b py-3"
+            class="flex justify-between items-center py-3"
+            :class="{'border-b': index !== visibleMembers.length - 1}"
         >
             <div class="flex items-center space-x-2">
                 <!-- <div class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
