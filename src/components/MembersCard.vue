@@ -36,7 +36,7 @@
                         Admin
                     </span>
                     <span title="User is the owner of this group">
-                        <Crown v-if="groupOwner.id === member.id" class="text-xs text-yellow-300 me-1" />
+                        <Crown v-if="groupOwner.id === member.id" class="size-5 text-xs text-yellow-300 me-1" />
                     </span>
                 </template>
             </div>

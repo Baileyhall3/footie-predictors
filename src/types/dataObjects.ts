@@ -151,7 +151,10 @@ export interface Match {
 
 export type NotificationType = 
     'gameweek_created' | 
-    'gameweek_deadline' 
+    'gameweek_deadline' |
+    'welcome_message' |
+    'user_joined_group' |
+    'user_left_group' 
 
 export type NotificationPriority = 'info' | 'success' | 'warning' | 'urgent'
 
@@ -166,6 +169,9 @@ export interface Notification {
     link?: string
     read: boolean
     created_at: Date
+    group_name: string,
+    username: string,
+    group_icon_url: string
 }
 
 export interface NotificationPreference {

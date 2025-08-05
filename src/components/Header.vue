@@ -11,21 +11,41 @@
             </div>
 
             <!-- Desktop Navigation -->
-            <nav class="hidden lg:flex space-x-6 ml-auto text-lg font-medium">
-                <template v-for="navItem in navItems">
-                    <router-link :to="navItem.href" class="hover:underline"> {{ navItem.name }}</router-link>
-                </template>
-                <!-- <router-link to="/groups" class="hover:underline">Groups</router-link>
+            <nav class="hidden lg:flex space-x-6 ml-auto text-lg font-medium items-center">
+                <router-link to="/groups" class="hover:underline">Groups</router-link>
                 <router-link to="/predictions" class="hover:underline">Predictions</router-link>
-                <router-link to="/leaderboard" class="hover:underline">Leaderboards</router-link>
-                <router-link to="/profile" class="hover:underline">Profile</router-link> -->
+                <router-link to="/leaderboards" class="hover:underline">Leaderboards</router-link>
+                <router-link to="/user-stats" class="hover:underline">Stats</router-link>
+                <router-link to="/profile" class="hover:underline">Profile</router-link>
+                <router-link to="/notifications" class="relative hover:underline" v-if="userStore.isAuthenticated">
+                    <BellIcon class="size-5" />
+                    <span
+                        v-if="notificationsStore.unreadNotifications.length > 0"
+                        class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full"
+                    >
+                        {{ notificationsStore.unreadNotifications.length }}
+                    </span>
+                </router-link>
             </nav>
 
             <!-- Mobile Menu Button -->
-            <button @click="mobileNavControls.toggle" class="lg:hidden ml-auto text-white">
-                <Bars3Icon v-if="!mobileNavControls.isOpen" class="size-6" />
-                <XMarkIcon v-else class="size-6" />
-            </button>
+            <div class="flex items-center ml-auto lg:hidden text-white">
+                <router-link to="/notifications" class="relative hover:underline me-2" v-if="userStore.isAuthenticated">
+                    <BellIcon class="size-5" />
+                    <span
+                        v-if="notificationsStore.unreadNotifications.length > 0"
+                        class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full"
+                    >
+                        {{ notificationsStore.unreadNotifications.length }}
+                    </span>
+                </router-link>
+                <button @click="mobileNavControls.toggle">
+                    <div v-if="!mobileNavControls.isOpen">
+                        <Bars3Icon class="size-6" />
+                    </div>
+                    <XMarkIcon v-else class="size-6" />
+                </button>
+            </div>
         </div>
 
         <!-- Mobile Navigation (Appears Below Navbar) -->
@@ -44,6 +64,7 @@
                     <router-link to="/leaderboards" @click="mobileNavControls.close" class="hover:underline">Leaderboards</router-link>
                     <router-link to="/user-stats" @click="mobileNavControls.close" class="hover:underline">Stats</router-link>
                     <router-link to="/profile" @click="mobileNavControls.close" class="hover:underline">Profile</router-link>
+                    <router-link to="/notifications" @click="mobileNavControls.close" class="hover:underline">Notifications</router-link>
                 </div>
             </nav>
         </transition>
@@ -51,22 +72,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline';
 import { TrophyIcon } from '@heroicons/vue/24/solid';
 import mobileNavControls from '../shared';
-
-interface NavItem {
-    name: string,
-    href: string,
-}
+import { BellIcon } from '@heroicons/vue/24/solid';
+import { notificationsService } from '../api/notificationsService';
+import { Notification } from '../types';
+import { userStore } from '../store/userStore';
+import { notificationsStore } from '../store/notificationsStore';
 
 export interface IProps {
     headerTitle: string;
     headerColor?: string;
     sticky?: boolean;
     headerTextColor?: string;
-    navItems: Array<NavItem>
 }
 
 const props = withDefaults(defineProps<IProps>(), {
@@ -74,4 +94,22 @@ const props = withDefaults(defineProps<IProps>(), {
     sticky: true,
     headerTextColor: 'text-white',
 });
+
+onMounted(() => {
+    if (userStore.isAuthenticated) {
+        getUnreadNotifications();
+    }
+});
+
+async function getUnreadNotifications() {
+    try {
+        await notificationsStore.fetchUserUnreadNotifications();
+        
+        console.log('user ', userStore.user)
+        await notificationsService.createWelcomeNotification(userStore.user);
+        
+    } catch (err) {
+        console.error(err);
+    }
+}
 </script>

@@ -4,20 +4,7 @@
         <template v-else>
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Your Stats</h2>
-                <div class="relative w-full md:w-64">
-                    <input
-                        type="text"
-                        v-model="searchQuery"
-                        placeholder="Search for group..."
-                        @keydown.enter="handleSearchQuery"
-                        class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
-                        stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-                    </svg>
-                </div>
+                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" v-if="groupStats.length > 0">
@@ -60,6 +47,7 @@ import { userStore } from '../store/userStore';
 import StatRow from '../components/StatRow.vue';
 import GroupCard from '../components/GroupCard.vue';
 import { UserStats } from '../types';
+import { SearchBar2 } from '../components/UI/input';
 
 const loading = ref(false);
 const groupStats = ref<Array<UserStats>>([]);

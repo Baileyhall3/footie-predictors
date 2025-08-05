@@ -387,6 +387,26 @@ export const userStore = {
     }
   },
 
+  async getUserUnreadNotifications() {
+      try {
+          if (!state.user) throw new Error("User not authenticated");
+
+          const { data, error } = await supabase
+          .from("notifications_view")
+          .select('*')
+          .eq('user_id', state.user.id)
+          .eq('read', false)
+          .order('created_at', { ascending: false })
+
+          if (error) throw error
+
+          return { data, error: null }
+      } catch (error) {
+          console.error('Error fetching unread notifications:', error)
+          return { data: null, error }
+      }
+  },
+
   async getUser(userId) {
     try {
       const { data, error } = await supabaseDb.customQuery((supabase) => 

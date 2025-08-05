@@ -27,6 +27,7 @@ import MatchPredictions from '../pages/MatchPredictions.vue';
 import UserGameweekPredictions from '../pages/UserGameweekPredictions.vue';
 import GroupUserProfile from '../pages/GroupUserProfile.vue';
 import CreateSeason from '../pages/CreateSeason.vue';
+import UserNotifications from '../pages/UserNotifications.vue';
 
 import Season from '../pages/Season.vue';
 
@@ -289,6 +290,15 @@ const router = createRouter({
       component: AuthTest,
       meta: {
         title: 'Auth Test - Footie Predictors',
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/notifications',
+      name: 'Notifications',
+      component: UserNotifications,
+      meta: {
+        title: 'Notifications - Footie Predictors',
         requiresAuth: true
       }
     },

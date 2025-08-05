@@ -6,7 +6,6 @@
     <!-- Main App Content -->
     <template v-else>
       <Header
-        :navItems="navItems"
         headerTitle="Footie Predictors"
       />
       <!-- Background Blur -->
@@ -77,32 +76,6 @@ onMounted(async () => {
   }
 });
 
-const navItems = [
-  {
-    name: "Groups",
-    href: "/groups",
-  },
-  {
-    name: "Predictions",
-    href: "/predictions",
-  },
-  {
-    name: "Leaderboards",
-    href: "/leaderboards",
-  },
-  {
-    name: "Stats",
-    href: "/user-stats",
-  },
-  {
-    name: "Profile",
-    href: "/profile",
-  },
-  // {
-  //   name: "Auth Test",
-  //   href: "/auth-test",
-  // },
-];
 </script>
 
 <style>

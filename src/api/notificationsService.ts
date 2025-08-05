@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 import { supabaseDb } from './supabaseDb.js';
 import { NotificationPriority, NotificationType } from '../types/dataObjects.js';
+import { notificationsStore } from '../store/notificationsStore.js';
 
 /**
  * Minimum required fields to create a notification
@@ -8,7 +9,7 @@ import { NotificationPriority, NotificationType } from '../types/dataObjects.js'
 export type CreatedNotification = {
     user_id: string,
     group_id?: string,
-    template_data: Object,
+    template_data?: Object,
     type: NotificationType
     priority: NotificationPriority
     expires_at?: Date
@@ -28,7 +29,7 @@ export const notificationsService = {
         try {
             const { data, error } = await supabaseDb.customQuery((supabase) =>
             supabase
-                .from('notifications')
+                .from('notifications_view')
                 .select('*')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
@@ -75,7 +76,29 @@ export const notificationsService = {
      * @returns {Promise<{data: Object, error: Object}>}
      */
     async createNotifictaion(notification: CreatedNotification) {
-        return supabaseDb.create('notifications', notification)
+        const result = await supabaseDb.create('notifications', notification);
+
+        // Refresh unread notifications
+        await notificationsStore.fetchUserUnreadNotifications();
+
+        return result;
+    },
+
+    async createWelcomeNotification(user) {
+        const { data, error } = await this.createNotifictaion({
+            user_id: user.id,
+            group_id: null,
+            template_data: {
+                content: `Hello and welcome to Footie Predictors ${user.username}! Consider checking out the app info page to get started. Happy predicting and good luck!`
+            },
+            type: 'welcome_message',
+            priority: 'info',
+            expires_at: null,
+            link: `/app-info`
+        });
+
+        if (error) throw new Error(error);
+        return { data, error: null }
     },
 
     /**
@@ -85,9 +108,13 @@ export const notificationsService = {
      * @returns {Promise<{data: Object, error: Object}>}
      */
     async updateNotificationReadStatus(id: string, read: boolean = true) {
-        return supabaseDb.update('notifications', id, {
+        const result = supabaseDb.update('notifications', id, {
             read: read,
         });
+
+        await notificationsStore.fetchUserUnreadNotifications();
+
+        return result;
     },
 
     /**
@@ -96,7 +123,11 @@ export const notificationsService = {
      * @returns {Promise<{success: boolean, error: Object}>}
      */
     async deleteNotification(id: string) {
-        return supabaseDb.delete('notifications', id)
+        const result = supabaseDb.delete('notifications', id);
+
+        await notificationsStore.fetchUserUnreadNotifications();
+
+        return result;
     },
 
     /**
@@ -151,7 +182,7 @@ export const notificationsService = {
     },
 
     /**
-     * Update notification to be read or unread
+     * Update notification preference to be allowed or not
      * @param {string} id - Notification ID
      * @param {boolean} allowPush - Whether to allow notifications or not
      * @returns {Promise<{data: Object, error: Object}>}
@@ -160,5 +191,30 @@ export const notificationsService = {
         return supabaseDb.update('notification_preferences', id, {
             allow_push: allowPush,
         });
+    },
+
+    /**
+     * Get all unread notifications for a user
+     * @param {string} userId - User ID
+     * @returns {Promise<{data: Array, error: Object}>}
+     */
+    async getUserUnreadNotifications(userId: string) {
+        try {
+            const { data, error } = await supabaseDb.customQuery((supabase) =>
+            supabase
+                .from('notifications_view')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('read', false)
+                .order('created_at', { ascending: false })
+            )
+
+            if (error) throw error
+
+            return { data, error: null }
+        } catch (error) {
+            console.error('Error fetching notifications:', error)
+            return { data: null, error }
+        }
     },
 }
