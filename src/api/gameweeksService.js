@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js';
 import { supabaseDb } from './supabaseDb.js';
+import DateUtils from '../utils/dateUtils.js';
 
 /**
  * Service for managing gameweeks and matches
@@ -570,9 +571,11 @@ export const gameweeksService = {
         template_data: {
           week_number: gameweek.week_number,
           deadline: gameweek.deadline,
+          content: `<b>Gameweek ${gameweek.week_number}</b> just dropped, with a deadline of <b>${DateUtils.toFullDateTime(gameweek.deadline)}</b>. Go make your predictions now!`
         },
         priority: 'info',
-        link: `/gameweek/${data.id}`
+        link: `/gameweek/${data.id}`,
+        expires_at: gameweek.deadline
       });
   
       if (notifyError) {

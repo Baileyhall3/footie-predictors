@@ -110,7 +110,7 @@ export const notificationsService = {
      * @returns {Promise<{data: Object, error: Object}>}
      */
     async updateNotificationReadStatus(id: string, read: boolean = true) {
-        const result = supabaseDb.update('notifications', id, {
+        const result = await supabaseDb.update('notifications', id, {
             read: read,
         });
 
@@ -125,7 +125,7 @@ export const notificationsService = {
      * @returns {Promise<{success: boolean, error: Object}>}
      */
     async deleteNotification(id: string) {
-        const result = supabaseDb.delete('notifications', id);
+        const result = await supabaseDb.delete('notifications', id);
 
         await notificationsStore.fetchUserUnreadNotifications();
 

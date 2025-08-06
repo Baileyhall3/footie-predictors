@@ -1,11 +1,16 @@
 <template>
     <Teleport to="body">
-        <div v-if="isVisible" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" 
+        <div v-if="isVisible" 
+            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" 
             @click="hide"
             :class="{ 'backdrop-blur-md': props.bgBlur }"
         >
-            <div class="bg-white w-full max-w-md h-full sm:h-auto sm:max-h-[90vh] flex flex-col rounded-lg overflow-hidden shadow-lg"
+            <div 
                 @click.stop
+                :class="[
+                    'bg-white w-full h-full sm:h-auto sm:max-h-[90vh] flex flex-col rounded-lg overflow-hidden shadow-lg',
+                    sizeClass
+                ]"
             >
                 <div class="flex items-center px-6 py-4 border-b sticky top-0 bg-white z-10">
                     <div class="text-lg font-semibold">
@@ -27,14 +32,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { XMarkIcon } from '@heroicons/vue/24/solid';
 
 const props = defineProps<{
     title: string,
     modelValue?: boolean;
     bgBlur?: boolean
-    // size: 'sm' | 'md' | 'lg'
+    size?: 'sm' | 'md' | 'lg' | 'xl';
 }>();
 
 const emit = defineEmits<{
@@ -45,6 +50,16 @@ const emit = defineEmits<{
 }>();
 
 const isVisible = ref<boolean>(props.modelValue ?? true);
+
+const sizeClass = computed(() => {
+    switch (props.size) {
+        case 'sm': return 'max-w-sm';
+        case 'md': return 'max-w-md';
+        case 'lg': return 'max-w-3xl';
+        case 'xl': return 'max-w-5xl';
+        default: return 'max-w-md';
+    }
+});
 
 function hide() {
     isVisible.value = false;

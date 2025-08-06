@@ -154,15 +154,21 @@ export type NotificationType =
     'gameweek_deadline' |
     'welcome_message' |
     'user_joined_group' |
-    'user_left_group' 
+    'user_left_group' |
+    'admin_announcement'
 
 export type NotificationPriority = 'info' | 'success' | 'warning' | 'urgent'
+
+export interface NotificationTemplateData {
+    header: string,
+    content: string
+}
 
 export interface Notification {
     id: string
     user_id: string,
     group_id?: string,
-    template_data: Object,
+    template_data: NotificationTemplateData,
     type: NotificationType
     priority: NotificationPriority
     expires_at?: Date

@@ -36,21 +36,12 @@
         <div class="flex flex-col gap-2" :class="['transition-opacity', notif.read ? 'opacity-60' : 'opacity-100']">
             <div class="flex items-center justify-between">
                 <div class="text-sm text-gray-700 dark:text-gray-300">
-                    <template v-if="notif.template_data.content">
-                        {{ notif.template_data.content }}
-                    </template>
-                    <template v-else-if="notif.type === 'gameweek_created'">
-                        You have a new gameweek!  
-                        <span class="font-medium">Week {{ notif.template_data.week_number }}</span>  
-                        with a deadline of  
-                        <span class="font-semibold">
-                        {{ DateUtils.toFullDateTime(notif.template_data.deadline) }}
-                        </span>.
-                    </template>
+                    <div class="prose mt-2" v-if="notif.template_data.content" v-html="notif.template_data.content"></div>
                 </div>
             </div>
 
-            <div class="flex gap-4 items-center">
+            <span v-if="notif.expires_at" class="text-gray-500 text-sm">Expires {{ DateUtils.toFullDateTime(notif.expires_at) }}</span>
+            <div class="flex items-center">
                 <RouterLink 
                     :to="notif.link" 
                     class="text-blue-600 hover:underline text-sm"
@@ -63,11 +54,11 @@
                         View Gameweek →
                     </template>
                 </RouterLink>
-            </div>
-            <div class="ms-auto">
-                <span class="text-gray-500">
-                    {{ DateUtils.toRelevantDateOrTime(notif.created_at) }}
-                </span>
+                <div class="ms-auto">
+                    <span class="text-gray-500">
+                        {{ DateUtils.toRelevantDateOrTime(notif.created_at) }}
+                    </span>
+                </div>
             </div>
         </div>
     </RoundedContainer>

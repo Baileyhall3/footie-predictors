@@ -45,6 +45,9 @@
                   <router-link :to="`/group/${groupId}/notifications`" class="text-blue-600 dropdown-item item-separator">
                     Notifications
                   </router-link>
+                  <!-- <button class="dropdown-item item-separator" @click="createNotificationDialog.show()" v-if="group?.iAmOwner">
+                    Create Notification
+                  </button> -->
                   <template v-if="group?.iAmOwner">
                      <router-link :to="`/group/${group?.id}/update-group`" >
                        <button class="dropdown-item item-separator">
@@ -354,6 +357,7 @@
   <PinDialog ref="pinDialog" :groupPin="String(group?.group_pin)" @submit-pin="updateMemberStatus(true, false)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
   <CreateGroupMember ref="createMemberDialog" :groupId="groupId" :seasonId="activeSeason?.id" @user-created="getGroupMembers(); getLeaderboard();" />
+  <CreateNotification ref="createNotificationDialog" />
 </template>
 
 <script setup lang="ts">
@@ -390,6 +394,7 @@ import { seasonsService } from "../api/seasonsService";
 import PageHeader from "../components/PageHeader.vue";
 import { Season, Gameweek, Group, GroupMember, Prediction, LeaderboardEntry, GwLeaderboardEntry } from '../types';
 import { copyPageLink } from "../utils/sharedFunctions";
+import CreateNotification from "../components/dialogs/CreateNotification.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -397,6 +402,7 @@ const router = useRouter();
 const pinDialog = ref(null);
 const removeMemberConfirm = ref(null);
 const createMemberDialog = ref(null);
+const createNotificationDialog = ref(null);
 
 // State
 const loading = ref<boolean>(true);

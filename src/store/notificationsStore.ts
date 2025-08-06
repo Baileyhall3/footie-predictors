@@ -15,9 +15,9 @@ const state = reactive<{
   error: null
 })
 
-// Create and export the groups store
+
 export const notificationsStore = {
-  // Getters
+
   get notifications() {
     return state.notifications
   },
@@ -40,6 +40,7 @@ export const notificationsStore = {
       if (error) throw error
 
       state.unreadNotifications = data || []
+
       return { data, error: null }
     } catch (error) {
       state.error = error.message

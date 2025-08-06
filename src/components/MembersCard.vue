@@ -28,8 +28,8 @@
                         {{ member.username }}
                     </div>
                 </component>
-                <span v-if="member.id === userStore.user?.id" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                    You
+                <span v-if="member.id === userStore.user?.id">
+                    <StarIcon class="size-5 text-yellow-300" />
                 </span>
                 <template v-if="props.groupOwner">
                     <span v-if="member.is_admin && groupOwner.id !== member.id" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
@@ -94,6 +94,7 @@ import Dropdown from './UI/Dropdown.vue';
 import { GroupMember, Gameweek } from '../types';
 import { RouterLink } from 'vue-router';
 import { Crown } from 'lucide-vue-next';
+import { StarIcon } from "@heroicons/vue/24/solid";
 
 interface Owner {
     email: string;
