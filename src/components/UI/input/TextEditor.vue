@@ -74,7 +74,7 @@
         <!-- Editable Area -->
         <div
             ref="editor"
-            class="p-4 h-[18rem] outline-none text-sm sm:text-base overflow-y-auto"
+            class="p-4 h-[14rem] outline-none text-sm sm:text-base overflow-y-auto"
             contenteditable="true"
             :data-placeholder="props.placeholder"
             @input="onInput"

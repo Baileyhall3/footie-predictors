@@ -162,6 +162,7 @@ export type NotificationPriority = 'info' | 'success' | 'warning' | 'urgent'
 export interface NotificationTemplateData {
     header: string,
     content: string
+    link_text?: string
 }
 
 export interface Notification {

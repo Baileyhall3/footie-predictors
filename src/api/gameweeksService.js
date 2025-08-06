@@ -571,7 +571,8 @@ export const gameweeksService = {
         template_data: {
           week_number: gameweek.week_number,
           deadline: gameweek.deadline,
-          content: `<b>Gameweek ${gameweek.week_number}</b> just dropped, with a deadline of <b>${DateUtils.toFullDateTime(gameweek.deadline)}</b>. Go make your predictions now!`
+          content: `<b>Gameweek ${gameweek.week_number}</b> just dropped, with a deadline of <b>${DateUtils.toFullDateTime(gameweek.deadline)}</b>. Go make your predictions now!`,
+          link_text: 'View Gameweek'
         },
         priority: 'info',
         link: `/gameweek/${data.id}`,

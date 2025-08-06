@@ -510,4 +510,32 @@ export const groupsService = {
     return { data: { groupMemberData, leaderboardData }, error: null };
   },
 
+  /**
+   * Creates a notification and notifies users who are part of the group and are subscribed
+   * @param {*} notification 
+   * @returns {Promise<{success: boolean, error: Object}>}
+   */
+  async createGroupNotification(notification) {
+    try {
+      const { error: notifyError } = await supabase.rpc('notify_users', {
+        notif_type: notification.type,
+        group_id: notification.group_id,
+        template_data: notification.template_data,
+        priority: notification.priority,
+        link: notification.link,
+        expires_at: notification.expires_at
+      });
+  
+      if (notifyError) {
+        console.error('Failed to notify users:', notifyError.message);
+        return { error: notifyError }
+      }
+  
+      return { error: null };
+    } catch (error) {
+      console.error('Error notifying users:', error)
+      return { error }
+    }
+  },
+
 }

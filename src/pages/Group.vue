@@ -45,9 +45,9 @@
                   <router-link :to="`/group/${groupId}/notifications`" class="text-blue-600 dropdown-item item-separator">
                     Notifications
                   </router-link>
-                  <!-- <button class="dropdown-item item-separator" @click="createNotificationDialog.show()" v-if="group?.iAmOwner">
+                  <button class="dropdown-item item-separator" @click="createNotificationDialog.show()" v-if="group?.iAmOwner">
                     Create Notification
-                  </button> -->
+                  </button>
                   <template v-if="group?.iAmOwner">
                      <router-link :to="`/group/${group?.id}/update-group`" >
                        <button class="dropdown-item item-separator">
@@ -357,7 +357,7 @@
   <PinDialog ref="pinDialog" :groupPin="String(group?.group_pin)" @submit-pin="updateMemberStatus(true, false)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
   <CreateGroupMember ref="createMemberDialog" :groupId="groupId" :seasonId="activeSeason?.id" @user-created="getGroupMembers(); getLeaderboard();" />
-  <CreateNotification ref="createNotificationDialog" />
+  <CreateNotification :groupId="groupId" ref="createNotificationDialog" />
 </template>
 
 <script setup lang="ts">

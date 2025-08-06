@@ -10,10 +10,10 @@
                 <span 
                     v-if="!notif.read"
                     class="inline-block w-3 h-3 rounded-full me-1"
-                    :class="priorityBadgeClass(notif.priority)"
+                    :class="getPriorityBadgeClass(notif.priority)"
                     :title="`Priority: ${notif.priority}`"
                 ></span>
-                <h3 class="text-xl font-semibold">{{ formatType(notif.type) }}</h3>
+                <h3 class="text-xl font-semibold">{{ notif.template_data.header ?? formatType(notif.type) }}</h3>
             </div>
             <div class="flex flex-wrap gap-2 justify-end flex-shrink-0">
                 <Dropdown>
@@ -74,6 +74,7 @@ import { ref } from 'vue';
 import { EllipsisVerticalIcon } from '@heroicons/vue/24/solid';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { getPriorityBadgeClass } from '../utils/sharedFunctions';
 
 // TODO: Make this more general
 
@@ -94,21 +95,6 @@ const formatType = (type: string): string => {
   return type
     .replace(/_/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase())
-}
-
-const priorityBadgeClass = (priority: string) => {
-    switch (priority) {
-        case 'info':
-            return 'bg-blue-500'
-        case 'success':
-            return 'bg-green-500'
-        case 'warning':
-            return 'bg-yellow-500'
-        case 'urgent':
-            return 'bg-red-500'
-        default:
-            return 'bg-gray-400'
-    }
 }
 
 async function toggleNotificationRead(notif: Notification) {

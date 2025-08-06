@@ -41,3 +41,18 @@ export const getPredictionColor = (match: Prediction) => {
 
     return "text-red-500"; // Incorrect result
 };
+
+export const getPriorityBadgeClass = (priority: string) => {
+    switch (priority) {
+        case 'info':
+            return 'bg-blue-500'
+        case 'success':
+            return 'bg-green-500'
+        case 'warning':
+            return 'bg-yellow-500'
+        case 'urgent':
+            return 'bg-red-500'
+        default:
+            return 'bg-gray-400'
+    }
+}
