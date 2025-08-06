@@ -89,13 +89,15 @@ export const notificationsService = {
             user_id: user.id,
             group_id: null,
             template_data: {
-                content: `Hello and welcome to Footie Predictors ${user.username}! Consider checking out the app info page to get started. Happy predicting and good luck!`
+                content: `Hello and welcome to Footie Predictors! Consider checking out the app info page to get started. Happy predicting and good luck!`
             },
             type: 'welcome_message',
             priority: 'info',
             expires_at: null,
             link: `/app-info`
         });
+
+        // ${user.username}
 
         if (error) throw new Error(error);
         return { data, error: null }
