@@ -30,7 +30,7 @@
 
             <!-- Mobile Menu Button -->
             <div class="flex items-center ml-auto lg:hidden text-white">
-                <router-link to="/notifications" class="relative hover:underline me-2" v-if="userStore.isAuthenticated">
+                <router-link to="/notifications" @click="mobileNavControls.close" class="relative hover:underline me-2" v-if="userStore.isAuthenticated">
                     <BellIcon class="size-5" />
                     <span
                         v-if="notificationsStore.unreadNotifications.length > 0"
@@ -64,7 +64,6 @@
                     <router-link to="/leaderboards" @click="mobileNavControls.close" class="hover:underline">Leaderboards</router-link>
                     <router-link to="/user-stats" @click="mobileNavControls.close" class="hover:underline">Stats</router-link>
                     <router-link to="/profile" @click="mobileNavControls.close" class="hover:underline">Profile</router-link>
-                    <router-link to="/notifications" @click="mobileNavControls.close" class="hover:underline">Notifications</router-link>
                 </div>
             </nav>
         </transition>

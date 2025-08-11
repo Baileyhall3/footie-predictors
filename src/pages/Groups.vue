@@ -13,21 +13,7 @@
                   </div>
               </div>
             </div>
-            <!-- Search bar -->
-            <div class="relative w-full md:w-64">
-              <input
-                type="text"
-                v-model="searchQuery"
-                placeholder="Search for group..."
-                @keydown.enter="handleSearchQuery"
-                class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
-                stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-              </svg>
-            </div>
+            <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" />
           </div>
             
             <div v-if="userGroups.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -76,6 +62,7 @@ import LoadingScreen from "../components/LoadingScreen.vue";
 import { groupsService } from "../api/groupsService";
 import type { Group } from "../types";
 import { AddBtn } from "../components/UI/buttons";
+import { SearchBar2 } from '../components/UI/input';
 
 const isLoading = ref<boolean>(true);
 const error = ref<string | null>(null);

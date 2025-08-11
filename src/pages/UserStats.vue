@@ -13,7 +13,8 @@
                     groupNameField="group_name" 
                     groupIdField="group_id"
                     :hideMemberCount="true" 
-                    v-for="group in groupStats" :key="group.group_id"
+                    v-for="group in groupStats" 
+                    :key="group.group_id"
                 >
                     <template #additionalGroupInfo>
                         <div class="space-y-3 mt-4">

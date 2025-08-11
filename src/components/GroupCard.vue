@@ -7,11 +7,14 @@
       <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
       <div>
         <div class="flex items-center">
-          <span title="Join requested for this group">
-            <Send class="size-4 me-2" v-if="group.joinRequestSent" />
+          <span title="Join requested for this group" v-if="group.joinRequestSent">
+            <Send class="size-4 me-2" />
           </span>
-          <span title="You are the owner of this group">
-            <Crown v-if="group.iAmOwner" class="size-5 text-yellow-300 me-1" />
+          <!-- <span title="This group is private" v-if="!group.is_public">
+            <LockClosedIcon class="size-5 me-1" />
+          </span> -->
+          <span title="You are the owner of this group" v-if="group.iAmOwner">
+            <Crown class="size-5 text-yellow-300 me-1" />
           </span>
           <h3 class="text-lg font-semibold">{{ group[groupNameField] }}</h3>
         </div>
@@ -27,7 +30,7 @@
 
 <script setup lang="ts">
 import type { Group } from '../types';
-import { UsersIcon } from '@heroicons/vue/24/solid';
+import { UsersIcon, LockOpenIcon, LockClosedIcon } from '@heroicons/vue/24/solid';
 import { Crown } from 'lucide-vue-next'; 
 import { Send } from 'lucide-vue-next';
 

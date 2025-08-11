@@ -8,7 +8,7 @@
             <div 
                 @click.stop
                 :class="[
-                    'bg-white w-full h-full sm:h-auto sm:max-h-[90vh] flex flex-col rounded-lg overflow-hidden shadow-lg',
+                    'bg-white w-full h-full sm:h-auto sm:max-h-[90vh] flex flex-col rounded-lg overflow-hidden shadow-lg mt-8 sm:mt-0',
                     sizeClass
                 ]"
             >
