@@ -2,50 +2,60 @@
     <header :class="[props.headerColor, props.sticky ? 'sticky top-0' : '', 'z-50', props.headerTextColor]"
         class="w-full shadow-lg">
         
-        <!-- Top Navbar -->
-        <div class="flex items-center py-3 px-6 border-b relative bg-green-600 text-white">
-            <!-- Logo & Title -->
-            <div class="flex items-center space-x-2">
-                <TrophyIcon class="size-6" style="color: gold;" />
-                <router-link to="/" class="text-2xl font-bold">{{ props.headerTitle }}</router-link>
-            </div>
-
-            <!-- Desktop Navigation -->
-            <nav class="hidden lg:flex space-x-6 ml-auto text-lg font-medium items-center">
-                <router-link to="/groups" class="hover:underline">Groups</router-link>
-                <router-link to="/predictions" class="hover:underline">Predictions</router-link>
-                <router-link to="/leaderboards" class="hover:underline">Leaderboards</router-link>
-                <router-link to="/user-stats" class="hover:underline">Stats</router-link>
-                <router-link to="/profile" class="hover:underline">Profile</router-link>
-                <router-link to="/notifications" class="relative hover:underline" v-if="userStore.isAuthenticated">
-                    <BellIcon class="size-5" />
-                    <span
-                        v-if="notificationsStore.unreadNotifications.length > 0"
-                        class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[10px] leading-none text-white bg-red-600 rounded-full"
-                    >
-                        {{ notificationsStore.unreadNotifications.length }}
-                    </span>
-                </router-link>
-            </nav>
-
-            <!-- Mobile Menu Button -->
-            <div class="flex items-center ml-auto lg:hidden text-white">
-                <router-link to="/notifications" @click="mobileNavControls.close" class="relative hover:underline me-2" v-if="userStore.isAuthenticated">
-                    <BellIcon class="size-5" />
-                    <span
-                        v-if="notificationsStore.unreadNotifications.length > 0"
-                        class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[10px] leading-none text-white bg-red-600 rounded-full"
-                    >
-                        {{ notificationsStore.unreadNotifications.length }}
-                    </span>
-                </router-link>
-                <button @click="mobileNavControls.toggle">
-                    <div v-if="!mobileNavControls.isOpen">
-                        <Bars3Icon class="size-6" />
-                    </div>
-                    <XMarkIcon v-else class="size-6" />
-                </button>
-            </div>
+        <div class="bg-green-600 text-white">
+            <!-- Top Navbar -->
+             <div class="container mx-auto px-6 justify-between flex items-center py-3">
+                 <div class="flex items-center relative justify-between w-full">
+                     <!-- Logo & Title -->
+                     <div class="flex items-center space-x-2">
+                         <TrophyIcon class="size-6" style="color: gold;" />
+                         <router-link to="/" class="text-2xl font-bold">{{ props.headerTitle }}</router-link>
+                     </div>
+         
+                     <!-- Desktop Navigation -->
+                     <nav class="hidden lg:flex space-x-6 text-lg font-medium items-center">
+                         <template v-if="userStore.isAuthenticated">
+                             <router-link to="/groups" class="hover:underline">Groups</router-link>
+                             <router-link to="/predictions" class="hover:underline">Predictions</router-link>
+                             <router-link to="/leaderboards" class="hover:underline">Leaderboards</router-link>
+                             <router-link to="/user-stats" class="hover:underline">Stats</router-link>
+                             <router-link to="/profile" class="hover:underline">Profile</router-link>
+                             <router-link to="/notifications" class="relative hover:underline">
+                                 <BellIcon class="size-5" />
+                                 <span
+                                     v-if="notificationsStore.unreadNotifications.length > 0"
+                                     class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[10px] leading-none text-white bg-red-600 rounded-full"
+                                 >
+                                     {{ notificationsStore.unreadNotifications.length }}
+                                 </span>
+                             </router-link>
+                         </template>
+                         <template v-else>
+                            <router-link to="/login" class="hover:underline">How it Works</router-link>
+                            <router-link to="/login" class="hover:underline">Log In</router-link>
+                         </template>
+                     </nav>
+         
+                     <!-- Mobile Menu Button -->
+                     <div class="flex items-center ml-auto lg:hidden text-white">
+                         <router-link to="/notifications" @click="mobileNavControls.close" class="relative hover:underline me-2" v-if="userStore.isAuthenticated">
+                             <BellIcon class="size-5" />
+                             <span
+                                 v-if="notificationsStore.unreadNotifications.length > 0"
+                                 class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[10px] leading-none text-white bg-red-600 rounded-full"
+                             >
+                                 {{ notificationsStore.unreadNotifications.length }}
+                             </span>
+                         </router-link>
+                         <button @click="mobileNavControls.toggle">
+                             <div v-if="!mobileNavControls.isOpen">
+                                 <Bars3Icon class="size-6" />
+                             </div>
+                             <XMarkIcon v-else class="size-6" />
+                         </button>
+                     </div>
+                 </div>
+             </div>
         </div>
 
         <!-- Mobile Navigation (Appears Below Navbar) -->
@@ -59,11 +69,17 @@
         >
             <nav v-if="mobileNavControls.isOpen" class="absolute top-full left-0 w-full bg-white shadow-lg p-6 z-50 border-b">
                 <div class="flex flex-col space-y-4 text-lg font-medium text-gray-900">
-                    <router-link to="/groups" @click="mobileNavControls.close" class="hover:underline">Groups</router-link>
-                    <router-link to="/predictions" @click="mobileNavControls.close" class="hover:underline">Predictions</router-link>
-                    <router-link to="/leaderboards" @click="mobileNavControls.close" class="hover:underline">Leaderboards</router-link>
-                    <router-link to="/user-stats" @click="mobileNavControls.close" class="hover:underline">Stats</router-link>
-                    <router-link to="/profile" @click="mobileNavControls.close" class="hover:underline">Profile</router-link>
+                    <template v-if="userStore.isAuthenticated">
+                        <router-link to="/groups" @click="mobileNavControls.close" class="hover:underline">Groups</router-link>
+                        <router-link to="/predictions" @click="mobileNavControls.close" class="hover:underline">Predictions</router-link>
+                        <router-link to="/leaderboards" @click="mobileNavControls.close" class="hover:underline">Leaderboards</router-link>
+                        <router-link to="/user-stats" @click="mobileNavControls.close" class="hover:underline">Stats</router-link>
+                        <router-link to="/profile" @click="mobileNavControls.close" class="hover:underline">Profile</router-link>
+                    </template>
+                    <template v-else>
+                        <router-link to="/app-info" @click="mobileNavControls.close" class="hover:underline">How It Works</router-link>
+                        <router-link to="/login" @click="mobileNavControls.close" class="hover:underline">Log In</router-link>
+                    </template>
                 </div>
             </nav>
         </transition>

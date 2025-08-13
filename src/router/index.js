@@ -92,7 +92,7 @@ const router = createRouter({
       component: AppInfo,
       meta: {
         title: 'App Info - Footie Predictors',
-        requiresAuth: true
+        requiresAuth: false
       }
     },
     {
