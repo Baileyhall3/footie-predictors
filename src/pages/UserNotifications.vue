@@ -5,6 +5,27 @@
             <h2 class="text-2xl font-bold">Your Notifications</h2>
             <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" />
         </div>
+        <div class="flex gap-2 flex-wrap mb-4">
+            <!-- Example filter buttons -->
+            <button class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                @click="setActiveFilter('all')"
+                :class="{ 'border border-blue-600' : activeFilter === 'all' }"
+            >
+                All
+            </button>
+            <button class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                @click="setActiveFilter('unread')"
+                :class="{ 'border border-blue-600' : activeFilter === 'unread' }"
+            >
+                Unread
+            </button>
+            <button class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                @click="setActiveFilter('read')"
+                :class="{ 'border border-blue-600' : activeFilter === 'read' }"
+            >
+                Read
+            </button>
+        </div>
 
         <div v-if="groupedNotifications.length">
             <div 
@@ -13,7 +34,7 @@
                 class="mb-8"
             >
                 <div class="flex items-center mb-4">
-                    <template v-if="group.group_name">
+                    <template v-if="group.group_id">
                         <img :src="group.group_icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
                         <h3 class="text-xl font-semibold">
                             <router-link 
@@ -24,7 +45,9 @@
                             </router-link>
                         </h3>
                     </template>
-                    <h3 class="text-xl font-semibold" v-else>General</h3>
+                    <template v-else>
+                        <h3 class="text-xl font-semibold">General</h3>
+                    </template>
                 </div>
 
                 <NotificationCard :notifications="group.notifications" />
@@ -41,25 +64,48 @@
 <script setup lang="ts">
 import LoadingScreen from '../components/LoadingScreen.vue';
 import { ref, onMounted, computed } from 'vue';
-import { Notification } from '../types';
+import type { Notification } from '../types';
 import { notificationsService } from '../api/notificationsService';
 import { userStore } from '../store/userStore';
 import { SearchBar2 } from '../components/UI/input';
 import NotificationCard from '../components/NotificationCard.vue';
 
+type ReadFilter = 'all' | 'unread' | 'read'
+
 const isLoading = ref<boolean>();
 const notifications = ref<Array<Notification>>([]);
 const allNotifications = ref<Array<Notification>>([]);
 const searchQuery = ref<string>('');
+const activeFilter = ref<ReadFilter>('all');
 
 onMounted(() => {
     fetchAllData();
 });
 
 const groupedNotifications = computed(() => {
-    const groups: Record<string, { group_name: string | null, group_id: string | null, group_icon_url: string | null, notifications: Notification[] }> = {};
+    let filtered = allNotifications.value;
 
-    notifications.value.forEach(notif => {
+    if (activeFilter.value === 'read') {
+        filtered = filtered.filter(n => n.read === true);
+    } else if (activeFilter.value === 'unread') {
+        filtered = filtered.filter(n => n.read === false);
+    }
+
+    if (searchQuery.value.trim()) {
+        const query = searchQuery.value.trim().toLowerCase();
+        filtered = filtered.filter(n => 
+            n.group_name?.toLowerCase().includes(query)
+        );
+    }
+
+    const groups: Record<string, { 
+        group_name: string | null, 
+        group_id: string | null, 
+        group_icon_url: string | null, 
+        notifications: Notification[] 
+    }> = {};
+
+    filtered.forEach(notif => {
         const key = notif.group_id || 'general';
         if (!groups[key]) {
             groups[key] = {
@@ -72,7 +118,11 @@ const groupedNotifications = computed(() => {
         groups[key].notifications.push(notif);
     });
 
-    return Object.values(groups);
+    return Object.values(groups).sort((a, b) => {
+        if (!a.group_id) return -1;
+        if (!b.group_id) return 1;
+        return 0;
+    });
 });
 
 async function fetchAllData() {
@@ -103,4 +153,9 @@ function handleSearchQuery() {
         notifications.value = allNotifications.value;
     }
 }
+
+function setActiveFilter(filter: ReadFilter) {
+    activeFilter.value = filter;
+}
+
 </script>
