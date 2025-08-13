@@ -28,8 +28,7 @@
 <script setup lang="ts">
 import type { Group } from '../types';
 import { UsersIcon } from '@heroicons/vue/24/solid';
-import { Crown } from 'lucide-vue-next'; 
-import { Send } from 'lucide-vue-next';
+import { Crown, Send } from 'lucide-vue-next'; 
 
 export interface IProps {
   group: Group,

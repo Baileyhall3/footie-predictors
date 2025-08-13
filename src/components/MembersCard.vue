@@ -28,7 +28,7 @@
                         {{ member.username }}
                     </div>
                 </component>
-                <span v-if="member.id === userStore.user?.id">
+                <span v-if="member.id === userStore.user?.id" title="You">
                     <StarIcon class="size-5 text-yellow-300" />
                 </span>
                 <template v-if="props.groupOwner">

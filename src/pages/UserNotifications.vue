@@ -97,7 +97,7 @@ function handleSearchQuery() {
 
     if (query) {
         notifications.value = allNotifications.value.filter(group =>
-            group.group_name.toLowerCase().includes(query)
+            group.group_name && group.group_name.toLowerCase().includes(query)
         );
     } else {
         notifications.value = allNotifications.value;
