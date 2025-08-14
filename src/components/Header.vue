@@ -31,7 +31,7 @@
                              </router-link>
                          </template>
                          <template v-else>
-                            <router-link to="/login" class="hover:underline">How it Works</router-link>
+                            <router-link to="/app-info" class="hover:underline">How it Works</router-link>
                             <router-link to="/login" class="hover:underline">Log In</router-link>
                          </template>
                      </nav>

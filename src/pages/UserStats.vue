@@ -81,7 +81,7 @@ async function fetchAllData() {
     } catch(err) {
         console.error(err);
     } finally {
-        // loading.value = false;
+        loading.value = false;
     }
 }
 

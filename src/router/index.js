@@ -78,21 +78,21 @@ const router = createRouter({
       }
     },
     {
-      path: '/',
-      name: 'Home',
-      component: Home,
-      meta: {
-        title: 'Footie Predictors',
-        requiresAuth: true
-      }
-    },
-    {
       path: '/app-info',
       name: 'App Info',
       component: AppInfo,
       meta: {
         title: 'App Info - Footie Predictors',
         requiresAuth: false
+      }
+    },
+    {
+      path: '/',
+      name: 'Home',
+      component: Home,
+      meta: {
+        title: 'Footie Predictors',
+        requiresAuth: true
       }
     },
     {
