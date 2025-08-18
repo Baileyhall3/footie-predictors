@@ -155,7 +155,8 @@ export type NotificationType =
     'welcome_message' |
     'user_joined_group' |
     'user_left_group' |
-    'admin_announcement'
+    'admin_announcement' |
+    'gameweek_finished'
 
 export type NotificationPriority = 'info' | 'success' | 'warning' | 'urgent'
 

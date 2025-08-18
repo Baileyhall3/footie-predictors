@@ -41,7 +41,7 @@
                                             {{ match.home_team }}
                                         </div>
                                         <img
-                                            :src="match.home_crest_url ?? '/images/default_club_badge.png'"
+                                            :src="match[props.homeCrestField] ?? '/images/default_club_badge.png'"
                                             alt="Home Team"
                                             class="w-6 h-6 flex-shrink-0"
                                         />
@@ -62,7 +62,7 @@
                                     </span>
                                     <div class="flex items-center gap-2 min-w-0">
                                         <img
-                                            :src="match.away_crest_url ?? '/images/default_club_badge.png'"
+                                            :src="match[props.awayCrestField] ?? '/images/default_club_badge.png'"
                                             alt="Home Team"
                                             class="w-6 h-6 flex-shrink-0"
                                         />
@@ -138,11 +138,15 @@ export interface IProps {
     disableMatchTime?: boolean
     includeSubmitBtn?: boolean
     notPrediction?: boolean
+    homeCrestField?: string
+    awayCrestField?: string
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
     locked: false, 
     topMargin: 6,
+    homeCrestField: 'home_crest_url',
+    awayCrestField: 'away_crest_url'
 });
 const slots = useSlots();
 const emit = defineEmits<{

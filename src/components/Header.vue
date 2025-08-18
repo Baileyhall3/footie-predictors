@@ -4,7 +4,7 @@
         
         <div class="bg-green-600 text-white">
             <!-- Top Navbar -->
-             <div class="container mx-auto px-6 justify-between flex items-center py-3">
+             <div class="container mx-auto justify-between flex items-center py-3">
                  <div class="flex items-center relative justify-between w-full">
                      <!-- Logo & Title -->
                      <div class="flex items-center space-x-2">

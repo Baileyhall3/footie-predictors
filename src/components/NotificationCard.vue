@@ -47,7 +47,10 @@
                     class="text-blue-600 hover:underline text-sm"
                     @click="toggleNotificationRead(notif)"
                 >
-                    <template v-if="notif.type === 'welcome_message'">
+                    <template v-if="notif.template_data.link_text">
+                        {{ notif.template_data.link_text }} →
+                    </template>
+                    <template v-else-if="notif.type === 'welcome_message'">
                         App Info →
                     </template>
                     <template v-else-if="notif.type === 'gameweek_created' || notif.type === 'gameweek_deadline'">

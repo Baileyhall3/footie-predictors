@@ -7,6 +7,8 @@
               oneMatchPerRow
               notPrediction
               :topMargin="0"
+              homeCrestField="home_team_crest"
+              awayCrestField="away_team_crest"
           >
           <div class="mt-6 space-y-2 text-center text-gray-700">
               <template v-if="matchIsFinished">
@@ -70,6 +72,7 @@
                           :displayValue="currentOption?.name"
                           @item-selected="setCurrentOption" 
                       />
+                      <!-- TODO: Add 'correct score' -->
                   </div>
               </template>
               <template #columns="{ row }">
@@ -203,6 +206,7 @@ async function fetchMatchData() {
     const { data: matchData, error } = await gameweeksService.getMatchById(matchId.value);
     if (error) throw new Error('Failed to load match');
     match.value = matchData[0];
+    debugger
     gameweekId.value = matchData[0].gameweek_id;
     
     matchIsFinished.value = matchData[0].final_home_score !== null && matchData[0].final_away_score !== null ? true : false;
