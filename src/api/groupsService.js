@@ -485,6 +485,29 @@ export const groupsService = {
   async getGroupByIdUsingView(groupId) {
     return supabaseDb.getById('groups_view', groupId)
   },
+
+  /**
+   * Get group members and submitted predictions status
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Object | null, error: Object | null}>}
+   */
+  async getGroupMembersPredictionsStatus(groupId) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('group_members_admin_view')
+          .select('*')
+          .eq('group_id', groupId)
+      );
+
+      if (error) throw error;
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      return { data: null, error };
+    }
+  },
   
   /**
    * Add a user to a group who has requested access

@@ -8,7 +8,10 @@
                     class="w-10 h-10 flex-shrink-0" 
                     alt="Group Logo"
                 />
-                <h2 class="text-2xl font-bold truncate">Notifications</h2>
+                <div>
+                    <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
+                    <h6 class="text-gray-500">Notifications</h6>
+                </div>
             </template>
             <template #actionItems>
                 <Dropdown>
@@ -37,9 +40,6 @@
                         </button>
                     </template>
                 </Dropdown>
-            </template>
-            <template #details>
-                <p class="text-gray-500">Notifications for {{ group?.name }}</p>
             </template>
         </PageHeader>
         <Tabs>

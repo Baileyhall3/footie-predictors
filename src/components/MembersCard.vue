@@ -6,12 +6,6 @@
             :class="{'border-b': index !== visibleMembers.length - 1}"
         >
             <div class="flex items-center space-x-2">
-                <!-- <div class="flex items-center justify-center rounded-full w-6 h-6 text-white text-sm font-medium me-2"
-                    :style="{ backgroundColor: member.bg_colour || '#ccc' }"
-                >
-                    {{ member.username.charAt(0).toUpperCase() }}
-                </div>
-                {{ member.username }} -->
                 <component
                     :is="props.includeProfileLink ? 'router-link' : 'span'"
                     :to="props.includeProfileLink ? `/user-group-profile/${props.groupId}/${member.id}` : undefined"

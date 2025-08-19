@@ -3,7 +3,7 @@
     <div v-else class="container mx-auto px-6 py-8">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <h2 class="text-2xl font-bold">Your Notifications</h2>
-            <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" />
+            <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
         </div>
         <div class="flex gap-2 flex-wrap mb-4">
             <!-- Example filter buttons -->
@@ -134,7 +134,6 @@ async function fetchAllData() {
 
         notifications.value = data || [];
         allNotifications.value = data || [];
-
     } catch(err) {
         console.error(err);
     } finally {

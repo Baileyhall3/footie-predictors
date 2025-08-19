@@ -3,7 +3,7 @@
         <div class="mb-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Your Rankings</h2>
-                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" />
+                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
             </div>
             <LoadingScreen v-if="isLoading" />
             <template v-else>

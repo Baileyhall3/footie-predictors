@@ -8,11 +8,11 @@
             <div 
                 @click.stop
                 :class="[
-                    'bg-white w-full h-full sm:h-auto sm:max-h-[90vh] flex flex-col rounded-lg overflow-hidden shadow-lg mt-8 sm:mt-0',
+                    'bg-white w-full sm:h-auto max-h-[90dvh] flex flex-col rounded-lg overflow-hidden shadow-lg sm:mt-0',
                     sizeClass
                 ]"
             >
-                <div class="flex items-center px-6 py-4 border-b sticky top-0 bg-white z-10">
+                <div class="flex items-center px-6 py-4 border-b bg-white z-10">
                     <div class="text-lg font-semibold">
                         {{ title }}
                     </div>
@@ -20,10 +20,12 @@
                         <XMarkIcon class="size-6" />
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto">
+
+                <div class="flex-1 overflow-y-auto min-h-0">
                     <slot name="body"></slot>
                 </div>
-                <div class="px-6 py-4 border-t flex justify-end sticky bottom-0 bg-white z-10 gap-4">
+
+                <div class="px-6 py-4 border-t flex justify-end bg-white z-10 gap-4">
                     <slot name="footer"></slot>
                 </div>
             </div>
