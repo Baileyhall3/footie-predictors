@@ -93,7 +93,15 @@
                         <div v-for="(member, index) in groupedMembers" :key="member.user_id" 
                             class="flex justify-between items-center py-3"
                             :class="{'border-b': index !== groupedMembers.length - 1}">
-                            <UsernameDisplay :user="member" />
+                            <router-link :to="`/user-group-profile/${group.id}/${member.user_id}`">
+                                <UsernameDisplay :user="member">
+                                    <template #additionalDisplay>
+                                        <div title="Member has not submitted all predictions">
+                                            <ExclamationTriangleIcon class="size-5 text-yellow-600" v-if="member.predictions_submitted < member.total_matches" />
+                                        </div>
+                                    </template>
+                                </UsernameDisplay>
+                            </router-link>
                             <span class="font-medium">
                                 {{ member.predictions_submitted }} / {{ member.total_matches }}
                             </span>
@@ -101,19 +109,24 @@
                     </RoundedContainer>
                 </Tab>
                 <Tab header="Notifications">
+                    <RoundedContainer>
+                        <div class="justify-center flex">
+                            🛠️ This tab is under construction 🛠️
+                        </div>
+                    </RoundedContainer>
                 </Tab>
             </Tabs>
         </template>
     </div>
 
-    <PredictionsReminder :groupMembers="unsubmittedMembers" :groupId="group?.id" ref="reminderDialog" />
+    <PredictionsReminder :groupMembers="unsubmittedMembers" :groupId="group?.id" :gameweek="activeGameweek" ref="reminderDialog" />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from "vue-router";
 import { groupsService } from '../api/groupsService';
-import { Group } from '../types';
+import { Gameweek, Group } from '../types';
 import NoAccess from '../components/NoAccess.vue';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import { Tab, Tabs, RoundedContainer } from '../components/UI';
@@ -123,6 +136,7 @@ import { SearchBar2 } from '../components/UI/input';
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
 import { Send } from 'lucide-vue-next'; 
 import PredictionsReminder from '../components/dialogs/PredictionsReminder.vue';
+import { gameweeksService } from '../api/gameweeksService';
 
 type MemberFilter = 'all' | 'submitted' | 'unsubmitted'
 
@@ -135,6 +149,7 @@ const memberSearchQuery = ref<string>('');
 const activeMemberFilter = ref<MemberFilter>('all');
 const unsubmittedMembers = ref([]);
 const reminderDialog = ref(null);
+const activeGameweek = ref<Gameweek>();
 
 const route = useRoute();
 const router = useRouter();
@@ -170,6 +185,11 @@ async function fetchAllData() {
         memberPredictionsStatus.value = memberData || [];
         allMemberPredictionsStatus.value = memberData;
         unsubmittedMembers.value = memberData.filter(x => x.predictions_submitted < x.total_matches);
+
+        const { data: gameweekData, error: gameweekError } = await gameweeksService.getActiveGameweek(groupId);
+        if (gameweekError) throw new Error(gameweekError);
+
+        activeGameweek.value = gameweekData || {};
     } catch (err) {
         console.error(err);
     } finally {

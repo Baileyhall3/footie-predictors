@@ -11,6 +11,10 @@
                         <UsernameDisplay :user="member" />
                     </div>
                 </div>
+
+                <div class="justify-center flex" v-if="errorMsg">
+                    <p class="text-red-500 mt-3">{{ errorMsg }}</p>
+                </div>
             </div>
         </template>
         <template #footer>
@@ -32,6 +36,11 @@
 import { Dialog } from '../UI';
 import { ref } from 'vue';
 import UsernameDisplay from '../UI/UsernameDisplay.vue';
+import { CreatedNotification, notificationsService } from '../../api/notificationsService';
+import { Gameweek } from '../../types';
+import DateUtils from '../../utils/dateUtils';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 interface Member {
     user_id: string,
@@ -42,12 +51,51 @@ interface Member {
 
 const props = defineProps<{
     groupMembers: Member[],
-    groupId: string
+    groupId: string,
+    gameweek: Gameweek
 }>();
 
 const isVisible = ref<boolean>(false);
 const errorMsg = ref<string>('');
 const isSending = ref<boolean>(false);
+
+async function sendNotification() {
+    try {
+        isSending.value = true;
+
+        const userIds: string[] = props.groupMembers.map(x => x.user_id);
+        const notif: CreatedNotification = {
+            group_id: props.groupId,
+            template_data: {
+                header: 'Predictions Reminder',
+                content: `You have not submitted all predictions for gameweek <b>${props.gameweek.week_number}</b>.<br> The deadline is <b>${DateUtils.toFullDateTime(props.gameweek.deadline)}</b>. Go make your predictions now!`,
+                link_text: 'View Gameweek'
+            },
+            type: 'predictions_reminder',
+            priority: 'warning',
+            link: `/gameweek/${props.gameweek.id}`,
+            expires_at: props.gameweek.deadline
+        }
+
+        const { error } = await notificationsService.notifySelectedUsers(notif, userIds);
+        if (error) {
+            errorMsg.value = error;
+            throw new Error;
+        }
+
+        hide();
+
+        toast('Notification Sent!', {
+            "type": "success",
+            "position": "top-center"
+        });
+    } catch(err) {
+        errorMsg.value = err;
+        console.error(err);
+    } finally {
+        isSending.value = false;
+    }
+}
 
 const cancel = () => {
     hide();

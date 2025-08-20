@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js';
 import { supabaseDb } from './supabaseDb.js';
-import { NotificationPriority, NotificationType } from '../types/dataObjects.js';
+import { NotificationPriority, NotificationType, NotificationTemplateData } from '../types/dataObjects.js';
 import { notificationsStore } from '../store/notificationsStore.js';
 
 /**
@@ -9,7 +9,7 @@ import { notificationsStore } from '../store/notificationsStore.js';
 export type CreatedNotification = {
     user_id: string,
     group_id?: string,
-    template_data?: Object,
+    template_data: NotificationTemplateData,
     type: NotificationType
     priority: NotificationPriority
     expires_at?: Date
@@ -220,4 +220,34 @@ export const notificationsService = {
             return { data: null, error }
         }
     },
+
+    /**
+       * Creates a notification and notifies users whose IDs are passed through and are subscribed
+       * @param {CreatedNotification} notification - The notification to send to the selected users
+       * @param {Array<userIds>} - Array of user IDs to send the notification to
+       * @returns {Promise<{success: boolean, error: Object}>}
+       */
+      async notifySelectedUsers(notification: CreatedNotification, userIds: string[]) {
+        try {
+          const { error: notifyError } = await supabase.rpc('notify_selected_users', {
+            notif_type: notification.type,
+            group_id: notification.group_id,
+            template_data: notification.template_data,
+            user_ids: userIds,
+            priority: notification.priority,
+            link: notification.link,
+            expires_at: notification.expires_at
+          });
+      
+          if (notifyError) {
+            console.error('Failed to notify users:', notifyError.message);
+            return { error: notifyError }
+          }
+      
+          return { error: null };
+        } catch (error) {
+          console.error('Error notifying users:', error)
+          return { error }
+        }
+      },
 }
