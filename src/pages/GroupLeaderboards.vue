@@ -10,7 +10,16 @@
         <template v-else>
             <PageHeader>
                 <template #header>
-                    <h2 class="text-2xl font-semibold">{{ group?.name }} Leaderboards</h2>
+                    <!-- <h2 class="text-2xl font-semibold">{{ group?.name }} Leaderboards</h2> -->
+                    <img 
+                        :src="group?.icon_url ?? '/images/green-football-md.png'" 
+                        class="w-10 h-10 flex-shrink-0" 
+                        alt="Group Logo"
+                    />
+                    <div>
+                        <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
+                        <h6 class="text-gray-500">Leaderboards</h6>
+                    </div>
                 </template>
 
                 <template #actionItems>

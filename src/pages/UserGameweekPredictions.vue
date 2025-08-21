@@ -70,7 +70,7 @@ async function fetchAllData() {
         gameweek.value = gameweekData;
 
         if (!gameweek.value.is_locked) {
-            return
+            return;
         }
 
         const { data: predictionsData, error: predictionsError } = await predictionsService.getUserGameweekPredictionsUsingView(userId.value, gameweekId.value)
@@ -89,7 +89,6 @@ async function fetchAllData() {
         }
 
         user.value = userData;
-
     } catch(err) {
         console.error(err);
     } finally {
