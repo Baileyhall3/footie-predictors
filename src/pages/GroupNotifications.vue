@@ -51,70 +51,9 @@
                             No notifications for this group yet.
                         </p>
                     </RoundedContainer>
-                    <template v-else>
-                        <RoundedContainer 
-                            v-for="notif in notifications" 
-                            :key="notif.id" 
-                        >
-                            <div class="flex items-center justify-between gap-4 flex-nowrap">
-                                <div class="flex items-center gap-2 min-w-0 max-w-full flex-1"
-                                    :class="['transition-opacity', notif.read ? 'opacity-60' : 'opacity-100']"
-                                >
-                                    <span 
-                                        v-if="!notif.read"
-                                        class="inline-block w-3 h-3 rounded-full me-1"
-                                        :class="priorityBadgeClass(notif.priority)"
-                                        title="Priority"
-                                    ></span>
-                                    <h3 class="text-xl font-semibold">{{ formatType(notif.type) }}</h3>
-                                </div>
-                                <div class="flex flex-wrap gap-2 justify-end flex-shrink-0">
-                                    <Dropdown>
-                                        <template #trigger>
-                                            <EllipsisVerticalIcon class="size-5 text-gray-500" />
-                                        </template>
-                                        <template #items="{ close }">
-                                            <button @click="toggleNotificationRead(notif); close();" 
-                                                class="dropdown-item item-separator"
-                                                >
-                                                {{ `Mark as ${notif.read ? 'un' : ''}read` }}
-                                            </button>
-                                            <button class="text-red-600 dropdown-item" @click="deleteNotification(notif)">
-                                                Delete
-                                            </button>
-                                        </template>
-                                    </Dropdown>
-                                </div>
-                            </div>
-                            <div class="flex flex-col gap-2" :class="['transition-opacity', notif.read ? 'opacity-60' : 'opacity-100']">
-                                <div class="flex items-center justify-between">
-                                    <div class="text-sm text-gray-700 dark:text-gray-300">
-                                        You have a new gameweek!  
-                                        <span class="font-medium">Week {{ notif.template_data.week_number }}</span>  
-                                        with a deadline of  
-                                        <span class="font-semibold">
-                                        {{ DateUtils.toFullDateTime(notif.template_data.deadline) }}
-                                        </span>.
-                                    </div>
-                                </div>
-    
-                                <div class="flex gap-4 items-center">
-                                    <RouterLink 
-                                        :to="notif.link" 
-                                        class="text-blue-600 hover:underline text-sm"
-                                        @click="toggleNotificationRead(notif)"
-                                    >
-                                        View Gameweek →
-                                    </RouterLink>
-                                </div>
-                                <div class="ms-auto">
-                                    <span class="text-gray-500">
-                                        {{ DateUtils.toRelevantDateOrTime(notif.created_at) }}
-                                    </span>
-                                </div>
-                            </div>
-                        </RoundedContainer>
-                    </template>
+                    
+
+                    <NotificationCard :notifications="notifications" @notification-deleted="getNotifications" />
                 </template>
             </Tab>  
             <Tab header="Preferences">
@@ -143,6 +82,7 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import DateUtils from '../utils/dateUtils';
 import NotificationPreferences from '../components/NotificationPreferences.vue';
+import NotificationCard from '../components/NotificationCard.vue';
 
 const group = ref<Group>();
 const loading = ref<boolean>();
@@ -255,24 +195,8 @@ async function toggleNotificationRead(notif: Notification) {
 }
 
 async function deleteNotification(notif: Notification) {
-    try {
-        notifsLoading.value = true;
+    getNotifications();
 
-        const { success, error } = await notificationsService.deleteNotification(notif.id);
-        if (error) throw new Error('Failed to delete notification');
-
-        if (success) {
-            toast("Notification deleted.", {
-                "type": "success",
-                "position": "top-center"
-            });
-            getNotifications();
-        }
-    } catch(err) {
-        console.error(err);
-    } finally {
-        notifsLoading.value = false;
-    }
 }
 
 async function markAllAsRead() {

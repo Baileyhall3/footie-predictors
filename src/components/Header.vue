@@ -92,8 +92,6 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline';
 import { TrophyIcon } from '@heroicons/vue/24/solid';
 import mobileNavControls from '../shared';
 import { BellIcon } from '@heroicons/vue/24/solid';
-import { notificationsService } from '../api/notificationsService';
-import { Notification } from '../types';
 import { userStore } from '../store/userStore';
 import { notificationsStore } from '../store/notificationsStore';
 
@@ -118,11 +116,7 @@ onMounted(() => {
 
 async function getUnreadNotifications() {
     try {
-        await notificationsStore.fetchUserUnreadNotifications();
-        
-        console.log('user ', userStore.user)
-        await notificationsService.createWelcomeNotification(userStore.user);
-        
+        await notificationsStore.fetchUserUnreadNotifications();    
     } catch (err) {
         console.error(err);
     }

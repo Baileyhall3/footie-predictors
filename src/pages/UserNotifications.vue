@@ -50,7 +50,7 @@
                     </template>
                 </div>
 
-                <NotificationCard :notifications="group.notifications" />
+                <NotificationCard :notifications="group.notifications" @notification-deleted="handleNotificationDelete" />
             </div>
         </div>
 
@@ -58,7 +58,6 @@
             <p class="text-lg font-medium mb-2">No notifications yet!</p>
         </div>
     </div>
-
 </template>
 
 <script setup lang="ts">
@@ -155,6 +154,10 @@ function handleSearchQuery() {
 
 function setActiveFilter(filter: ReadFilter) {
     activeFilter.value = filter;
+}
+
+function handleNotificationDelete(notif: Notification) {
+    allNotifications.value = allNotifications.value.filter(n => n.id !== notif.id);
 }
 
 </script>
