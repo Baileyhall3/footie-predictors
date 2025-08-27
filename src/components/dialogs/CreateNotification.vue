@@ -187,7 +187,6 @@ async function createNotification() {
     try {
 
         const { error } = await groupsService.createGroupNotification(notification.value);
-        debugger
         if (error) {
             errorMsg.value = error;
             throw new Error;

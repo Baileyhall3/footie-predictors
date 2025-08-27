@@ -26,7 +26,7 @@
                             >
                             {{ `Mark as ${notif.read ? 'un' : ''}read` }}
                         </button>
-                        <button class="text-red-600 dropdown-item" @click="deleteNotification(notif)">
+                        <button class="text-red-600 dropdown-item" @click="deleteNotification(notif); close();">
                             Delete
                         </button>
                     </template>
@@ -69,17 +69,14 @@
 
 <script setup lang="ts">
 import DateUtils from '../utils/dateUtils';
-import { RoundedContainer } from './UI';
+import { RoundedContainer, Dropdown } from './UI';
 import type { Notification } from '../types';
-import { Dropdown } from './UI';
 import { notificationsService } from '../api/notificationsService';
 import { ref } from 'vue';
 import { EllipsisVerticalIcon } from '@heroicons/vue/24/solid';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { getPriorityBadgeClass } from '../utils/sharedFunctions';
-
-// TODO: Make this more general
 
 const props = defineProps<{
     notifications: Notification[],
@@ -120,13 +117,13 @@ async function deleteNotification(notif: Notification) {
         if (error) throw new Error('Failed to delete notification');
 
         if (success) {
+            emit("notification-deleted", notif);
             toast("Notification deleted.", {
                 "type": "success",
                 "position": "top-center"
             });
-            const targetIndex = props.notifications.findIndex(n => n.id === notif.id);
-            props.notifications.splice(targetIndex, 1);
-            emit("notification-deleted", notif);
+            // const targetIndex = props.notifications.findIndex(n => n.id === notif.id);
+            // props.notifications.splice(targetIndex, 1);
         }
     } catch(err) {
         console.error(err);

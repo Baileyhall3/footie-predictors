@@ -4,7 +4,7 @@
         <template v-else>
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Your Stats</h2>
-                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" />
+                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" v-if="groupStats.length > 0">

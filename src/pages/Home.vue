@@ -8,12 +8,7 @@
     </div>
     
     <!-- Loading State -->
-    <div v-if="isLoading" class="flex justify-center items-center py-12">
-      <svg class="animate-spin h-10 w-10 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
+    <LoadingScreen v-if="isLoading" />
     
     <!-- Error State -->
     <div v-else-if="error" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
@@ -114,10 +109,11 @@
 import { ref, onMounted, computed } from "vue";
 import GroupCard from "../components/GroupCard.vue";
 import { userStore } from "../store/userStore";
-import { groupsStore } from "../store/groupsStore";
 import { predictionsStore } from "../store/predictionsStore";
 import { leaderboardStore } from "../store/leaderboardStore";
 import ScoreCard from "../components/ScoreCard.vue";
+import { groupsService } from "../api/groupsService";
+import LoadingScreen from "../components/LoadingScreen.vue";
 
 // State
 const isLoading = ref(true);
@@ -136,14 +132,9 @@ const fetchUserData = async () => {
     if (userStore.isAuthenticated) {
 
       // Fetch user's groups
-      if (groupsStore.groups.length === 0) {
-        const { data: groups, error: groupsError } = await groupsStore.fetchUserGroups();
-        if (groupsError) throw new Error('Failed to load your groups');
-        userGroups.value = groups || [];
-      } else {
-        console.log('using group store groups')
-        userGroups.value = groupsStore.groups || [];
-      }
+      const { data: groups, error: groupsError } = await groupsService.getUserGroupsUsingView();
+      if (groupsError) throw new Error('Failed to load your groups');
+      userGroups.value = groups || [];
       
       // Fetch upcoming matches for predictions
       upcomingMatches.value = [];
@@ -167,7 +158,7 @@ const fetchUserData = async () => {
       
       // Fetch user's position in each group's leaderboard
       userPositions.value = [];
-      for (const group of userGroups.value) {
+      for (const group of userGroups.value.slice(0, 5)) {
         const { data: leaderboard, error: leaderboardError } = await leaderboardStore.fetchGroupLeaderboard(group.id, null, true);
         if (!leaderboardError && leaderboard) {
           const userPosition = leaderboard.find(entry => entry.user_id === userStore.user.id);

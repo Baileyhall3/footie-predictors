@@ -72,14 +72,6 @@ export const groupsService = {
       
       if (seasonError) throw seasonError;
 
-      // const { error: leaderboardError } = await supabaseDb.create('leaderboard', {
-      //   user_id: adminId,
-      //   group_id: group.id,
-      //   season_id: sznData.id
-      // });
-
-      // if (leaderboardError) throw leaderboardError;
-
       await supabaseDb.update('groups', group.id, { active_season_id: sznData.id });
   
       return { data: group, error: null };
@@ -484,6 +476,53 @@ export const groupsService = {
    */
   async getGroupByIdUsingView(groupId) {
     return supabaseDb.getById('groups_view', groupId)
+  },
+
+  /**
+   * Get group members and submitted predictions status
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Object | null, error: Object | null}>}
+   */
+  async getUserGroupsUsingView() {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('groups_view')
+          .select('*')
+          .eq('iAmMember', true)
+          .eq('joinRequestSent', false)
+      );
+
+      if (error) throw error;
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error fetching user groups:', error);
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Get group members and submitted predictions status
+   * @param {string} groupId - Group ID
+   * @returns {Promise<{data: Object | null, error: Object | null}>}
+   */
+  async getGroupMembersPredictionsStatus(groupId) {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('group_members_admin_view')
+          .select('*')
+          .eq('group_id', groupId)
+      );
+
+      if (error) throw error;
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      return { data: null, error };
+    }
   },
   
   /**

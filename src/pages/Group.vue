@@ -45,10 +45,15 @@
                   <router-link :to="`/group/${groupId}/notifications`" class="text-blue-600 dropdown-item item-separator">
                     Notifications
                   </router-link>
-                  <button class="dropdown-item item-separator" @click="createNotificationDialog.show()" v-if="group?.iAmOwner">
-                    Create Notification
-                  </button>
+                  <router-link :to="`/group/${group?.id}/admin-view`" >
+                    <button class="dropdown-item item-separator text-blue-600 ">
+                      Admin View
+                    </button>
+                  </router-link>
                   <template v-if="group?.iAmOwner">
+                    <button class="dropdown-item item-separator" @click="createNotificationDialog.show()">
+                      Create Notification
+                    </button>
                      <router-link :to="`/group/${group?.id}/update-group`" >
                        <button class="dropdown-item item-separator">
                          Edit
@@ -247,10 +252,7 @@
             <GroupLeaderboard :groupId="group.id" :activeGameweekId="activeGameweek ? activeGameweek.id : null" :seasonId="group?.active_season_id" />
           </Tab>
           <Tab header="Stats">
-            <CombinedGroupStats v-if="activeGameweek?.is_locked" :groupId="group.id" :seasonId="group?.active_season_id" />
-            <RoundedContainer v-else>
-              <p class="text-gray-500 py-2">No stats data to show yet.</p>
-            </RoundedContainer>
+            <CombinedGroupStats :groupId="group.id" :seasonId="group?.active_season_id" />
           </Tab>
           <Tab header="Members" v-if="group?.iAmMember || (group?.iAmMember && group.is_public)">
             <RoundedContainer :headerText="`Join Requests (${requestMembers.length})`" v-if="group?.iAmAdmin && requestMembers.length > 0">

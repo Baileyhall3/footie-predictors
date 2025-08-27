@@ -431,6 +431,7 @@ async getUserGameweekPredictionsUsingView(userId, gameweekId) {
         .select(`*`)
         .eq('user_id', userId)
         .eq('gameweek_id', gameweekId)
+        .order('match_time', { ascending: true })
     )
 
     if (error) throw error

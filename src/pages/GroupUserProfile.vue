@@ -314,10 +314,7 @@ async function setCurrentSeason(season: LookupOption) {
 async function setCurrentGameweek(gameweek: LookupOption) {
     try {
         currentGameweek.value = gameweek;
-        const { 
-            data: predictionsData, 
-            error: predictionsError 
-        } = await predictionsService.getUserGameweekPredictionsUsingView(userId.value, gameweek.id)
+        const { data: predictionsData, error: predictionsError } = await predictionsService.getUserGameweekPredictionsUsingView(userId.value, gameweek.id)
         
         if (predictionsError) {
             throw new Error(`Predictions error: ${predictionsError}`)

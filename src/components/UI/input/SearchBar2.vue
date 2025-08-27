@@ -3,7 +3,7 @@
         <input
             type="text"
             :value="props.modelValue"
-            placeholder="Search for group..."
+            :placeholder="props.placeholder ?? 'Search...'"
             @input="handleInput"
             @keydown.enter="handleSearchQuery"
             class="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -37,6 +37,7 @@ import { XMarkIcon } from "@heroicons/vue/24/solid";
 const props = defineProps<{
     modelValue: string;
     disableSearchWhileTyping?: boolean
+    placeholder?: string
 }>();
 
 const emit = defineEmits<{

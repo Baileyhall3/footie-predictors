@@ -173,7 +173,7 @@ const groupedMatches = computed(() => {
         groups[date].push(match)
     }
 
-    return groups
+    return groups;
 });
 
 // const allPredictionsSubmitted = computed(() => {
