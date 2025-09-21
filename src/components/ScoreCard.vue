@@ -92,7 +92,9 @@
                             {{ DateUtils.toTime(match.match_time) }}
                         </div>
                         
-                        <div class="justify-between flex gap-8 h-5" v-if="!props.locked && props.predictions && Object.keys(props.predictions).length > 0">
+                        <div 
+                            class="justify-between flex gap-8 h-5" 
+                            v-if="!props.locked && props.predictions && Object.keys(props.predictions).length > 0 && !matchIsLocked(match.final_home_score, match.final_away_score)">
                             <div class="flex rounded overflow-hidden items-center flex-start">
                                 <button @click="updatePrediction(match, 'predicted_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
                                 <button @click="updatePrediction(match, 'predicted_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
@@ -189,6 +191,14 @@ const allPredictionsSubmitted = computed(() => {
 const predictionsChanged = ref(false);
 const matchesCollapsed = ref(false);
 const isSubmitting = ref(false);
+
+function matchIsLocked(
+    finalHomeScore: number | null | undefined,
+    finalAwayScore: number | null | undefined
+): boolean {
+    // A match is locked once both final scores are recorded
+    return finalHomeScore != null && finalAwayScore != null;
+}
 
 const toggleMatchesCollapse = () => {
   matchesCollapsed.value = !matchesCollapsed.value;

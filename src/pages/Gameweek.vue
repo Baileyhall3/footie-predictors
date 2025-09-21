@@ -14,9 +14,12 @@
         <PageHeader>
           <template #header>
             <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
-            <LockClosedIcon class="size-6 ms-1" v-if="gameweek?.is_locked" />
-            <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
+            <LockClosedIcon class="size-6 ms-1 me-1" v-if="gameweek?.is_locked" title="This gameweek is locked" />
+            <!-- <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
               Active
+            </div> -->
+            <div v-if="gameweek?.is_active" class="py-1" title="This gameweek is active">
+              <StarIcon class="size-6 text-yellow-300" />
             </div>
           </template>
           <template #actionItems>
@@ -28,20 +31,20 @@
                 <EllipsisVerticalIcon class="size-6 text-gray-500" />
               </template>
               <template #items>
-                <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
+                <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item item-separator">
                   Go to Group
                 </router-link>
-                <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item">
+                <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item item-separator">
                   {{ gameweek?.season_name }}
                 </router-link>
                 <template v-if="isAdmin">
-                  <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
+                  <button @click="changeGameWeekLockedStatus" class="dropdown-item item-separator">
                     {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                   </button>
-                  <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="changeGameWeekActiveStatus" class="dropdown-item">
+                  <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="changeGameWeekActiveStatus" class="dropdown-item item-separator">
                     Set Active
                   </button>
-                  <button @click="deleteGameweek" class="dropdown-item text-red-700">
+                  <button @click="deleteGameweek" class="dropdown-item text-red-700 item-separator">
                     Delete
                   </button>
                 </template>
@@ -183,7 +186,7 @@ import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
-import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon, StarIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -456,7 +459,7 @@ const deleteGameweek = async () => {
 async function submitPredictions() {
   loading.value = true;
 
-  console.log(predictions.value)
+  console.log('predictionsss: ', predictions.value)
 
   for (const [matchId, prediction] of Object.entries(predictions.value)) {
     await predictionsService.savePrediction(
