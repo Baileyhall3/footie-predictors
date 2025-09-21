@@ -144,8 +144,8 @@ async function fetchAllData() {
                 ...match,
                 previous_home_score: match.final_home_score,
                 previous_away_score: match.final_away_score,
-                predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
-                predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
+                predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? undefined,
+                predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? undefined,
                 prediction_id: predictionsMap[match.id]?.id || null
             }));
 

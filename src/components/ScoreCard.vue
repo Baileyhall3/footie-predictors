@@ -47,7 +47,7 @@
                                     <span 
                                         class="text-md font-bold" 
                                         :class="getPredictionColor(predictions[match.id], match)">
-                                        {{ predictions[match.id]?.predicted_home_score ? predictions[match.id]?.predicted_home_score : 0 }}
+                                        {{ predictions[match.id]?.predicted_home_score !== undefined ? predictions[match.id]?.predicted_home_score : '-' }}
                                     </span>
                                 </template>
         
@@ -65,7 +65,7 @@
                                 <template v-if="predictions && Object.keys(predictions).length > 0">
                                     <span class="text-md font-bold" 
                                         :class="getPredictionColor(predictions[match.id], match)">
-                                        {{ predictions[match.id]?.predicted_away_score ? predictions[match.id]?.predicted_away_score : 0 }}
+                                        {{ predictions[match.id]?.predicted_away_score !== undefined ? predictions[match.id]?.predicted_away_score : '-' }}
                                     </span>
                                 </template>
         
