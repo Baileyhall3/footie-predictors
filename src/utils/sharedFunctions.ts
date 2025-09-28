@@ -1,6 +1,6 @@
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
-import type { Prediction } from "../types";
+import type { Prediction, Match } from "../types";
 
 export function copyPageLink(entity: string) {
     const url = window.location.href;
@@ -55,4 +55,78 @@ export const getPriorityBadgeClass = (priority: string) => {
         default:
             return 'bg-gray-400'
     }
+}
+
+export interface FormattedMatch {
+  api_match_id: string | null;
+  awayClub: string | null;
+  away_team: string;
+  away_team_api_id: string | null;
+  away_team_crest: string | undefined;
+  competition: string | null;
+  competition_emblem_url: string | null;
+  created_at: string; // ISO timestamp
+  final_away_score: number | null;
+  final_home_score: number | null;
+  gameweek_id: string;
+  homeClub: string | null;
+  home_team: string;
+  home_team_api_id: string | null;
+  home_team_crest: string | undefined;
+  id: string;
+  match_time: Date | string;
+  predicted_away_score: number | undefined;
+  predicted_home_score: number | undefined;
+  prediction_id: string | null;
+  previous_away_score: number | null;
+  previous_home_score: number | null;
+}
+
+export interface KeyedPrediction {
+  [predictionId: string]: {
+    predicted_away_score: number | undefined;
+    predicted_home_score: number | undefined;
+  };
+}
+
+export interface MappedData {
+    matches: FormattedMatch[];
+    predictions: KeyedPrediction[];
+}
+
+export function mapPredictions(
+    predictionsData: Prediction[], 
+    matchData: Match[]
+): MappedData {
+    // Map predictions by match_id for quick lookup
+    const predictionsMap = predictionsData.reduce((acc, prediction) => {
+        acc[prediction.match_id] = prediction;
+        return acc;
+    }, {});
+
+    let mappedData: MappedData = { matches: [], predictions: [] }
+
+    // Merge predictions into matches
+    mappedData.matches = matchData.map(match => ({
+        ...match,
+        api_match_id: match.api_match_id,
+        previous_home_score: match.final_home_score, // Store initial score
+        previous_away_score: match.final_away_score,
+        predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? (match.final_home_score == undefined ? 0 : undefined),
+        predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? (match.final_away_score == undefined ? 0 : undefined),
+        prediction_id: predictionsMap[match.id]?.id || null,
+        home_team_crest: match.homeClub?.crest_url,
+        away_team_crest: match.awayClub?.crest_url
+    }));
+
+    // Initialize predictions object for v-model binding
+    mappedData.predictions = mappedData.matches.reduce((acc, match) => {
+        acc[match.id] = {
+            predicted_home_score: match.predicted_home_score,
+            predicted_away_score: match.predicted_away_score
+        };
+        return acc;
+    }, {});
+
+    return mappedData;
 }

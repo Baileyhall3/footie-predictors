@@ -240,8 +240,12 @@ const removeMatch = (matchId: string) => {
 
 // Function to determine color based on prediction accuracy
 const getPredictionColor = (prediction, match) => {
-    if (!prediction || match.final_home_score === null || match.final_away_score === null) {
-        return "test-gray-600"; // No color if match is not finished
+    if (prediction.predicted_home_score === undefined || 
+        prediction.predicted_away_score === undefined || 
+        match.final_home_score === null || 
+        match.final_away_score === null
+    ) {
+        return "text-gray-600"; // No color if match is not finished
     }
 
     const predictedHome = prediction.predicted_home_score;

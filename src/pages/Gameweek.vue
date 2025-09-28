@@ -214,6 +214,7 @@ import GridCol from '../components/UI/grid/GridCol.vue';
 import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
 import PageHeader from '../components/PageHeader.vue';
 import { CancelBtn, EditBtn, AddBtn } from '../components/UI/buttons';
+import { mapPredictions } from '../utils/sharedFunctions';
 
 const route = useRoute();
 const router = useRouter();
@@ -307,49 +308,21 @@ async function fetchGameweek() {
     const { data: gameweekPredictions, error: gameweekPredictionsError } = await predictionsService.getGameweekPredictions(gameweek.value.id);
     if (gameweekPredictionsError) throw new Error('Failed to load all gameweek predictions')
   
-    mapPredictions(predictionsData, matchData);
+    const formattedMatches = mapPredictions(predictionsData, matchData);
+    predictions.value = formattedMatches.predictions;
+    matches.value = formattedMatches.matches;
+
+    loading.value = false;
+
+    if (gameweekWinner.value.user_id === userStore.user?.id && gameweek.value.is_finished) {
+      triggerConfetti();
+    }
   
     mapPotentialFinishData(leaderboardData, groupData, matchData, gameweekPredictions);
   } catch (err) {
     console.error(err);
   } finally {
     loading.value = false;
-  }
-}
-
-async function mapPredictions(predictionsData, matchData) {
-  // Map predictions by match_id for quick lookup
-  const predictionsMap = predictionsData.reduce((acc, prediction) => {
-    acc[prediction.match_id] = prediction;
-    return acc;
-  }, {});
-
-  // Merge predictions into matches
-  matches.value = matchData.map(match => ({
-    ...match,
-    api_match_id: match.api_match_id,
-    previous_home_score: match.final_home_score, // Store initial score
-    previous_away_score: match.final_away_score,
-    predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? undefined,
-    predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? undefined,
-    prediction_id: predictionsMap[match.id]?.id || null,
-    home_team_crest: match.homeClub?.crest_url,
-    away_team_crest: match.awayClub?.crest_url
-  }));
-
-  // Initialize predictions object for v-model binding
-  predictions.value = matches.value.reduce((acc, match) => {
-    acc[match.id] = {
-      predicted_home_score: match.predicted_home_score,
-      predicted_away_score: match.predicted_away_score
-    };
-    return acc;
-  }, {});
-
-  loading.value = false;
-
-  if (gameweekWinner.value.user_id === userStore.user?.id && gameweek.value.is_finished) {
-    triggerConfetti();
   }
 }
 
@@ -393,13 +366,6 @@ function mapPotentialFinishData(leaderboardData: any[], groupData: any, matchDat
     currentPosition: user.currentPosition,
     predictions: predictionsByUser[user.userId] || []
   }));
-}
-
-function toggleEditMode() {
-  editMode.value = !editMode.value;
-  if (!editMode.value) {
-    mapPredictions();
-  }
 }
 
 function handleTabSelected(index: number) {
@@ -532,9 +498,9 @@ const handleMatchRemoved = async(matchId) => {
         try {
           const { data, error } = await gameweeksService.deleteMatch(matchId);
           
-          if (!error) {
-            mapPredictions();
-          }
+          // if (!error) {
+          //   mapPredictions();
+          // }
         } catch (err) {
           console.error(err);
         }

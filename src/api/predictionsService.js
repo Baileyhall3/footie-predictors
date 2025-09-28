@@ -448,7 +448,7 @@ async getUserGameweekPredictionsUsingView(userId, gameweekId) {
 /**
    * Get all predictions for a user in a gameweek
    * @param {string} matchId - Match ID
-   * @returns {Promise<{data: Object, error: Object}>}
+   * @returns {Promise<{data: Array<Object>, error: Object}>}
    */
 async getMatchPredictionsUsingView(matchId) {
   try {
