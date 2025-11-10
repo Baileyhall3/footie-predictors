@@ -19,15 +19,21 @@
           <div class="rounded-md shadow-sm -space-y-px">
             <div>
               <label for="password" class="sr-only">New Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autocomplete="new-password"
-                v-model="password"
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-              />
+              <div class="relative">
+                <input
+                  id="password"
+                  name="password"
+                  :type="isViewingPassword ? 'text' : 'password'"
+                  autocomplete="new-password"
+                  v-model="password"
+                  class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Password"
+                />
+                <button type="button" class="absolute inset-y-0 right-3 flex items-center" style="z-index: 1000;" @click="togglePasswordVisibility">
+                  <EyeIcon class="size-6" v-if="!isViewingPassword"  />
+                  <EyeSlashIcon class="size-6" v-else />
+                </button>
+              </div>
             </div>
             <div>
               <label for="confirm-password" class="sr-only">Confirm New Password</label>
@@ -82,17 +88,23 @@
 </template>
   
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { userStore } from '../store/userStore';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/24/outline";
 
 const router = useRouter();
 const password = ref('');
 const confirmPassword = ref('');
 const errorMessage = ref('');
-  
+const isViewingPassword = ref(false);
+
+const togglePasswordVisibility = () => {
+  isViewingPassword.value = !isViewingPassword.value;
+};
+
 const passwordsMatch = computed(() => {
     return !password.value || !confirmPassword.value || password.value === confirmPassword.value;
 });
@@ -105,6 +117,17 @@ const isPasswordStrong = computed(() => {
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
     return strongPasswordRegex.test(password.value);
 });
+
+onMounted(async () => {
+  try {
+    const { data, error } = await supabase.auth.getSessionFromUrl({ storeSession: true })
+    if (error) throw error
+    console.log('Session restored:', data.session)
+  } catch (err) {
+    console.error('Error restoring session:', err.message)
+    errorMessage.value = 'Invalid or expired password reset link.'
+  }
+})
   
 const handleResetpassword = async () => {
     try {
@@ -118,6 +141,7 @@ const handleResetpassword = async () => {
             "position": "top-center"
         });
         errorMessage.value = '';
+        router.push('/login')
 
         // Redirect to login after a delay
         // setTimeout(() => {
