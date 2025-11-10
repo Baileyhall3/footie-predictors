@@ -25,10 +25,13 @@
                   <p class="text-md font-medium">
                   🎯 {{ ((correctResultCount / groupMembersLength) * 100).toFixed(0) }}% predicted the correct result.
                   </p>
-                  <!-- <button type="button" @click="toggleCorrectResults()" class="ms-2">
-                    <EyeIconSolid class="size-6" v-if="correctResultsOnly" />
-                    <EyeIcon class="size-6" v-else />
-                  </button> -->
+                </div>
+                <div class="items-center flex justify-center" v-if="userMatchPrediction">
+                  <p class="text-md font-medium">
+                    <span :class="getPredictionColor(userMatchPrediction)">
+                    🔮 {{ userMatchPrediction?.predicted_home_score }}-{{ userMatchPrediction?.predicted_away_score }} was your prediction.
+                    </span>
+                  </p>
                 </div>
               </template>
               <p v-if="mostCommonPrediction" class="text-md mt-4 font-medium">
@@ -188,6 +191,7 @@ const optionsLkp = ref<Array<LookupOption>>([
   { id: 1, name: "Away Win", selected: false },
   { id: 2, name: "Draw", selected: false },
 ]);
+const userMatchPrediction = ref<Prediction>();
 const isCollapsed = ref<boolean>(false);
 
 let correctScoreCount = 0;
@@ -206,7 +210,6 @@ async function fetchMatchData() {
     const { data: matchData, error } = await gameweeksService.getMatchById(matchId.value);
     if (error) throw new Error('Failed to load match');
     match.value = matchData[0];
-    debugger
     gameweekId.value = matchData[0].gameweek_id;
     
     matchIsFinished.value = matchData[0].final_home_score !== null && matchData[0].final_away_score !== null ? true : false;
@@ -215,6 +218,12 @@ async function fetchMatchData() {
     if (predictionsError) throw new Error('Failed to load match predictions');
     gridPredictionsData.value = predictionsData || [];
     originalPredictionsData.value = predictionsData || [];
+    if (predictionsData.length > 0) {
+      const userPredction = predictionsData.find(x => x.user_id === userStore.userProfile?.id);
+      if (userPredction) {
+        userMatchPrediction.value = userPredction;
+      }
+    }
     
     groupMembersLength.value = predictionsData?.length;
     
@@ -227,7 +236,11 @@ async function fetchMatchData() {
   }
 }
 
-async function fetchUserPredictions(searchQuery: string | null = null, skipCalculations: boolean = false, predictionsData?: Prediction[]) {
+async function fetchUserPredictions(
+  searchQuery: string | null = null, 
+  skipCalculations: boolean = false, 
+  predictionsData?: Prediction[]
+) {
   try {
     loading.value = true;
 

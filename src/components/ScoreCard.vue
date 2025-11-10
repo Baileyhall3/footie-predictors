@@ -47,7 +47,7 @@
                                     <span 
                                         class="text-md font-bold" 
                                         :class="getPredictionColor(predictions[match.id], match)">
-                                        {{ predictions[match.id]?.predicted_home_score ? predictions[match.id]?.predicted_home_score : 0 }}
+                                        {{ predictions[match.id]?.predicted_home_score !== undefined ? predictions[match.id]?.predicted_home_score : '-' }}
                                     </span>
                                 </template>
         
@@ -65,7 +65,7 @@
                                 <template v-if="predictions && Object.keys(predictions).length > 0">
                                     <span class="text-md font-bold" 
                                         :class="getPredictionColor(predictions[match.id], match)">
-                                        {{ predictions[match.id]?.predicted_away_score ? predictions[match.id]?.predicted_away_score : 0 }}
+                                        {{ predictions[match.id]?.predicted_away_score !== undefined ? predictions[match.id]?.predicted_away_score : '-' }}
                                     </span>
                                 </template>
         
@@ -92,7 +92,9 @@
                             {{ DateUtils.toTime(match.match_time) }}
                         </div>
                         
-                        <div class="justify-between flex gap-8 h-5" v-if="!props.locked && props.predictions && Object.keys(props.predictions).length > 0">
+                        <div 
+                            class="justify-between flex gap-8 h-5" 
+                            v-if="!props.locked && props.predictions && Object.keys(props.predictions).length > 0 && !matchIsLocked(match.final_home_score, match.final_away_score)">
                             <div class="flex rounded overflow-hidden items-center flex-start">
                                 <button @click="updatePrediction(match, 'predicted_home_score', -1)" class="bg-gray-400 text-white px-2 py-0.5">-</button>
                                 <button @click="updatePrediction(match, 'predicted_home_score', 1)" class="bg-blue-500 text-white px-2 py-0.5">+</button>
@@ -190,6 +192,14 @@ const predictionsChanged = ref(false);
 const matchesCollapsed = ref(false);
 const isSubmitting = ref(false);
 
+function matchIsLocked(
+    finalHomeScore: number | null | undefined,
+    finalAwayScore: number | null | undefined
+): boolean {
+    // A match is locked once both final scores are recorded
+    return finalHomeScore != null && finalAwayScore != null;
+}
+
 const toggleMatchesCollapse = () => {
   matchesCollapsed.value = !matchesCollapsed.value;
 }
@@ -230,8 +240,12 @@ const removeMatch = (matchId: string) => {
 
 // Function to determine color based on prediction accuracy
 const getPredictionColor = (prediction, match) => {
-    if (!prediction || match.final_home_score === null || match.final_away_score === null) {
-        return "test-gray-600"; // No color if match is not finished
+    if (prediction.predicted_home_score === undefined || 
+        prediction.predicted_away_score === undefined || 
+        match.final_home_score === null || 
+        match.final_away_score === null
+    ) {
+        return "text-gray-600"; // No color if match is not finished
     }
 
     const predictedHome = prediction.predicted_home_score;

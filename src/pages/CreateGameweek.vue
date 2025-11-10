@@ -31,7 +31,7 @@
           <input type="checkbox" id="setActive" v-model="setActive" class="mr-2">
           <label for="setActive" class="text-sm font-medium text-gray-700">Set Active</label>
       </div>
-      <p v-if="setActive" class="text-gray-600 text-sm">A group can only have 1 active gameweek. Setting this gameweek as active will end the current active season.</p>
+      <p v-if="setActive" class="text-gray-600 text-sm">A group can only have 1 active gameweek. Setting this gameweek as active will end the current active gameweek.</p>
   
       <div v-if="deadline" class="border-t mt-4">
         <AddMatches 

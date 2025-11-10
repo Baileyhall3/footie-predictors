@@ -395,7 +395,7 @@ import Dropdown from "../components/UI/Dropdown.vue";
 import { seasonsService } from "../api/seasonsService";
 import PageHeader from "../components/PageHeader.vue";
 import { Season, Gameweek, Group, GroupMember, Prediction, LeaderboardEntry, GwLeaderboardEntry } from '../types';
-import { copyPageLink } from "../utils/sharedFunctions";
+import { copyPageLink, mapPredictions } from "../utils/sharedFunctions";
 import CreateNotification from "../components/dialogs/CreateNotification.vue";
 
 const route = useRoute();
@@ -478,7 +478,15 @@ const fetchAllData = async () => {
     
     activeGameweek.value = gameweeksData.filter(x => x.is_active)[0];
     if (activeGameweek.value && Object.keys(activeGameweek.value).length > 0) {
-      mapPredictions();
+      // Fetch both matches and predictions
+      const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
+        gameweeksService.getMatches(activeGameweek.value.id),
+        predictionsService.getUserGameweekPredictions(userStore.user?.id, activeGameweek.value.id)
+      ]);
+
+      const formattedMatches = mapPredictions(predictionsData, matchData);
+      predictions.value = formattedMatches.predictions;
+      matches.value = formattedMatches.matches;
     }
     
     // Fetch leaderboard
@@ -499,45 +507,6 @@ const fetchAllData = async () => {
     loading.value = false;
   }
 };
-
-async function mapPredictions() {
-  // Fetch both matches and predictions
-  const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
-    gameweeksService.getMatches(activeGameweek.value.id),
-    predictionsService.getUserGameweekPredictions(userStore.user?.id, activeGameweek.value.id)
-  ]);
-
-  // Map predictions by match_id for quick lookup
-  const predictionsMap = predictionsData.reduce((acc, prediction) => {
-    acc[prediction.match_id] = prediction;
-    return acc;
-  }, {});
-
-  // Merge predictions into matches
-  matches.value = matchData.map(match => ({
-    ...match,
-    api_match_id: match.api_match_id,
-    previous_home_score: match.final_home_score, // Store initial score
-    previous_away_score: match.final_away_score,
-    predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
-    predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
-    prediction_id: predictionsMap[match.id]?.id || null,
-    home_team_crest: match.homeClub?.crest_url,
-    away_team_crest: match.awayClub?.crest_url
-  }));
-
-  // Initialize predictions object for v-model binding
-  predictions.value = matches.value.reduce((acc, match) => {
-    acc[match.id] = {
-      predicted_home_score: match.predicted_home_score,
-      predicted_away_score: match.predicted_away_score
-    };
-    return acc;
-  }, {});
-
-  loading.value = false;
-
-}
 
 const handlePredictionUpdate = ({ matchId, field, value }) => {
     if (!predictions.value[matchId]) {

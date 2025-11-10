@@ -14,9 +14,12 @@
         <PageHeader>
           <template #header>
             <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
-            <LockClosedIcon class="size-6 ms-1" v-if="gameweek?.is_locked" />
-            <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
+            <LockClosedIcon class="size-6 ms-1 me-1" v-if="gameweek?.is_locked" title="This gameweek is locked" />
+            <!-- <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
               Active
+            </div> -->
+            <div v-if="gameweek?.is_active" class="py-1" title="This gameweek is active">
+              <StarIcon class="size-6 text-yellow-300" />
             </div>
           </template>
           <template #actionItems>
@@ -28,20 +31,20 @@
                 <EllipsisVerticalIcon class="size-6 text-gray-500" />
               </template>
               <template #items>
-                <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
+                <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item item-separator">
                   Go to Group
                 </router-link>
-                <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item">
+                <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item item-separator">
                   {{ gameweek?.season_name }}
                 </router-link>
                 <template v-if="isAdmin">
-                  <button v-if="canUnlockGameweek" @click="changeGameWeekLockedStatus" class="dropdown-item">
+                  <button @click="changeGameWeekLockedStatus" class="dropdown-item item-separator">
                     {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
                   </button>
-                  <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="changeGameWeekActiveStatus" class="dropdown-item">
+                  <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="changeGameWeekActiveStatus" class="dropdown-item item-separator">
                     Set Active
                   </button>
-                  <button @click="deleteGameweek" class="dropdown-item text-red-700">
+                  <button @click="deleteGameweek" class="dropdown-item text-red-700 item-separator">
                     Delete
                   </button>
                 </template>
@@ -183,7 +186,7 @@ import { gameweeksService } from '../api/gameweeksService';
 import { groupsStore } from '../store/groupsStore';
 import { userStore } from '../store/userStore';
 import { userIsAdmin, userInGroup } from "../utils/checkPermissions";
-import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, LinkIcon, EllipsisVerticalIcon, StarIcon } from "@heroicons/vue/24/solid";
 import { predictionsService } from '../api/predictionsService';
 import DateUtils from '../utils/dateUtils';
 import LoadingScreen from "../components/LoadingScreen.vue";
@@ -211,6 +214,7 @@ import GridCol from '../components/UI/grid/GridCol.vue';
 import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
 import PageHeader from '../components/PageHeader.vue';
 import { CancelBtn, EditBtn, AddBtn } from '../components/UI/buttons';
+import { mapPredictions } from '../utils/sharedFunctions';
 
 const route = useRoute();
 const router = useRouter();
@@ -304,49 +308,21 @@ async function fetchGameweek() {
     const { data: gameweekPredictions, error: gameweekPredictionsError } = await predictionsService.getGameweekPredictions(gameweek.value.id);
     if (gameweekPredictionsError) throw new Error('Failed to load all gameweek predictions')
   
-    mapPredictions(predictionsData, matchData);
+    const formattedMatches = mapPredictions(predictionsData, matchData);
+    predictions.value = formattedMatches.predictions;
+    matches.value = formattedMatches.matches;
+
+    loading.value = false;
+
+    if (gameweekWinner.value.user_id === userStore.user?.id && gameweek.value.is_finished) {
+      triggerConfetti();
+    }
   
     mapPotentialFinishData(leaderboardData, groupData, matchData, gameweekPredictions);
   } catch (err) {
     console.error(err);
   } finally {
     loading.value = false;
-  }
-}
-
-async function mapPredictions(predictionsData, matchData) {
-  // Map predictions by match_id for quick lookup
-  const predictionsMap = predictionsData.reduce((acc, prediction) => {
-    acc[prediction.match_id] = prediction;
-    return acc;
-  }, {});
-
-  // Merge predictions into matches
-  matches.value = matchData.map(match => ({
-    ...match,
-    api_match_id: match.api_match_id,
-    previous_home_score: match.final_home_score, // Store initial score
-    previous_away_score: match.final_away_score,
-    predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
-    predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
-    prediction_id: predictionsMap[match.id]?.id || null,
-    home_team_crest: match.homeClub?.crest_url,
-    away_team_crest: match.awayClub?.crest_url
-  }));
-
-  // Initialize predictions object for v-model binding
-  predictions.value = matches.value.reduce((acc, match) => {
-    acc[match.id] = {
-      predicted_home_score: match.predicted_home_score,
-      predicted_away_score: match.predicted_away_score
-    };
-    return acc;
-  }, {});
-
-  loading.value = false;
-
-  if (gameweekWinner.value.user_id === userStore.user?.id && gameweek.value.is_finished) {
-    triggerConfetti();
   }
 }
 
@@ -390,13 +366,6 @@ function mapPotentialFinishData(leaderboardData: any[], groupData: any, matchDat
     currentPosition: user.currentPosition,
     predictions: predictionsByUser[user.userId] || []
   }));
-}
-
-function toggleEditMode() {
-  editMode.value = !editMode.value;
-  if (!editMode.value) {
-    mapPredictions();
-  }
 }
 
 function handleTabSelected(index: number) {
@@ -456,7 +425,7 @@ const deleteGameweek = async () => {
 async function submitPredictions() {
   loading.value = true;
 
-  console.log(predictions.value)
+  console.log('predictionsss: ', predictions.value)
 
   for (const [matchId, prediction] of Object.entries(predictions.value)) {
     await predictionsService.savePrediction(
@@ -529,9 +498,9 @@ const handleMatchRemoved = async(matchId) => {
         try {
           const { data, error } = await gameweeksService.deleteMatch(matchId);
           
-          if (!error) {
-            mapPredictions();
-          }
+          // if (!error) {
+          //   mapPredictions();
+          // }
         } catch (err) {
           console.error(err);
         }

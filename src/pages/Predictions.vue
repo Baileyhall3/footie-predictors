@@ -69,6 +69,7 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import type { Group } from "../types";
 import { SearchBar2 } from '../components/UI/input';
+import { mapPredictions } from "../utils/sharedFunctions";
 
 const isLoading = ref<boolean>(true);
 const userGroups = ref<Array<Group>>([]); // incorrect type
@@ -133,36 +134,13 @@ async function fetchAllData() {
             const matches = matchesResults[index].data || [];
             const predictionsData = predictionsResults[index].data || [];
 
-            // Map predictions by match_id
-            const predictionsMap = predictionsData.reduce((acc, prediction) => {
-                acc[prediction.match_id] = prediction;
-                return acc;
-            }, {});
-
-            // Merge predictions into matches
-            const mappedMatches = matches.map(match => ({
-                ...match,
-                previous_home_score: match.final_home_score,
-                previous_away_score: match.final_away_score,
-                predicted_home_score: predictionsMap[match.id]?.predicted_home_score ?? '',
-                predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? '',
-                prediction_id: predictionsMap[match.id]?.id || null
-            }));
-
-            // Initialize predictions object
-            const predictions = mappedMatches.reduce((acc, match) => {
-                acc[match.id] = {
-                    predicted_home_score: match.predicted_home_score,
-                    predicted_away_score: match.predicted_away_score
-                };
-                return acc;
-            }, {});
+            const formattedMatches = mapPredictions(predictionsData, matches);
 
             return {
                 ...group,
                 gameweek,
-                matches: mappedMatches,
-                predictions,
+                matches: formattedMatches.matches,
+                predictions: formattedMatches.predictions,
                 allPredictionsSubmitted: predictionsData.length === matches.length,
                 predictionsChanged: false
             };
