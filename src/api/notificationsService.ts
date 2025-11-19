@@ -159,7 +159,7 @@ export const notificationsService = {
     },
 
     /**
-     * Get all general notification preferences (no group associated) for a user
+     * Get all group notification preferences for a user
      * @param {string} userId - User ID
      * @param {string} groupId - Group ID
      * @returns {Promise<{data: Array, error: Object}>}
@@ -185,6 +185,30 @@ export const notificationsService = {
     },
 
     /**
+     * Get all group notification preferences
+     * @param {string} groupId - Group ID
+     * @returns {Promise<{data: Array, error: Object}>}
+     */
+    async getAllUserGroupPreferences( groupId: string) {
+        try {
+            const { data, error } = await supabaseDb.customQuery((supabase) =>
+            supabase
+                .from('notifications_group_preferences')
+                .select('*')
+                .eq('group_id', groupId)
+                .order('id', { ascending: true })
+            )
+
+            if (error) throw error
+
+            return { data, error: null }
+        } catch (error) {
+            console.error('Error fetching notification preferences for group:', error)
+            return { data: null, error }
+        }
+    },
+
+    /**
      * Update notification preference to be allowed or not
      * @param {string} id - Notification ID
      * @param {boolean} allowPush - Whether to allow notifications or not
@@ -193,6 +217,18 @@ export const notificationsService = {
     async updateNotificationPreferencePush(id: string, allowPush: boolean) {
         return supabaseDb.update('notification_preferences', id, {
             allow_push: allowPush,
+        });
+    },
+
+    /**
+     * Update email preference to be allowed or not
+     * @param {string} id - Notification ID
+     * @param {boolean} allowEmail - Whether to allow emails or not
+     * @returns {Promise<{data: Object, error: Object}>}
+     */
+    async updateNotificationPreferenceEmail(id: string, allowEmail: boolean) {
+        return supabaseDb.update('notification_preferences', id, {
+            allow_email: allowEmail,
         });
     },
 

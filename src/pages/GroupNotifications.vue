@@ -51,7 +51,6 @@
                             No notifications for this group yet.
                         </p>
                     </RoundedContainer>
-                    
 
                     <NotificationCard :notifications="notifications" @notification-deleted="getNotifications" />
                 </template>

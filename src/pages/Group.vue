@@ -45,15 +45,17 @@
                   <router-link :to="`/group/${groupId}/notifications`" class="text-blue-600 dropdown-item item-separator">
                     Notifications
                   </router-link>
-                  <router-link :to="`/group/${group?.id}/admin-view`" >
-                    <button class="dropdown-item item-separator text-blue-600 ">
-                      Admin View
-                    </button>
-                  </router-link>
-                  <template v-if="group?.iAmOwner">
+                  <template v-if="group?.iAmAdmin">
+                    <router-link :to="`/group/${group?.id}/admin-view`" >
+                      <button class="dropdown-item item-separator text-blue-600 ">
+                        Admin View
+                      </button>
+                    </router-link>
                     <button class="dropdown-item item-separator" @click="createNotificationDialog.show()">
                       Create Notification
                     </button>
+                  </template>
+                  <template v-if="group?.iAmOwner">
                      <router-link :to="`/group/${group?.id}/update-group`" >
                        <button class="dropdown-item item-separator">
                          Edit
