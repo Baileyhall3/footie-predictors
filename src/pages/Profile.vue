@@ -105,51 +105,7 @@
           <div class="border-b pb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-1">Achievements</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              <div
-                v-for="a in achievements"
-                :key="a.achievement_id"
-                class="relative rounded-xl p-4 transition-all duration-300"
-                :class="[
-                  a.is_unlocked
-                    ? 'bg-white shadow-md hover:shadow-xl'
-                    : 'bg-gray-100 opacity-60 grayscale'
-                ]"
-              >
-                <!-- Lock overlay -->
-                <!-- <div
-                  v-if="!a.is_unlocked"
-                  class="absolute inset-0 flex items-center justify-center rounded-xl bg-white/0 backdrop-blur-[1px]"
-                >
-                  <span class="text-3xl">🔒</span>
-                </div> -->
-
-                <div class="flex items-center gap-3">
-                  <!-- Icon -->
-                  <div
-                    class="flex h-12 w-12 items-center justify-center rounded-full text-xl"
-                    :class="a.is_unlocked ? 'bg-green-100' : 'bg-gray-300'"
-                  >
-                    🏆
-                  </div>
-
-                  <!-- Text -->
-                  <div>
-                    <h3 class="text-lg font-semibold">
-                      {{ a.name }}
-                    </h3>
-                    <p class="text-sm text-gray-600">
-                      {{ a.description }}
-                    </p>
-
-                    <p
-                      v-if="a.is_unlocked && a.awarded_at"
-                      class="mt-1 text-xs text-green-600"
-                    >
-                      Unlocked {{ new Date(a.awarded_at).toLocaleDateString('en-GB') }}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <AchievementCard v-for="a in achievements" :key="a.achievement_id" :achievement="a" />
             </div>
           </div>
           <!-- Account Actions -->
@@ -190,10 +146,11 @@ import NewDisplayPicture from '../components/dialogs/NewDisplayPicture.vue';
 import { PaintBrushIcon } from "@heroicons/vue/24/solid";
 import { SaveBtn, CancelBtn, EditBtn } from '../components/UI/buttons';
 import { notificationsService } from '../api/notificationsService';
-import type { NotificationPreference } from '../types';
+import type { NotificationPreference, Achievement } from '../types';
 import NotificationPreferences from '../components/NotificationPreferences.vue';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import { userService } from '../api/userService';
+import AchievementCard from '../components/UI/AchievementCard.vue';
 
 const router = useRouter();
 const editMode = ref(false);
@@ -201,7 +158,7 @@ const errorMessage = ref('');
 const displayPictureDialog = ref(null);
 const userData = ref({ username: userStore.userProfile.username });
 const preferences = ref<Array<NotificationPreference>>([]);
-const achievements = ref([]);
+const achievements = ref<Array<Achievement>>([]);
 const loading = ref<boolean>();
 
 onMounted(() => {

@@ -68,12 +68,12 @@ import { notificationsService } from '../api/notificationsService';
 import { userStore } from '../store/userStore';
 import { SearchBar2 } from '../components/UI/input';
 import NotificationCard from '../components/NotificationCard.vue';
+import { notificationsStore } from '../store/notificationsStore';
 
 type ReadFilter = 'all' | 'unread' | 'read'
 
 const isLoading = ref<boolean>();
 const notifications = ref<Array<Notification>>([]);
-const allNotifications = ref<Array<Notification>>([]);
 const searchQuery = ref<string>('');
 const activeFilter = ref<ReadFilter>('all');
 
@@ -82,7 +82,7 @@ onMounted(() => {
 });
 
 const groupedNotifications = computed(() => {
-    let filtered = allNotifications.value;
+    let filtered = notificationsStore.notifications;
 
     if (activeFilter.value === 'read') {
         filtered = filtered.filter(n => n.read === true);
@@ -127,12 +127,7 @@ const groupedNotifications = computed(() => {
 async function fetchAllData() {
     try {
         isLoading.value = false;
-
-        const { data, error } = await notificationsService.getAllUserNotifcations(userStore.user?.id);
-        if (error) throw new Error(error);
-
-        notifications.value = data || [];
-        allNotifications.value = data || [];
+        notifications.value = notificationsStore.notifications || [];
     } catch(err) {
         console.error(err);
     } finally {
@@ -144,11 +139,11 @@ function handleSearchQuery() {
     const query = searchQuery.value.trim().toLowerCase();
 
     if (query) {
-        notifications.value = allNotifications.value.filter(group =>
+        notifications.value = notificationsStore.notifications.filter(group =>
             group.group_name && group.group_name.toLowerCase().includes(query)
         );
     } else {
-        notifications.value = allNotifications.value;
+        notifications.value = notificationsStore.notifications;
     }
 }
 
@@ -157,7 +152,7 @@ function setActiveFilter(filter: ReadFilter) {
 }
 
 function handleNotificationDelete(notif: Notification) {
-    allNotifications.value = allNotifications.value.filter(n => n.id !== notif.id);
+    notificationsStore.removeNotificationById(notif.id);
 }
 
 </script>

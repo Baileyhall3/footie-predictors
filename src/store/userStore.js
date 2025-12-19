@@ -2,6 +2,8 @@ import { reactive } from 'vue'
 import { supabase } from '../api/supabase'
 import { supabaseDb } from '../api/supabaseDb'
 import { saveAuthState, clearAuthState, hasAuthState } from '../utils/authPersistence'
+import { realtimeNotificationsService } from '../api/realtime/notifications'
+import { notificationsStore } from './notificationsStore'
 
 // Create a reactive state object
 const state = reactive({
@@ -59,15 +61,23 @@ export const userStore = {
         
         // If user is logged in, fetch their profile
         if (state.user) {
-          await this.fetchUserProfile()
+          await this.fetchUserProfile();
+          const { data, error } = await this.getUserNotifications();
+          notificationsStore.setInitial(data ?? []);
+          realtimeNotificationsService.startNotificationsRealtime();
         } else {
           state.userProfile = null
+          realtimeNotificationsService.stopNotificationsRealtime();
+          notificationsStore.clear();
         }
       })
       
       // If user is logged in, fetch their profile
       if (state.user) {
-        await this.fetchUserProfile()
+        await this.fetchUserProfile();
+        const { data, error } = await this.getUserNotifications();
+        notificationsStore.setInitial(data ?? []);
+        realtimeNotificationsService.startNotificationsRealtime();
       }
       
       return { success: true }
@@ -403,6 +413,25 @@ export const userStore = {
           return { data, error: null }
       } catch (error) {
           console.error('Error fetching unread notifications:', error)
+          return { data: null, error }
+      }
+  },
+
+  async getUserNotifications() {
+      try {
+          if (!state.user) throw new Error("User not authenticated");
+
+          const { data, error } = await supabase
+          .from("notifications_view")
+          .select('*')
+          .eq('user_id', state.user.id)
+          .order('created_at', { ascending: false })
+
+          if (error) throw error
+
+          return { data, error: null }
+      } catch (error) {
+          console.error('Error fetching notifications:', error)
           return { data: null, error }
       }
   },

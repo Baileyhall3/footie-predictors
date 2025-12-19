@@ -79,7 +79,7 @@ export const notificationsService = {
         const result = await supabaseDb.create('notifications', notification);
 
         // Refresh unread notifications
-        await notificationsStore.fetchUserUnreadNotifications();
+        // await notificationsStore.fetchUserUnreadNotifications();
 
         return result;
     },
@@ -115,7 +115,7 @@ export const notificationsService = {
             read: read,
         });
 
-        await notificationsStore.fetchUserUnreadNotifications();
+        // await notificationsStore.fetchUserUnreadNotifications();
 
         return result;
     },
@@ -128,7 +128,7 @@ export const notificationsService = {
     async deleteNotification(id: string) {
         const result = await supabaseDb.delete('notifications', id);
 
-        await notificationsStore.fetchUserUnreadNotifications();
+        // await notificationsStore.fetchUserUnreadNotifications();
 
         return result;
     },
