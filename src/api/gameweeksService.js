@@ -569,6 +569,7 @@ export const gameweeksService = {
         notif_type: 'gameweek_created',
         group_id: gameweek.group_id,
         template_data: {
+          header: 'New Gameweek',
           week_number: gameweek.week_number,
           deadline: gameweek.deadline,
           content: `<b>Gameweek ${gameweek.week_number}</b> just dropped, with a deadline of <b>${DateUtils.toFullDateTime(gameweek.deadline)}</b>. Go make your predictions now!`,

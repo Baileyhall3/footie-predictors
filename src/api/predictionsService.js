@@ -304,6 +304,7 @@ export const predictionsService = {
  * @returns {Promise<{success: boolean, error: Object}>}
  */
 async calculateMatchScores(matchId) {
+  // TODO: clean this TF up
 
   console.log(`Calculating scores for match: ${matchId}`);
 
@@ -467,5 +468,27 @@ async getMatchPredictionsUsingView(matchId) {
     return { data: null, error }
   }
 },
+
+  // #region RPCs
+  /**
+   * Submits predictions using supabase rpc
+   * @param {string} userId 
+   * @param {Array<{match_id: string, predicted_home_score: number, predicted_away_score: number}>} predictions 
+   * @param {boolean} createdByAdmin 
+   * @returns {Promise<{success: boolean, error: Object}>}
+   */
+  async submitPredictions(userId, predictions, createdByAdmin = false) {
+    const { error } = await supabase.rpc('upsert_predictions', {
+      p_user_id: userId,
+      p_predictions: predictions,
+      p_created_by_admin: createdByAdmin
+    });
+
+    if (error) {
+      return { success: false, error };
+    }
+    
+    return { success: true, error: null };
+  }
 
 }

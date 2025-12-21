@@ -108,17 +108,17 @@ const props = withDefaults(defineProps<IProps>(), {
     headerTextColor: 'text-white',
 });
 
-onMounted(() => {
-    if (userStore.isAuthenticated) {
-        getUnreadNotifications();
-    }
-});
+// onMounted(() => {
+//     if (userStore.isAuthenticated) {
+//         getUnreadNotifications();
+//     }
+// });
 
-async function getUnreadNotifications() {
-    try {
-        await notificationsStore.fetchUserUnreadNotifications();    
-    } catch (err) {
-        console.error(err);
-    }
-}
+// async function getUnreadNotifications() {
+//     try {
+//         await notificationsStore.fetchUserUnreadNotifications();    
+//     } catch (err) {
+//         console.error(err);
+//     }
+// }
 </script>

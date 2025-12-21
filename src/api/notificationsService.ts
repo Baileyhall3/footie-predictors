@@ -111,13 +111,13 @@ export const notificationsService = {
      * @returns {Promise<{data: Object, error: Object}>}
      */
     async updateNotificationReadStatus(id: string, read: boolean = true) {
-        const result = await supabaseDb.update('notifications', id, {
+        const { data, error } = await supabaseDb.update('notifications', id, {
             read: read,
         });
 
-        // await notificationsStore.fetchUserUnreadNotifications();
-
-        return result;
+        if (error) throw new Error(error);
+        notificationsStore.updateUnreadCount(data.read ? 'dec' : 'inc');
+        return { data, error: null } 
     },
 
     /**

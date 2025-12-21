@@ -40,32 +40,10 @@ export const notificationsStore = {
     }
   },
 
-  async fetchUserUnreadNotifications() {
-    try {
-      state.loading = true
-      state.error = null
-
-      const { data, error } = await userStore.getUserUnreadNotifications()
-      if (error) throw error
-
-      state.notifications = data || [];
-      if (state.notifications.length > 0) {
-        state.unreadNotifications = state.notifications.filter(x => !x.read).length;
-      }
-
-      return { data, error: null }
-    } catch (error) {
-      state.error = error.message
-      return { data: null, error }
-    } finally {
-      state.loading = false
-    }
-  },
-
   add(notification: Notification) {
     state.notifications.unshift(notification);
     if (!notification.read) {
-      state.unreadNotifications++;
+      this.updateUnreadCount('inc');
     }
     toast(`${notification.template_data.header}`, {
         "type": "success",
@@ -73,8 +51,17 @@ export const notificationsStore = {
     });
   },
 
+  updateUnreadCount(direction: 'inc' | 'dec') {
+    if (direction == 'inc') {
+      state.unreadNotifications ++
+    } else if (direction == 'dec') {
+      state.unreadNotifications --
+    }
+  },
+
   removeNotificationById(id: number) {
     state.notifications = state.notifications.filter(x => x.id !== id);
+    this.updateUnreadCount('dec');
   },
 
   clear() {
