@@ -42,8 +42,6 @@
                         @change="handleFileChange"
                     />
                 </div>
-
-
                 <div>
                     <h4 class="text-l font-semibold mb-2 ms-2">Select Colour</h4>
                     <div class="flex flex-wrap justify-center gap-4 border-t pt-6 w-full p-4">

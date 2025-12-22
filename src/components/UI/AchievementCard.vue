@@ -9,8 +9,9 @@
     >
         <div class="flex items-start gap-3">
             <div
-                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl leading-none"
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl leading-none cursor-pointer"
                 :class="props.achievement.is_unlocked ? 'bg-green-100' : 'bg-gray-300'"
+                @click="openDetailDialog"
             >
                 <template v-if="props.achievement.is_unlocked">
                     {{ props.achievement.icon }}
@@ -36,17 +37,26 @@
             </div>
         </div>
     </div>
+
+    <AchievementDetail :achievement="achievement" ref="achievementDetail" />
 </template>
 
 <script setup lang="ts">
 import { Achievement } from '../../types';
-import { computed } from 'vue'; 
+import { computed, ref } from 'vue'; 
+import AchievementDetail from '../dialogs/AchievementDetail.vue';
 
 const props = defineProps<{
     achievement: Achievement
 }>();
 
+const achievementDetail = ref(null);
+
 const isHidden = computed(() => {
     return props.achievement.is_hidden && !props.achievement.is_unlocked;
 });
+
+function openDetailDialog() {
+    achievementDetail.value?.show();
+}
 </script>

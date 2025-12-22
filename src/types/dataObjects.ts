@@ -200,4 +200,5 @@ export interface Achievement {
     description: string;
     awarded_at: Date;
     icon: string;
+    unlock_percentage: number;
 }
