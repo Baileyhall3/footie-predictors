@@ -77,6 +77,7 @@ import { EllipsisVerticalIcon } from '@heroicons/vue/24/solid';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { getPriorityBadgeClass } from '../utils/sharedFunctions';
+import { notificationsStore } from '../store/notificationsStore';
 
 const props = defineProps<{
     notifications: Notification[],
@@ -122,6 +123,7 @@ async function deleteNotification(notif: Notification) {
                 "type": "success",
                 "position": "top-center"
             });
+            notificationsStore.removeNotificationById(notif.id);
             // const targetIndex = props.notifications.findIndex(n => n.id === notif.id);
             // props.notifications.splice(targetIndex, 1);
         }

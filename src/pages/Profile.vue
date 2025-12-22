@@ -101,6 +101,13 @@
               <NotificationPreferences :preferences="preferences" />
             </div>
           </div>
+
+          <div class="border-b pb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-1">Achievements</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              <AchievementCard v-for="a in achievements" :key="a.achievement_id" :achievement="a" />
+            </div>
+          </div>
           <!-- Account Actions -->
           <div>
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Account Actions</h2>
@@ -139,9 +146,11 @@ import NewDisplayPicture from '../components/dialogs/NewDisplayPicture.vue';
 import { PaintBrushIcon } from "@heroicons/vue/24/solid";
 import { SaveBtn, CancelBtn, EditBtn } from '../components/UI/buttons';
 import { notificationsService } from '../api/notificationsService';
-import type { NotificationPreference } from '../types';
+import type { NotificationPreference, Achievement } from '../types';
 import NotificationPreferences from '../components/NotificationPreferences.vue';
 import LoadingScreen from '../components/LoadingScreen.vue';
+import { userService } from '../api/userService';
+import AchievementCard from '../components/UI/AchievementCard.vue';
 
 const router = useRouter();
 const editMode = ref(false);
@@ -149,11 +158,33 @@ const errorMessage = ref('');
 const displayPictureDialog = ref(null);
 const userData = ref({ username: userStore.userProfile.username });
 const preferences = ref<Array<NotificationPreference>>([]);
+const achievements = ref<Array<Achievement>>([]);
 const loading = ref<boolean>();
 
 onMounted(() => {
-  getPreferences();
+  getAllData();
 });
+
+async function getAllData() {
+  try {
+    loading.value = true;
+
+    const { data: achievementData, error: achievementError } = await userService.getUserAchievements();
+    if (achievementError) throw new Error('Failed to load achievments');
+    achievements.value = achievementData;
+
+    console.log('achievements ', achievements.value)
+
+    const { data, error } = await notificationsService.getUserGeneralPreferences(userStore.user?.id);
+    if (error) throw new Error('Failed to load preferences');
+
+    preferences.value = data || []
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
+}
 
 async function getPreferences() {
     try {

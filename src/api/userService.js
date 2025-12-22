@@ -83,4 +83,27 @@ export const userService = {
             return { success: false, error: err };
         }
     },
+
+    /**
+   * Get a user's achievements
+   * @returns {Promise<{data: Object, error: Object}>}
+   */
+  async getUserAchievements() {
+    try {
+      const { data, error } = await supabaseDb.customQuery((supabase) =>
+        supabase
+          .from('user_achievement_status')
+          .select('*')
+      )
+
+      if (error) {
+        throw error
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error fetching user prediction:', error)
+      return { data: null, error }
+    }
+  },
 }

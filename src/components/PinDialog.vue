@@ -10,7 +10,7 @@
                         v-for="(digit, index) in pin"
                         :key="index"
                         ref="pinInputs"
-                        type="text"
+                        type="number"
                         maxlength="1"
                         class="w-12 h-12 text-center border rounded-md text-xl font-bold focus:ring-2 focus:ring-blue-500"
                         v-model="pin[index]"

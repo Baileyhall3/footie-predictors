@@ -423,25 +423,37 @@ const deleteGameweek = async () => {
 };
   
 async function submitPredictions() {
-  loading.value = true;
-
-  console.log('predictionsss: ', predictions.value)
-
-  for (const [matchId, prediction] of Object.entries(predictions.value)) {
-    await predictionsService.savePrediction(
-      userStore.user?.id, 
-      matchId, 
-      prediction.predicted_home_score ? prediction.predicted_home_score : 0,
-      prediction.predicted_away_score ? prediction.predicted_away_score : 0
+  try {
+    loading.value = true;
+    
+    console.log('predictionsss: ', predictions.value);
+  
+    const predictionsToSubmit = Object.entries(predictions.value).map(
+      ([matchId, prediction]) => ({
+        match_id: matchId,
+        predicted_home_score: prediction.predicted_home_score ?? 0,
+        predicted_away_score: prediction.predicted_away_score ?? 0
+      })
     );
+  
+    const { success, error} = await predictionsService.submitPredictions(userStore.user.id, predictionsToSubmit);
+    if (error) {
+      toast("An error occurred while submitting your predictions.", {
+        "type": "error",
+        "position": "top-center"
+      });
+      throw new Error("An error occurred while submitting your predictions.")
+    } else if (success) {
+      toast("Your predictions have been saved!", {
+        "type": "success",
+        "position": "top-center"
+      });
+    }
+  } catch(err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
   }
-
-  toast("Your predictions have been saved!", {
-    "type": "success",
-    "position": "top-center"
-  });
-
-  loading.value = false;
 }
 
 async function saveScores() {

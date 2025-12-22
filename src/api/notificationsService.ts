@@ -79,7 +79,7 @@ export const notificationsService = {
         const result = await supabaseDb.create('notifications', notification);
 
         // Refresh unread notifications
-        await notificationsStore.fetchUserUnreadNotifications();
+        // await notificationsStore.fetchUserUnreadNotifications();
 
         return result;
     },
@@ -111,13 +111,13 @@ export const notificationsService = {
      * @returns {Promise<{data: Object, error: Object}>}
      */
     async updateNotificationReadStatus(id: string, read: boolean = true) {
-        const result = await supabaseDb.update('notifications', id, {
+        const { data, error } = await supabaseDb.update('notifications', id, {
             read: read,
         });
 
-        await notificationsStore.fetchUserUnreadNotifications();
-
-        return result;
+        if (error) throw new Error(error);
+        notificationsStore.updateUnreadCount(data.read ? 'dec' : 'inc');
+        return { data, error: null } 
     },
 
     /**
@@ -128,7 +128,7 @@ export const notificationsService = {
     async deleteNotification(id: string) {
         const result = await supabaseDb.delete('notifications', id);
 
-        await notificationsStore.fetchUserUnreadNotifications();
+        // await notificationsStore.fetchUserUnreadNotifications();
 
         return result;
     },
@@ -159,7 +159,7 @@ export const notificationsService = {
     },
 
     /**
-     * Get all general notification preferences (no group associated) for a user
+     * Get all group notification preferences for a user
      * @param {string} userId - User ID
      * @param {string} groupId - Group ID
      * @returns {Promise<{data: Array, error: Object}>}
@@ -185,6 +185,30 @@ export const notificationsService = {
     },
 
     /**
+     * Get all group notification preferences
+     * @param {string} groupId - Group ID
+     * @returns {Promise<{data: Array, error: Object}>}
+     */
+    async getAllUserGroupPreferences( groupId: string) {
+        try {
+            const { data, error } = await supabaseDb.customQuery((supabase) =>
+            supabase
+                .from('notifications_group_preferences')
+                .select('*')
+                .eq('group_id', groupId)
+                .order('id', { ascending: true })
+            )
+
+            if (error) throw error
+
+            return { data, error: null }
+        } catch (error) {
+            console.error('Error fetching notification preferences for group:', error)
+            return { data: null, error }
+        }
+    },
+
+    /**
      * Update notification preference to be allowed or not
      * @param {string} id - Notification ID
      * @param {boolean} allowPush - Whether to allow notifications or not
@@ -193,6 +217,18 @@ export const notificationsService = {
     async updateNotificationPreferencePush(id: string, allowPush: boolean) {
         return supabaseDb.update('notification_preferences', id, {
             allow_push: allowPush,
+        });
+    },
+
+    /**
+     * Update email preference to be allowed or not
+     * @param {string} id - Notification ID
+     * @param {boolean} allowEmail - Whether to allow emails or not
+     * @returns {Promise<{data: Object, error: Object}>}
+     */
+    async updateNotificationPreferenceEmail(id: string, allowEmail: boolean) {
+        return supabaseDb.update('notification_preferences', id, {
+            allow_email: allowEmail,
         });
     },
 

@@ -166,7 +166,7 @@ export interface NotificationTemplateData {
 }
 
 export interface Notification {
-    id: string
+    id: number
     user_id: string,
     group_id?: string,
     template_data: NotificationTemplateData,
@@ -188,4 +188,16 @@ export interface NotificationPreference {
     group_id?: string,
     allow_push: boolean,
     type: NotificationType
+}
+
+export interface Achievement {
+    id: number;
+    achievement_id: number;
+    user_id: string;
+    is_unlocked: boolean;
+    is_hidden: boolean;
+    name: string;
+    description: string;
+    awarded_at: Date;
+    icon: string;
 }

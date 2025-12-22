@@ -45,15 +45,17 @@
                   <router-link :to="`/group/${groupId}/notifications`" class="text-blue-600 dropdown-item item-separator">
                     Notifications
                   </router-link>
-                  <router-link :to="`/group/${group?.id}/admin-view`" >
-                    <button class="dropdown-item item-separator text-blue-600 ">
-                      Admin View
-                    </button>
-                  </router-link>
-                  <template v-if="group?.iAmOwner">
+                  <template v-if="group?.iAmAdmin">
+                    <router-link :to="`/group/${group?.id}/admin-view`" >
+                      <button class="dropdown-item item-separator text-blue-600 ">
+                        Admin View
+                      </button>
+                    </router-link>
                     <button class="dropdown-item item-separator" @click="createNotificationDialog.show()">
                       Create Notification
                     </button>
+                  </template>
+                  <template v-if="group?.iAmOwner">
                      <router-link :to="`/group/${group?.id}/update-group`" >
                        <button class="dropdown-item item-separator">
                          Edit
@@ -528,21 +530,31 @@ const handlePredictionUpdate = ({ matchId, field, value }) => {
 async function submitPredictions() {
   try {
     loading.value = true;
+    
+    console.log('predictionsss: ', predictions.value);
   
-    for (const [matchId, prediction] of Object.entries(predictions.value)) {
-      await predictionsService.savePrediction(
-        userStore.user?.id, 
-        matchId, 
-        prediction.predicted_home_score ? prediction.predicted_home_score : 0,
-        prediction.predicted_away_score ? prediction.predicted_away_score : 0
-      );
+    const predictionsToSubmit = Object.entries(predictions.value).map(
+      ([matchId, prediction]) => ({
+        match_id: matchId,
+        predicted_home_score: prediction.predicted_home_score ?? 0,
+        predicted_away_score: prediction.predicted_away_score ?? 0
+      })
+    );
+  
+    const { success, error} = await predictionsService.submitPredictions(userStore.user.id, predictionsToSubmit);
+    if (error) {
+      toast("An error occurred while submitting your predictions.", {
+        "type": "error",
+        "position": "top-center"
+      });
+      throw new Error("An error occurred while submitting your predictions.")
+    } else if (success) {
+      toast("Your predictions have been saved!", {
+        "type": "success",
+        "position": "top-center"
+      });
     }
-  
-    toast("Your predictions have been saved!", {
-      "type": "success",
-      "position": "top-center"
-    });
-  } catch (err) {
+  } catch(err) {
     console.error(err);
   } finally {
     loading.value = false;

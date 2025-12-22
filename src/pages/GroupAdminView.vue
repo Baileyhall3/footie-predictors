@@ -109,11 +109,91 @@
                     </RoundedContainer>
                 </Tab>
                 <Tab header="Notifications">
-                    <RoundedContainer>
-                        <div class="justify-center flex">
-                            🛠️ This tab is under construction 🛠️
-                        </div>
-                    </RoundedContainer>
+                    <DataGrid 
+                        ref="notificationsGridRef"
+                        :data="preferencesGridData" 
+                        hideVerticalLines 
+                        headerBgColor="rgb(22 163 74 /1)"
+                        disableActiveCell
+                    >
+                        <template #cardHeader>
+                            <div class="py-2 ms-2">
+                                <div>
+                                    <span>All group members and their notification preferences.</span>
+                                </div>
+                                <div>
+                                    <span>Users with a slashed bell will not receive notifications of the specified type.</span>
+                                </div>
+                            </div>
+                        </template>
+                        <template #columns="{ row }">
+                            <GridCol field="username" colName="Username" width="200px">
+                                <template #display="{ row }">
+                                    <UsernameDisplay :user="row" :currentUserId="userStore.user?.id" />
+                                </template>
+                            </GridCol>
+                            <GridCol field="admin_announcement" colName="Admin Announcement" width="60px" colTitle="Total Points" sortable type="string" align-content="center">
+                                <template #display="{ row }">
+                                    <BellIcon 
+                                        class="size-5" 
+                                        v-if="row.admin_announcement" 
+                                    />
+                                    <BellSlashIcon 
+                                        class="size-5" 
+                                        v-else 
+                                    />
+                                </template>
+                            </GridCol>
+                            <GridCol field="gameweek_created" colName="Gameweek Created" width="60px" colTitle="Total Points" sortable type="string" align-content="center">
+                                <template #display="{ row }">
+                                    <BellIcon 
+                                        class="size-5" 
+                                        v-if="row.gameweek_created" 
+                                    />
+                                    <BellSlashIcon 
+                                        class="size-5" 
+                                        v-else 
+                                    />
+                                </template>
+                            </GridCol>
+                            <GridCol field="gameweek_deadline" colName="Gameweek Deadline" width="60px" colTitle="Total Points" sortable type="string" align-content="center">
+                                <template #display="{ row }">
+                                    <BellIcon 
+                                        class="size-5" 
+                                        v-if="row.gameweek_deadline" 
+                                    />
+                                    <BellSlashIcon 
+                                        class="size-5" 
+                                        v-else 
+                                    />
+                                </template>
+                            </GridCol>
+                            <GridCol field="gameweek_finished" colName="Gameweek Finished" width="60px" colTitle="Total Points" sortable type="string" align-content="center">
+                                <template #display="{ row }">
+                                    <BellIcon 
+                                        class="size-5" 
+                                        v-if="row.gameweek_finished" 
+                                    />
+                                    <BellSlashIcon 
+                                        class="size-5" 
+                                        v-else 
+                                    />
+                                </template>
+                            </GridCol>
+                            <GridCol field="predictions_reminder" colName="Predictions Reminder" width="60px" colTitle="Total Points" sortable type="string" align-content="center">
+                                <template #display="{ row }">
+                                    <BellIcon 
+                                        class="size-5" 
+                                        v-if="row.predictions_reminder" 
+                                    />
+                                    <BellSlashIcon 
+                                        class="size-5" 
+                                        v-else 
+                                    />
+                                </template>
+                            </GridCol>
+                        </template>
+                    </DataGrid>
                 </Tab>
             </Tabs>
         </template>
@@ -137,8 +217,25 @@ import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
 import { Send } from 'lucide-vue-next'; 
 import PredictionsReminder from '../components/dialogs/PredictionsReminder.vue';
 import { gameweeksService } from '../api/gameweeksService';
+import { notificationsService } from '../api/notificationsService';
+import DataGrid from '../components/UI/grid/DataGrid.vue';
+import GridCol from '../components/UI/grid/GridCol.vue';
+import { userStore } from '../store/userStore';
+import { BellIcon, BellSlashIcon } from '@heroicons/vue/24/solid';
 
 type MemberFilter = 'all' | 'submitted' | 'unsubmitted'
+
+interface UserPreferences {
+    admin_announcement: boolean;
+    gameweek_created: boolean;
+    gameweek_deadline: boolean;
+    gameweek_finished: boolean;
+    predictions_reminder: boolean;
+    user_id: string;
+    username: string;
+    profile_picture_url: string;
+    bg_colour: string;
+}
 
 const isLoading = ref<boolean>(false);
 const group = ref<Group>();
@@ -150,6 +247,7 @@ const activeMemberFilter = ref<MemberFilter>('all');
 const unsubmittedMembers = ref([]);
 const reminderDialog = ref(null);
 const activeGameweek = ref<Gameweek>();
+const preferencesGridData = ref<UserPreferences[]>([]);
 
 const route = useRoute();
 const router = useRouter();
@@ -190,11 +288,40 @@ async function fetchAllData() {
         if (gameweekError) throw new Error(gameweekError);
 
         activeGameweek.value = gameweekData || {};
+
+        const { data: preferencesData, error: preferencesError } = await notificationsService.getAllUserGroupPreferences(groupId);
+        if (preferencesError) throw new Error(preferencesError);
+
+        preferencesGridData.value = pivotPreferences(preferencesData);
+
+        console.log('grid data ', preferencesGridData.value)
     } catch (err) {
         console.error(err);
     } finally {
         isLoading.value = false;
     }
+}
+
+function pivotPreferences(preferencesData) {
+    const grid = {};
+
+    for (const pref of preferencesData) {
+        const { user_id, username, type, allow_push, profile_picture_url, bg_colour } = pref;
+
+        if (!grid[user_id]) {
+            grid[user_id] = {
+                user_id,
+                username,
+                profile_picture_url,
+                bg_colour
+            };
+        }
+
+        grid[user_id][type] = allow_push;
+    }
+
+    // Convert dictionary → array
+    return Object.values(grid);
 }
 
 const groupedMembers = computed(() => {

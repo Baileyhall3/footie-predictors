@@ -7,7 +7,7 @@
                 }"
             >
                 <div :title="col.colTitle ?? col.colName" class="relative">
-                    <div class="flex items-center justify-between select-none">
+                    <div class="flex items-center justify-between select-none truncate">
                         <component :is="col.headerSlot ? col.headerSlot : 'span'" v-if="col.headerSlot" />
                         <template v-else>
                             {{ col.colName }}

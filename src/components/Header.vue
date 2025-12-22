@@ -23,10 +23,10 @@
                              <router-link to="/notifications" class="relative hover:underline">
                                  <BellIcon class="size-5" />
                                  <span
-                                     v-if="notificationsStore.unreadNotifications.length > 0"
+                                     v-if="notificationsStore.unreadNotifications > 0"
                                      class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[10px] leading-none text-white bg-red-600 rounded-full"
                                  >
-                                     {{ notificationsStore.unreadNotifications.length }}
+                                     {{ notificationsStore.unreadNotifications }}
                                  </span>
                              </router-link>
                          </template>
@@ -41,10 +41,10 @@
                          <router-link to="/notifications" @click="mobileNavControls.close" class="relative hover:underline me-2" v-if="userStore.isAuthenticated">
                              <BellIcon class="size-5" />
                              <span
-                                 v-if="notificationsStore.unreadNotifications.length > 0"
+                                 v-if="notificationsStore.unreadNotifications > 0"
                                  class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[10px] leading-none text-white bg-red-600 rounded-full"
                              >
-                                 {{ notificationsStore.unreadNotifications.length }}
+                                 {{ notificationsStore.unreadNotifications }}
                              </span>
                          </router-link>
                          <button @click="mobileNavControls.toggle">
@@ -108,17 +108,17 @@ const props = withDefaults(defineProps<IProps>(), {
     headerTextColor: 'text-white',
 });
 
-onMounted(() => {
-    if (userStore.isAuthenticated) {
-        getUnreadNotifications();
-    }
-});
+// onMounted(() => {
+//     if (userStore.isAuthenticated) {
+//         getUnreadNotifications();
+//     }
+// });
 
-async function getUnreadNotifications() {
-    try {
-        await notificationsStore.fetchUserUnreadNotifications();    
-    } catch (err) {
-        console.error(err);
-    }
-}
+// async function getUnreadNotifications() {
+//     try {
+//         await notificationsStore.fetchUserUnreadNotifications();    
+//     } catch (err) {
+//         console.error(err);
+//     }
+// }
 </script>
