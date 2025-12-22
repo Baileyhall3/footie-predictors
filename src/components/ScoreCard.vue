@@ -95,7 +95,7 @@
                                 {{ DateUtils.toTime(match.match_time) }}
                             </div>
 
-                            <div class="text-right text-sm font-semibold" :class="getPredictionColor(predictions[match.id], match)">
+                            <div class="text-right text-sm font-semibold" v-if="props.groupScoring" :class="getPredictionColor(predictions[match.id], match)">
                                 {{ getMatchPoints(predictions[match.id], match) }}
                             </div>
                         </div>
