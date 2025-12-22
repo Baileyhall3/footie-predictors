@@ -87,9 +87,17 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <div class="grid grid-cols-3 w-full items-center mt-1">
+                            <div></div>
 
-                        <div class="text-gray-500 text-sm mt-1" v-if="!props.disableMatchTime">
-                            {{ DateUtils.toTime(match.match_time) }}
+                            <div class="text-gray-500 text-sm text-center" v-if="!props.disableMatchTime">
+                                {{ DateUtils.toTime(match.match_time) }}
+                            </div>
+
+                            <div class="text-right text-sm font-semibold" :class="getPredictionColor(predictions[match.id], match)">
+                                {{ getMatchPoints(predictions[match.id], match) }}
+                            </div>
                         </div>
                         
                         <div 
@@ -142,6 +150,7 @@
 import { computed, ref, useSlots } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
+import { GroupScoring } from '../types';
 
 export interface IProps {
     matches: [];
@@ -160,6 +169,7 @@ export interface IProps {
     matchesClickable?: boolean
     disableTimeHeader?: boolean
     disableMatchTime?: boolean
+    groupScoring?: GroupScoring
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
@@ -266,6 +276,36 @@ const getPredictionColor = (prediction, match) => {
 
     return "text-red-500"; // Incorrect result
 };
+
+function getMatchPoints(prediction, match) {
+    if (!props.groupScoring) { return }
+
+    if (prediction.predicted_home_score === undefined || 
+        prediction.predicted_away_score === undefined || 
+        match.final_home_score === null || 
+        match.final_away_score === null
+    ) {
+        return;
+    }
+
+    const predictedHome = prediction.predicted_home_score;
+    const predictedAway = prediction.predicted_away_score;
+    const actualHome = match.final_home_score;
+    const actualAway = match.final_away_score;
+
+    if (predictedHome === actualHome && predictedAway === actualAway) {
+        return `+${props.groupScoring.exact_score_points}`;
+    }
+
+    const predictedWinner = predictedHome > predictedAway ? "home" : predictedAway > predictedHome ? "away" : "draw";
+    const actualWinner = actualHome > actualAway ? "home" : actualAway > actualHome ? "away" : "draw";
+
+    if (predictedWinner === actualWinner) {
+        return `+${props.groupScoring.correct_result_points}`;
+    }
+
+    return props.groupScoring.incorrect_points ? `-${props.groupScoring.incorrect_points}` : null;
+}
 </script>
 
 <style scoped>

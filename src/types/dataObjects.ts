@@ -1,5 +1,3 @@
-import { Data } from "vue3-toastify"
-
 export interface Season {
     id: string,
     name: string,

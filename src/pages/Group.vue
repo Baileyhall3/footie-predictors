@@ -160,6 +160,7 @@
                     allowCollapse
                     :matchesClickable="activeGameweek?.is_locked"
                     :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
+                    :group-scoring="groupScoring"
                     @update-prediction="handlePredictionUpdate"
                     @predictions-submitted="submitPredictions"
                   >
@@ -197,6 +198,7 @@
                   allowCollapse
                   :matchesClickable="activeGameweek?.is_locked"
                   :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
+                  :group-scoring="groupScoring"
                   @update-prediction="handlePredictionUpdate"
                   @predictions-submitted="submitPredictions"
                 >
@@ -397,6 +399,7 @@ import PageHeader from "../components/PageHeader.vue";
 import { Season, Gameweek, Group, GroupMember, Prediction, LeaderboardEntry, GwLeaderboardEntry } from '../types';
 import { copyPageLink, mapPredictions } from "../utils/sharedFunctions";
 import CreateNotification from "../components/dialogs/CreateNotification.vue";
+import { GroupScoring } from "../types";
 
 const route = useRoute();
 const router = useRouter();
@@ -430,6 +433,7 @@ const userMostCorrectScores = ref<GwLeaderboardEntry>();
 const activeSeason = ref<Season>();
 const seasons = ref<Array<Season>>();
 const requestMembers = ref<Array<GroupMember>>([]);
+const groupScoring = ref<GroupScoring>();
 
 // Fetch all data for the group
 const fetchAllData = async () => {
@@ -454,6 +458,12 @@ const fetchAllData = async () => {
     }
     if (groupError) throw new Error('Failed to load group details');
     group.value = groupData;
+
+    groupScoring.value = { 
+      exact_score_points: groupData.exact_score_points,
+      correct_result_points: groupData.correct_result_points,
+      incorrect_points: groupData.incorrect_points
+    }
     
     // Fetch group members
     await getGroupMembers();
