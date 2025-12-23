@@ -19,8 +19,15 @@
     </div>
     <TransitionGroup name="scores" tag="div">
         <template v-if="(!matchesCollapsed && props.allowCollapse) || !props.allowCollapse">
-            <div v-for="(matchGroup, day) in groupedMatches" :key="day" :class="'mt-' + props.topMargin">
-                <h3 class="text-lg mb-2" v-if="!props.disableTimeHeader">{{ day }}</h3>
+            <div v-for="(group, day) in groupedMatches" :key="day" :class="'mt-' + props.topMargin">
+                <div class="flex justify-between">
+                    <h3 class="text-lg" v-if="!props.disableTimeHeader">
+                        {{ day }} 
+                    </h3>
+                    <span :class="getPointsColor(group.totalPoints)" class="font-semibold" v-if="group.totalPoints">
+                        +{{ group.totalPoints }}pts
+                    </span>
+                </div>
         
                 <div :class="{ 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : !props.oneMatchPerRow }">
                     <component
@@ -28,7 +35,7 @@
                         :to="props.matchesClickable ? `/match/${match.id}` : undefined"
                         :key="match.id"
                         class="flex flex-col items-center py-2 bg-gray-100 mt-2 rounded-md px-2"
-                        v-for="match in matchGroup"
+                        v-for="match in group.matches"
                     >
                         <div class="flex justify-center" style="width: 100%;">
                             <div class="flex items-center space-x-2 justify-end" style="width: 45%;">
@@ -96,7 +103,8 @@
                             </div>
 
                             <div class="text-right text-sm font-semibold" v-if="props.groupScoring" :class="getPredictionColor(predictions[match.id], match)">
-                                {{ getMatchPoints(predictions[match.id], match) }}
+                                <!-- {{ getMatchPoints(predictions[match.id], match) }} -->
+                                {{ match.matchPoints > 0 ? `+${match.matchPoints}` : match.matchPoints }}
                             </div>
                         </div>
                         
@@ -130,7 +138,7 @@
             </div>
         
             <h3 class="text-lg mt-4" v-if="props.totalPoints !== null && props.totalPoints !== undefined">
-                <span class="font-medium">Total Points:</span> {{ props.totalPoints }}
+                <span class="font-medium">Total Points: </span><span class="font-semibold">{{ props.totalPoints }}</span>
             </h3>
         
             <template v-if="props.includeSubmitBtn && !props.locked && props.predictions && Object.keys(props.predictions).length > 0">
@@ -182,14 +190,81 @@ const props = withDefaults(defineProps<IProps>(), {
 const emit = defineEmits(["update-prediction", "update-score", "match-removed", "predictions-submitted"]);
 const slots = useSlots();
 
+// const groupedMatches = computed(() => {
+//     return props.matches.reduce((acc, match) => {
+//         const matchDay = DateUtils.toShortDayMonth(match.match_time, true);
+//         if (!acc[matchDay]) acc[matchDay] = [];
+//         acc[matchDay].push(match);
+//         return acc;
+//     }, {});
+// });
+
 const groupedMatches = computed(() => {
-    return props.matches.reduce((acc, match) => {
-        const matchDay = DateUtils.toShortDayMonth(match.match_time, true);
-        if (!acc[matchDay]) acc[matchDay] = [];
-        acc[matchDay].push(match);
+    return props.matches.reduce((acc: any, match: any) => {
+        const day = DateUtils.toShortDayMonth(match.match_time, true);
+
+        if (!acc[day]) {
+            acc[day] = {
+                matches: [],
+                totalPoints: 0
+            };
+        }
+
+        let matchPoints: number | null = null;
+
+        if (
+            props.groupScoring &&
+            props.predictions &&
+            props.predictions[match.id] &&
+            match.final_home_score !== null &&
+            match.final_away_score !== null
+        ) {
+            const prediction = props.predictions[match.id];
+
+            const predictedHome = prediction.predicted_home_score;
+            const predictedAway = prediction.predicted_away_score;
+            const actualHome = match.final_home_score;
+            const actualAway = match.final_away_score;
+
+            if (
+                predictedHome !== undefined &&
+                predictedAway !== undefined
+            ) {
+                if (predictedHome === actualHome && predictedAway === actualAway) {
+                    matchPoints = props.groupScoring.exact_score_points;
+                } else {
+                    const predictedWinner =
+                        predictedHome > predictedAway ? "home" :
+                        predictedAway > predictedHome ? "away" : "draw";
+
+                    const actualWinner =
+                        actualHome > actualAway ? "home" :
+                        actualAway > actualHome ? "away" : "draw";
+
+                    if (predictedWinner === actualWinner) {
+                        matchPoints = props.groupScoring.correct_result_points;
+                    } else if (props.groupScoring.incorrect_points) {
+                        matchPoints = -props.groupScoring.incorrect_points;
+                    } else {
+                        matchPoints = 0;
+                    }
+                }
+            }
+        }
+
+        acc[day].matches.push({
+            ...match,
+            matchPoints
+        });
+
+        if (typeof matchPoints === 'number') {
+            acc[day].totalPoints += matchPoints;
+        }
+
         return acc;
     }, {});
 });
+
 
 const allPredictionsSubmitted = computed(() => {
     return props.matches.length > 0 && props.matches.every(match => {
@@ -248,9 +323,16 @@ const removeMatch = (matchId: string) => {
     emit("match-removed", matchId);
 };
 
+function getPointsColor(points: number) {
+    if (points == 0) { return 'text-red-500'; }
+    if (points > 0) { return 'text-green-500'; }
+}
+
 // Function to determine color based on prediction accuracy
 const getPredictionColor = (prediction, match) => {
-    if (prediction.predicted_home_score === undefined || 
+    if (
+        !prediction ||
+        prediction.predicted_home_score === undefined || 
         prediction.predicted_away_score === undefined || 
         match.final_home_score === null || 
         match.final_away_score === null

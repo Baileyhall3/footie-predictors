@@ -1,9 +1,16 @@
 <template>
   <LoadingScreen v-if="loading" />
-  <div class="container mx-auto px-4 py-8" v-else>
+  <div class="container mx-auto py-8" v-else>
     <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
       <!-- Profile Header -->
-      <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
+      <div class="bg-gradient-to-r px-6 py-8 text-white" 
+        :style="{
+          backgroundImage: `linear-gradient(to right,
+            ${userStore.userProfile.bg_colour},
+            ${darken(userStore.userProfile.bg_colour, 60)}
+          )`
+        }"
+      >
         <h1 class="text-3xl font-bold">My Profile</h1>
         <div class="flex items-center space-x-2" v-if="userStore.user">
             <div v-if="userStore.userProfile.profile_picture_url" class=" w-6 h-6 flex items-center justify-center rounded-full overflow-hidden me-2">
@@ -186,19 +193,15 @@ async function getAllData() {
   }
 }
 
-async function getPreferences() {
-    try {
-        loading.value = true;
-        const { data, error } = await notificationsService.getUserGeneralPreferences(userStore.user?.id);
-        if (error) throw new Error('Failed to load preferences');
+function darken(hex: string, amount = 40) {
+  let c = hex.replace('#', '');
+  let num = parseInt(c, 16);
 
-        preferences.value = data || []
+  let r = Math.max(0, (num >> 16) - amount);
+  let g = Math.max(0, ((num >> 8) & 0x00ff) - amount);
+  let b = Math.max(0, (num & 0x0000ff) - amount);
 
-    } catch(err) {
-        console.error(err);
-    } finally {
-        loading.value = false;
-    }
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 const cancelChanges = () => {

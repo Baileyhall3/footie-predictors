@@ -42,6 +42,7 @@
                 :header="`${user.username}'s Predictions`"
                 allowCollapse
                 matchesClickable
+                :group-scoring="groupScoring"
             />
         </div>
 
@@ -60,6 +61,8 @@ import ScoreCard from '../components/ScoreCard.vue';
 import SearchBar from '../components/UI/SearchBar.vue';
 import { leaderboardService } from '../api/leaderboardService';
 import NoAccess from '../components/NoAccess.vue';
+import type { GroupScoring } from '../types';
+import { groupsStore } from '../store/groupsStore';
 
 const route = useRoute();
 
@@ -79,6 +82,7 @@ const groupedPredictions = ref({});
 const matchesCollapsed = ref(false);
 const scores = ref([]);
 const gameweekIsLocked = ref(false);
+const groupScoring = ref<GroupScoring>();
 
 const displayedUsers = computed(() => usersList.value.slice(0, displayedUsersCount.value));
 
@@ -88,20 +92,36 @@ onMounted(async () => {
 });
 
 async function fetchGameweek() {
-    loading.value = true;
-    gameweekId.value = route.params.id || route.query.id;
+    try {
+        loading.value = true;
+        gameweekId.value = route.params.id || route.query.id;
+    
+        const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
+        if (error) return console.error(error);
+        gameweek.value = data;
+    
+        gameweekIsLocked.value = gameweek.value.is_locked;
+        if (!gameweekIsLocked.value) {
+            loading.value = false;
+            return;
+        }
+    
+        await fetchPredictions();
+        await mapPredictions();
 
-    const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
-    if (error) return console.error(error);
-    gameweek.value = data;
+        const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(gameweek.value.group_id);
+        if (groupError) throw new Error('Failed to load group');
 
-    gameweekIsLocked.value = gameweek.value.is_locked;
-    if (!gameweekIsLocked.value) {
+        groupScoring.value = { 
+            exact_score_points: groupData.exact_score_points,
+            correct_result_points: groupData.correct_result_points,
+            incorrect_points: groupData.incorrect_points
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {
         loading.value = false;
-        return;
     }
-
-    await fetchPredictions();
 }
 
 async function fetchPredictions(searchQuery: string | null = null) {
@@ -121,10 +141,6 @@ async function fetchPredictions(searchQuery: string | null = null) {
     }
 
     scores.value = scoresData || [];
-
-    await mapPredictions();
-    
-    loading.value = false;
 }
 
 async function mapPredictions() {
@@ -158,8 +174,6 @@ async function mapPredictions() {
             total_correct_scores: userScore.total_correct_scores ?? 0,
         };
     });
-
-    debugger
 }
 
 

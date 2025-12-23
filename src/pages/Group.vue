@@ -398,10 +398,9 @@ import GroupLeaderboard from "./GroupLeaderboard.vue";
 import Dropdown from "../components/UI/Dropdown.vue";
 import { seasonsService } from "../api/seasonsService";
 import PageHeader from "../components/PageHeader.vue";
-import { Season, Gameweek, Group, GroupMember, Prediction, LeaderboardEntry, GwLeaderboardEntry } from '../types';
+import { Season, Gameweek, Group, GroupMember, Prediction, LeaderboardEntry, GwLeaderboardEntry, GroupScoring } from '../types';
 import { copyPageLink, mapPredictions } from "../utils/sharedFunctions";
 import CreateNotification from "../components/dialogs/CreateNotification.vue";
-import { GroupScoring } from "../types";
 
 const route = useRoute();
 const router = useRouter();

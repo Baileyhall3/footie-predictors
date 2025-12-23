@@ -82,6 +82,7 @@
                       header="Your Predictions"
                       :gameweekId="gameweekId"
                       :matchesClickable="gameweek?.is_locked"
+                      :group-scoring="groupScoring"
                       @update-prediction="handlePredictionUpdate"
                       @predictions-submitted="submitPredictions"
                   />
@@ -206,7 +207,7 @@ import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
 import PotentialFinishGrid from '../components/PotentialFinishGrid.vue';
 import DoesNotExist from '../components/DoesNotExist.vue';
-import { Gameweek, Prediction } from '../types';
+import type { Gameweek, Prediction, GroupScoring } from '../types';
 import { copyPageLink } from '../utils/sharedFunctions';
 import FilterButton from '../components/UI/FilterButton.vue';
 import DataGrid from '../components/UI/grid/DataGrid.vue';
@@ -236,6 +237,7 @@ const leaderboardLastUpdated = ref();
 const potentialFinishData = ref({ scoringSystem: {}, userPredictions: [] });
 const gameweekExists = ref<boolean>(true);
 const isFiltering = ref<boolean>(false);
+const groupScoring = ref<GroupScoring>();
 
 const isAdmin = ref(false);
 
@@ -304,6 +306,12 @@ async function fetchGameweek() {
   
     const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(gameweek.value.group_id);
     if (groupError) throw new Error('Failed to load group');
+
+    groupScoring.value = { 
+      exact_score_points: groupData.exact_score_points,
+      correct_result_points: groupData.correct_result_points,
+      incorrect_points: groupData.incorrect_points
+    }
   
     const { data: gameweekPredictions, error: gameweekPredictionsError } = await predictionsService.getGameweekPredictions(gameweek.value.id);
     if (gameweekPredictionsError) throw new Error('Failed to load all gameweek predictions')

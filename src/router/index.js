@@ -37,7 +37,6 @@ import PrivacyPolicy from '../pages/PrivacyPolicy.vue';
 import NotFound from '../views/NotFound.vue';
 
 import { userStore } from '../store/userStore';
-import { hasAuthState } from '../utils/authPersistence';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -344,39 +343,30 @@ router.beforeEach(async (to, from, next) => {
   }
 })
 
-// Handle page reloads and direct URL access
-// This ensures the auth state is properly restored from localStorage/cookies
-router.beforeResolve((to, from, next) => {
-  // If this is an initial page load (from is an empty route)
-  if (from.name === null && to.name !== null) {
-    // Check if we have a session in localStorage
-    const hasSession = hasAuthState()
-    
-    // If we have a session but the user is not loaded yet, wait for auth to initialize
-    if (hasSession && !userStore.user) {
-      console.log('Waiting for auth to initialize...')
-      
-      // Poll for auth initialization
-      const checkAuth = () => {
-        if (userStore.user) {
-          // Auth is initialized and user is loaded
-          console.log('Auth initialized, proceeding with navigation')
-          next()
-        } else {
-          // Check again in a short while
-          setTimeout(checkAuth, 50)
-        }
-      }
-      
-      checkAuth()
-    } else {
-      // Either no session or user is already loaded, proceed normally
-      next()
-    }
-  } else {
-    // Not an initial page load, proceed normally
-    next()
+router.beforeEach((to, from, next) => {
+  // SEO
+  document.title = to.meta.title || 'Footie Predictors'
+
+  // Allow router to render while auth initializes
+  if (!userStore.authReady) {
+    return next()
   }
+
+  const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
+  const isAuthenticated = userStore.isAuthenticated
+
+  if (requiresAuth && !isAuthenticated) {
+    return next('/login')
+  }
+
+  if (
+    (to.path === '/login' || to.path === '/register') &&
+    isAuthenticated
+  ) {
+    return next('/')
+  }
+
+  next()
 })
 
 export default router

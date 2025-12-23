@@ -11,7 +11,8 @@ const state = reactive({
   session: null,
   userProfile: null,
   loading: false,
-  error: null
+  error: null,
+  authReady: false
 })
 
 // Create and export the user store
@@ -35,6 +36,9 @@ export const userStore = {
   get isAuthenticated() {
     return !!state.user
   },
+  get authReady() {
+    return state.authReady
+  },
 
   // Methods
   async init() {
@@ -43,6 +47,7 @@ export const userStore = {
       const { data } = await supabase.auth.getSession()
       state.session = data.session
       state.user = data.session?.user || null
+      state.authReady = true
       
       // Set up auth state listener
       const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -458,6 +463,3 @@ export const userStore = {
     state.error = null
   }
 }
-
-// Initialize the store
-userStore.init()
