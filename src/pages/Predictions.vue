@@ -22,17 +22,18 @@
                                         </router-link>
                                     </h3>
                                 </div>
-                                <router-link 
-                                    :to="`/gameweek/${group.gameweek.id}`" 
-                                    class="text-sm text-blue-600 hover:underline"
-                                >
-                                    View Gameweek →
-                                </router-link>
                             </div>
                             
                             <div>
                                 <div class="items-center flex">
-                                    <h3 class="text-xl font-semibold">Gameweek {{ group.gameweek.week_number }}</h3>
+                                    <h3 class="text-xl font-semibold">
+                                        <router-link 
+                                            :to="`/gameweek/${group.gameweek.id}`" 
+                                            class="text-blue-600 hover:underline"
+                                        >
+                                            Gameweek {{ group.gameweek.week_number }}
+                                        </router-link>
+                                    </h3>
                                     <LockClosedIcon class="size-5 ms-2" v-if="group.gameweek.is_locked" />
                                 </div>
                         

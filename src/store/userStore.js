@@ -50,32 +50,39 @@ export const userStore = {
       state.authReady = true
       
       // Set up auth state listener
-      const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+     supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('Auth state changed:', event)
-        
-        // Update the state directly
+
+        // 🔒 Always update raw auth state
         state.session = session
-        state.user = session?.user || null
-        
-        // Persist auth state to localStorage
-        if (session) {
-          saveAuthState(session)
-        } else {
-          clearAuthState()
+        state.user = session?.user ?? null
+
+        // ⛔ IGNORE duplicate SIGNED_IN events
+        if (event === 'SIGNED_IN' && state.authReady) {
+          return
         }
-        
-        // If user is logged in, fetch their profile
-        if (state.user) {
-          await this.fetchUserProfile();
-          const { data, error } = await this.getUserNotifications();
-          notificationsStore.setInitial(data ?? []);
-          realtimeNotificationsService.startNotificationsRealtime();
-        } else {
+
+        // ⛔ Ignore token refreshes entirely
+        if (event === 'TOKEN_REFRESHED') {
+          return
+        }
+
+        // First-time sign-in only
+        if (event === 'SIGNED_IN' && state.user) {
+          await this.fetchUserProfile()
+
+          const { data } = await this.getUserNotifications()
+          notificationsStore.setInitial(data ?? [])
+
+          realtimeNotificationsService.startNotificationsRealtime()
+        }
+
+        if (event === 'SIGNED_OUT') {
           state.userProfile = null
-          realtimeNotificationsService.stopNotificationsRealtime();
-          notificationsStore.clear();
+          realtimeNotificationsService.stopNotificationsRealtime()
+          notificationsStore.clear()
         }
-      })
+      });
       
       // If user is logged in, fetch their profile
       if (state.user) {

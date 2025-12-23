@@ -15,8 +15,7 @@ const state = reactive<{
   unreadNotifications: 0,
   loading: false,
   error: null
-})
-
+});
 
 export const notificationsStore = {
 
