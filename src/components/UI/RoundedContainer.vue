@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+    <div class="bg-white shadow rounded-xl p-6 mb-8">
         <div class="flex justify-between items-center mb-4" v-if="props.headerText || slots.header">
             <div class="items-center flex">
                 <slot name="header"></slot>

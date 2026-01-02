@@ -118,7 +118,7 @@
           <p class="text-lg font-semibold">5. Your Rights (GDPR Compliance)</p>
           <ul class="list-disc pl-5">
             <li>You may request to access, correct, or delete your personal data.</li>
-            <li>You can opt out of emails or data collection by contacting us at [email address].</li>
+            <li>You can opt out of emails at any point from your profile page.</li>
           </ul>
         </div>
   
