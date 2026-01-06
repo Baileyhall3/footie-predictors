@@ -67,6 +67,14 @@
                 :isCurrentUser="userIsGameweekWinner"
                 :weekNumber="gameweek?.week_number"
               />
+              <RoundedContainer headerText="How did you do?" collapsable>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <StatRow icon="✅" label="Correct Results" :value="currentUserGameweekData.total_correct_results" />
+                  <StatRow icon="🎯" label="Correct Scores" :value="currentUserGameweekData.total_correct_scores" />
+                  <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
+                  <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
+                </div>
+              </RoundedContainer>
             </template>
             <!-- Predictions -->
             <RoundedContainer>
@@ -207,7 +215,7 @@ import Tabs from '../components/UI/Tabs.vue';
 import Tab from '../components/UI/Tab.vue';
 import PotentialFinishGrid from '../components/PotentialFinishGrid.vue';
 import DoesNotExist from '../components/DoesNotExist.vue';
-import type { Gameweek, Prediction, GroupScoring } from '../types';
+import type { Gameweek, Prediction, GroupScoring, GwLeaderboardEntry } from '../types';
 import { copyPageLink } from '../utils/sharedFunctions';
 import FilterButton from '../components/UI/FilterButton.vue';
 import DataGrid from '../components/UI/grid/DataGrid.vue';
@@ -216,6 +224,7 @@ import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
 import PageHeader from '../components/PageHeader.vue';
 import { CancelBtn, EditBtn, AddBtn } from '../components/UI/buttons';
 import { mapPredictions } from '../utils/sharedFunctions';
+import StatRow from '../components/StatRow.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -238,6 +247,7 @@ const potentialFinishData = ref({ scoringSystem: {}, userPredictions: [] });
 const gameweekExists = ref<boolean>(true);
 const isFiltering = ref<boolean>(false);
 const groupScoring = ref<GroupScoring>();
+const currentUserGameweekData = ref<GwLeaderboardEntry>();
 
 const isAdmin = ref(false);
 
@@ -288,6 +298,8 @@ async function fetchGameweek() {
     const { data: leaderboardData, error: leaderboardError } = await leaderboardStore.fetchGameweekScores(gameweek.value.group_id, gameweek.value.id);
     if (leaderboardError) throw new Error('Failed to load leaderboard');
     leaderboard.value = leaderboardData || [];
+
+    currentUserGameweekData.value = leaderboard.value.find(x => x.user_id == userStore.user?.id);
     
     if (leaderboard.value.length > 0) {
       leaderboardLastUpdated.value = leaderboard.value[0].updated_at ? new Date(leaderboard.value[0].updated_at) : null;

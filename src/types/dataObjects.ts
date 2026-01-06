@@ -123,12 +123,13 @@ export interface UserStats {
 export interface GwLeaderboardEntry {
     bg_colour: string,
     position: number,
-    total_correct_scores: number | undefined,
+    total_correct_scores: number,
     total_points: number,
     updated_at: Date | undefined,
     user_id: string,
     username: string
     profile_picture_url?: string;
+    total_correct_results: number
 }
 
 export interface Match {

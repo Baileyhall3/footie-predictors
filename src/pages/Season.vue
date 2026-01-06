@@ -11,11 +11,12 @@
             <PageHeader>
                 <template #header>
                     <h2 class="text-2xl font-semibold">{{ season?.name }}</h2>
-                    <div class="flex items-center gap-2">
+                    <ActiveIcon v-if="season?.is_active" :size="6" />
+                    <!-- <div class="flex items-center gap-2">
                         <div v-if="season?.is_active" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
                             Active
                         </div>
-                    </div>
+                    </div> -->
                 </template>
 
                 <template #actionItems>
@@ -27,14 +28,14 @@
                             <EllipsisVerticalIcon class="size-6 text-gray-500" />
                         </template>
                         <template #items>
-                            <router-link :to="`/group/${season?.group_id}`" class="text-blue-600 dropdown-item">
+                            <router-link :to="`/group/${season?.group_id}`" class="text-blue-600 dropdown-item item-separator">
                                 Go to Group
                             </router-link>
                             <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item" v-if="activeGameweek">
                                 Gameweek {{ activeGameweek?.week_number }}
                             </router-link>
                             <router-link :to="`/group/${season?.group_id}/create-gameweek`" v-if="isAdmin && !season?.is_finished">
-                                <button class="dropdown-item">
+                                <button class="dropdown-item item-separator">
                                     Create Gameweek
                                 </button>
                             </router-link>
@@ -183,6 +184,7 @@ import GroupLeaderboard from './GroupLeaderboard.vue';
 import DeleteConfirm from '../components/DeleteConfirm.vue';
 import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
 import { copyPageLink } from '../utils/sharedFunctions';
+import ActiveIcon from '../components/UI/ActiveIcon.vue';
 
 const route = useRoute();
 
@@ -284,12 +286,7 @@ async function endSeason() {
     const confirmed = await endSeasonConfirm.value?.show();
     if (confirmed) {
         try {
-            await seasonsService.updateSeason(seasonId.value, { 
-                is_finished: true, 
-                end_date: new Date(), 
-                winner_id: leaderboard.value ? leaderboard.value[0].user_id : null 
-            });
-
+            await seasonsService.endSeason(seasonId.value!);
             window.location.reload();
         } catch (err) {
             console.error(err);

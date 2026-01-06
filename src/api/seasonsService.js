@@ -254,4 +254,18 @@ export const seasonsService = {
       return { data: null, error }
     }
   },
+
+  /**
+   * Calls the end_season stored procedure to finalize a season
+   * @param {*} seasonId - ID of the season to end
+   */
+  async endSeason(seasonId) {
+    try {
+      await supabase.rpc('end_season', {
+        p_season_id: seasonId
+      });
+    } catch (err) {
+      console.error('Error ending season:', err)
+    }
+  }
 }

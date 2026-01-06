@@ -184,7 +184,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
                   <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
-                  <StatRow icon="🥇" label="Current Leader" :value="currentLeader.username" />
+                  <StatRow icon="🥇" :label="activeGameweek.is_finished ? 'Winner' : 'Current Leader'" :value="currentLeader.username" />
                   <StatRow icon="🎯" label="Most Correct Scores" :value="`${userMostCorrectScores.total_correct_scores} (${userMostCorrectScores.username}) `" />
               </div>
             </RoundedContainer>
