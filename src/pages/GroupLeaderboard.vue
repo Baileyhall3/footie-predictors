@@ -1,13 +1,13 @@
 <template>
     <LoadingContainer v-if="loading" bgColor="none" />
     <template v-else>
-        <RoundedContainer headerText="This Season">
+        <RoundedContainer :headerText="props.leaderboardTitle">
             <template #headerContent>
                 <router-link 
                 :to="`/group/${$props.groupId}/leaderboards`" 
                 class="text-sm text-blue-600 hover:underline"
                 >
-                    View Full Leaderboard →
+                    Full Leaderboard →
                 </router-link>
             </template>
     
@@ -24,7 +24,7 @@
             </div>
             <p v-if="leaderboard.length === 0" class="text-gray-500 py-2">No leaderboard data available.</p>
         </RoundedContainer>
-        <RoundedContainer headerText="History" v-if="leaderboardHistory.length > 0">
+        <RoundedContainer headerText="History" v-if="!props.hideHistoryChart && leaderboardHistory.length > 0">
             <LineChart 
                 :lineData="positionHistory" 
                 :xLabels="posXLabels"
@@ -52,12 +52,17 @@ import LoadingScreen from '../components/LoadingScreen.vue';
 import { seasonsService } from '../api/seasonsService';
 import LoadingContainer from '../components/LoadingContainer.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     groupId: string, 
     activeGameweekId?: string, 
     seasonId?: string, 
-    winnerId?: string
-}>();
+    winnerId?: string;
+    hideHistoryChart?: boolean;
+    leaderboardTitle?: string;
+}>(), {
+    hideHistoryChart: false,
+    leaderboardTitle: 'This Season'
+});
 
 const leaderboardLastUpdated = ref();
 const leaderboard = ref([]);
@@ -84,6 +89,8 @@ async function getLeaderboard() {
         if (leaderboard.value.length > 0) {
             leaderboardLastUpdated.value = leaderboard.value[0].leaderboard_last_updated ? new Date(leaderboard.value[0].leaderboard_last_updated) : null;
         }
+
+        if (props.hideHistoryChart) return;
 
         // Fetch group leaderboard history
         const { data: historyData, error: scoresError } = props.seasonId

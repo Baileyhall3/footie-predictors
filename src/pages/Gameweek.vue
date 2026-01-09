@@ -91,6 +91,7 @@
                       :gameweekId="gameweekId"
                       :matchesClickable="gameweek?.is_locked"
                       :group-scoring="groupScoring"
+                      showActualAndPredictedScores
                       @update-prediction="handlePredictionUpdate"
                       @predictions-submitted="submitPredictions"
                   />
@@ -100,7 +101,7 @@
             </RoundedContainer>
           </Tab>
           <Tab header="Matches">
-            <RoundedContainer headerText="Matches" collapsable>
+            <RoundedContainer headerText="Match Results" collapsable>
               <template #headerContent>
                 <div class="flex items-center" v-if="isAdmin">
                   <router-link :to="`/gameweek/${gameweekId}/add-matches`">

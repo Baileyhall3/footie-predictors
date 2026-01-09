@@ -1,6 +1,10 @@
 <template>
     <div class="bg-white shadow rounded-xl p-6 mb-8">
-        <div class="flex justify-between items-center mb-4" v-if="props.headerText || slots.header">
+        <div 
+            v-if="props.headerText || slots.header"
+            class="flex justify-between items-center" 
+            :class="{ 'mb-4' : !contentCollapsed }"
+        >
             <div class="items-center flex">
                 <slot name="header"></slot>
                 <h3 class="text-xl font-semibold" v-if="!slots.header">{{ props.headerText }}</h3>
