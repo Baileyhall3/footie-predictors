@@ -1,9 +1,11 @@
 <template>
     <div class="flex items-center gap-2">
         <span class="font-medium w-6 text-center" v-if="props.showUserPosition">{{ user.position }}.</span>
-        <ArrowUpIcon class="size-3 text-green-600" v-if="user.movement == 'up'" />
-        <ArrowDownIcon class="size-3 text-red-600" v-else-if="user.movement == 'down'" />
-        <EqualsIcon class="size-3 text-gray-600" v-else-if="user.movement == 'same'" />
+        <span :title="getMovementTitle">
+            <ArrowUpIcon class="size-3 text-green-600" v-if="user.movement == 'up'" />
+            <ArrowDownIcon class="size-3 text-red-600" v-else-if="user.movement == 'down'" />
+            <EqualsIcon class="size-3 text-gray-600" v-else-if="user.movement == 'same'" />
+        </span>
         <component
             :is="props.includeUserPredictionLink && props.gameweekId ? 'router-link' : 'span'"
             :to="props.includeUserPredictionLink && props.gameweekId ? `/user-gameweek-predictions/${props.gameweekId}/${user.user_id}` : undefined"
@@ -29,6 +31,7 @@
 
 <script setup lang="ts">
 import { ArrowUpIcon, ArrowDownIcon, EqualsIcon, StarIcon, TrophyIcon } from "@heroicons/vue/24/solid";
+import { computed } from "vue";
 
 export interface User {
     position: number,
@@ -37,6 +40,7 @@ export interface User {
     bg_colour: string,
     username: string,
     profile_picture_url: string,
+    previous_position?: number
 }
 const props = defineProps<{
     user: User,
@@ -45,4 +49,16 @@ const props = defineProps<{
     currentUserId?: string
     showUserPosition?: boolean
 }>();
+
+const getMovementTitle = computed(() => {
+    if (props.user.movement === 'up') {
+        const places = props.user.previous_position !== undefined ? props.user.previous_position - props.user.position : 0;
+        return `Moved up ${places} place${places !== 1 ? 's' : ''}`;
+    } else if (props.user.movement === 'down') {
+        const places = props.user.previous_position !== undefined ? props.user.position - props.user.previous_position : 0;
+        return `Moved down ${places} place${places !== 1 ? 's' : ''}`;
+    } else {
+        return 'No movement';
+    }
+});
 </script>

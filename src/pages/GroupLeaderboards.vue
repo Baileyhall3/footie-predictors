@@ -17,7 +17,11 @@
                         alt="Group Logo"
                     />
                     <div>
-                        <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
+                        <router-link :to="`/group/${group?.id}`" class="hover:underline">
+                            <h2 class="text-2xl font-bold truncate">
+                                {{ group?.name }}
+                            </h2>
+                        </router-link> 
                         <h6 class="text-gray-500">Leaderboards</h6>
                     </div>
                 </template>
@@ -68,7 +72,12 @@
                     >
                         <template #cardHeader>
                             <div class="items-center flex py-6 ms-2">
-                                <h3 class="text-xl font-semibold">{{ currentSeason?.name }}</h3>
+                                <router-link 
+                                    :to="`/season/${currentSeason?.id}`" 
+                                    class="hover:underline"
+                                >
+                                    <h3 class="text-xl font-semibold">{{ currentSeason?.name }}</h3>
+                                </router-link>
                                 <button type="button" @click="hideGridFilterRow = !hideGridFilterRow; console.log(leaderboardGridRef);">
                                     <FunnelIcon v-if="!hideGridFilterRow" class="size-5 ms-2" />
                                     <FunnelIconOutline v-else class="size-5 ms-2"  />

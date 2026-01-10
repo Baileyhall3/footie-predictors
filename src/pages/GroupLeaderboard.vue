@@ -80,6 +80,8 @@ async function getLeaderboard() {
             
         if (leaderboardError) throw new Error('Failed to load leaderboard');
         leaderboard.value = leaderboardData || [];
+
+        debugger
     
         if (leaderboard.value.length > 0) {
             leaderboardLastUpdated.value = leaderboard.value[0].leaderboard_last_updated ? new Date(leaderboard.value[0].leaderboard_last_updated) : null;

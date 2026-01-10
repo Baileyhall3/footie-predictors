@@ -31,7 +31,6 @@
     "node-cron": "^3.0.3",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.3",
-    "retro-grid": "^1.2.3",
     "vite": "^6.0.5",
     "vue": "^3.5.13",
     "vue-chartjs": "^5.3.2",

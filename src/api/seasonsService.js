@@ -180,7 +180,8 @@ export const seasonsService = {
   
         return {
           ...entry,
-          movement
+          movement,
+          previous_position: prev || null
         };
       });
   

@@ -82,7 +82,8 @@ export const leaderboardService = {
   
         return {
           ...entry,
-          movement
+          movement,
+          previous_position: prev || null
         };
       });
   
