@@ -148,6 +148,14 @@
                 :weekNumber="activeGameweek?.week_number"
               />
             </template>
+
+            <GroupLeaderboard 
+              :groupId="group.id" 
+              :activeGameweekId="activeGameweek ? activeGameweek.id : null" 
+              :seasonId="group?.active_season_id" 
+              hide-history-chart
+              leaderboardTitle="Season Leaderboard"
+            />
   
             <!-- Predictions section -->
             <div class="bg-white shadow-lg rounded-xl p-6 mb-8" v-if="activeGameweek">
@@ -163,16 +171,19 @@
                     :matchesClickable="activeGameweek?.is_locked"
                     :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
                     :group-scoring="groupScoring"
+                    :show-actual-and-predicted-scores="true"
                     @update-prediction="handlePredictionUpdate"
                     @predictions-submitted="submitPredictions"
                   >
-                  <template #headerActionItems>
+                  <template #header>
                     <router-link 
                       :to="`/gameweek/${activeGameweek.id}`" 
-                      class="text-sm text-blue-600 hover:underline"
+                      class="text-xl  hover:text-blue-600"
                     >
-                      Gameweek {{ activeGameweek?.week_number }}
-                    </router-link>
+                      <h3 class="text-xl font-semibold">
+                        GW-{{ activeGameweek?.week_number }} Predictions
+                      </h3>
+                  </router-link>
                   </template>
                 </ScoreCard>
               </div>
@@ -184,7 +195,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
                   <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
-                  <StatRow icon="🥇" label="Current Leader" :value="currentLeader.username" />
+                  <StatRow icon="🥇" :label="activeGameweek.is_finished ? 'Winner' : 'Current Leader'" :value="currentLeader.username" />
                   <StatRow icon="🎯" label="Most Correct Scores" :value="`${userMostCorrectScores.total_correct_scores} (${userMostCorrectScores.username}) `" />
               </div>
             </RoundedContainer>
@@ -201,16 +212,19 @@
                   :matchesClickable="activeGameweek?.is_locked"
                   :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
                   :group-scoring="groupScoring"
+                  showActualAndPredictedScores
                   @update-prediction="handlePredictionUpdate"
                   @predictions-submitted="submitPredictions"
                 >
-                  <template #headerActionItems>
+                  <template #header>
                     <router-link 
                       :to="`/gameweek/${activeGameweek.id}`" 
-                      class="text-sm text-blue-600 hover:underline"
+                      class="text-xl  hover:text-blue-600"
                     >
-                      Gameweek {{ activeGameweek?.week_number }}
-                    </router-link>
+                      <h3 class="text-xl font-semibold">
+                        GW-{{ activeGameweek?.week_number }} Predictions
+                      </h3>
+                  </router-link>
                   </template>
                 </ScoreCard>
               <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>

@@ -140,10 +140,11 @@ export const leaderboardService = {
           user_id: member.user_id,
           username: member.users.username,
           total_points: userScore.total_points,
-          total_correct_scores: userScore.total_correct_scores,
+          total_correct_scores: userScore.total_correct_scores ?? 0,
           updated_at: userScore.updated_at,
           bg_colour: member.users.bg_colour,
-          profile_picture_url: member.users.profile_picture_url
+          profile_picture_url: member.users.profile_picture_url,
+          total_correct_results: userScore.total_correct_results ?? 0
         }
       })
 

@@ -12,13 +12,14 @@
         </div>
             
         <div v-if="gameweeks.length">
-            <div v-for="gameweek in gameweeks" :key="gameweek.id" class="flex justify-between items-center border-b py-3">
+            <div v-for="gameweek in gameweeks" :key="gameweek.id" class="flex justify-between items-start border-b py-3">
                 <div>
                     <div class="items-center flex">
                         <router-link :to="`/gameweek/${gameweek.id}`" class="text-blue-600 hover:underline font-medium">
                             Gameweek {{ gameweek.week_number }}
                         </router-link>
                         <LockClosedIcon class="size-4 ms-2" v-if="gameweek.is_locked" />
+                        <ActiveIcon v-if="gameweek.is_active" :size="5" class="ms-2" />
                     </div>
                     <div class="text-sm text-gray-600">
                         <span class="font-semibold">Deadline: </span>
@@ -29,22 +30,21 @@
                         {{ gameweek.winner_name }}
                     </div>
                 </div>
-                
-                <div class="flex items-center gap-2">
-                    <div v-if="gameweek.is_active" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
-                        Active
-                    </div>
-                </div>
             </div>
         </div>
         <p v-else class="text-gray-600 py-2">No gameweeks yet.</p>
     </div>
+
+    <!-- <div v-if="gameweeks.length" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <GameweekCard v-for="gameweek in gameweeks" :key="gameweek.id" :gameweek="gameweek" />
+    </div> -->
 </template>
 
 <script setup lang="ts">
 import DateUtils from '../utils/dateUtils';
 import { LockClosedIcon } from "@heroicons/vue/24/solid";
 import { Gameweek } from '../types';
+import ActiveIcon from './UI/ActiveIcon.vue';
 
 export interface IProps {
     gameweeks: Gameweek[],

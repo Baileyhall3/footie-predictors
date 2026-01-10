@@ -9,44 +9,50 @@
             <template v-else>
                 <template v-if="userGroups.length > 0">
                     <div v-for="group in userGroups" :key="group.id">
-                        <div v-if="group.gameweek" class="bg-white shadow-lg rounded-xl p-6 mb-8">
-                            <div class="flex justify-between items-center mb-4">
+                        <RoundedContainer v-if="group.gameweek" collapsable>
+                            <template #header>
                                 <div class=" flex items-center">
                                     <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
                                     <h3 class="text-xl font-semibold">
                                         <router-link 
                                             :to="`/group/${group.id}`" 
-                                            class="text-blue-600 hover:underline"
+                                            class="hover:text-blue-600"
                                         >
                                             {{ group.name }}
                                         </router-link>
                                     </h3>
                                 </div>
-                            </div>
+                            </template>
                             
                             <div>
-                                <div class="items-center flex">
-                                    <h3 class="text-xl font-semibold">
-                                        <router-link 
-                                            :to="`/gameweek/${group.gameweek.id}`" 
-                                            class="text-blue-600 hover:underline"
-                                        >
-                                            Gameweek {{ group.gameweek.week_number }}
-                                        </router-link>
-                                    </h3>
-                                    <LockClosedIcon class="size-5 ms-2" v-if="group.gameweek.is_locked" />
-                                </div>
-                        
                                 <ScoreCard 
                                     :matches="group.matches"
                                     :predictions="group.predictions"
                                     :locked="group.gameweek.is_locked || !group.gameweek.is_active"
                                     :includeSubmitBtn="!group.gameweek.is_locked && group.gameweek.is_active"
+                                    showActualAndPredictedScores
+                                    showLockedIcon
+                                    :groupScoring="{ 
+                                        exact_score_points: group.exact_score_points,
+                                        correct_result_points: group.correct_result_points,
+                                        incorrect_points: group.incorrect_points
+                                    }"      
                                     @update-prediction="(data) => handlePredictionUpdate({ ...data, group })"
                                     @predictions-submitted="submitPredictions(group)"
-                                />
+                                >
+                                    <template #header>
+                                        <router-link 
+                                            :to="`/gameweek/${group.gameweek.id}`" 
+                                            class="text-xl  hover:text-blue-600"
+                                        >
+                                            <h3 class="text-xl font-semibold">
+                                                Gameweek {{ group.gameweek.week_number }}
+                                            </h3>
+                                        </router-link>
+                                    </template>
+                                </ScoreCard>
                             </div>
-                        </div>
+                        </RoundedContainer>
                     </div>
                 </template>
                 <template v-else>
@@ -71,6 +77,7 @@ import "vue3-toastify/dist/index.css";
 import type { Group } from "../types";
 import { SearchBar2 } from '../components/UI/input';
 import { mapPredictions } from "../utils/sharedFunctions";
+import { RoundedContainer } from "../components/UI";
 
 const isLoading = ref<boolean>(true);
 const userGroups = ref<Array<Group>>([]); // incorrect type
@@ -148,6 +155,7 @@ async function fetchAllData() {
         });
 
         userGroups.value = finalGroups;
+        console.log('Final Groups with Gameweeks, Matches, and Predictions:', finalGroups);
         allUserGroups.value = finalGroups;
 
     } catch (error) {
