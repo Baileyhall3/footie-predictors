@@ -4,3 +4,4 @@ export { default as Tabs } from './Tabs.vue';
 export { default as Dropdown } from './Dropdown.vue';
 export { default as Dialog } from './Dialog.vue';
 export { default as Lookup } from './Lookup.vue';
+export { default as LoadingSpinner } from './LoadingSpinner.vue';

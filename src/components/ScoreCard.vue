@@ -138,12 +138,21 @@
             </div>
         
             <template v-if="props.includeSubmitBtn && !props.locked && props.predictions && Object.keys(props.predictions).length > 0">
-                <button v-if="allPredictionsSubmitted && !predictionsChanged" class="w-full bg-white ring-2 ring-green-400 py-2 rounded-md mt-5 flex items-center justify-center" disabled>
-                    Predictions Saved ✅
-                </button>
-                <button v-else @click="submitPredictions" class="w-full bg-green-600 text-white py-2 rounded-md mt-5 disabled:opacity-50" 
-                    :disabled="isSubmitting || (allPredictionsSubmitted && !predictionsChanged)">
-                    Submit Predictions
+                <button
+                    @click="!predictionsSaved && submitPredictions()"
+                    class="w-full py-2 rounded-md mt-5 flex items-center justify-center transition-colors"
+                    :class="predictionsSaved
+                        ? 'bg-white ring-2 ring-green-400 text-black'
+                        : 'bg-green-600 text-white'"
+                    :disabled="isSubmitting || predictionsSaved"
+                >
+                    <template v-if="predictionsSaved">
+                        Predictions Saved
+                        <Check class="ml-2 size-5 text-green-500" />
+                    </template>
+                    <template v-else>
+                        Submit Predictions
+                    </template>
                 </button>
             </template>
         </template>
@@ -157,6 +166,8 @@ import { LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/2
 import { GroupScoring } from '../types';
 import { TargetIcon, ClockIcon } from 'lucide-vue-next';
 import HomeAndAwayScore from './UI/scoreCard/HomeAndAwayScore.vue';
+import { Check } from 'lucide-vue-next';
+import { LoadingSpinner } from './UI/LoadingSpinner.vue';
 
 export interface IProps {
     matches: [];
@@ -270,6 +281,8 @@ const allPredictionsSubmitted = computed(() => {
         return prediction?.predicted_home_score !== '' && prediction?.predicted_away_score !== '';
     });
 });
+
+const predictionsSaved = computed(() => allPredictionsSubmitted.value && !predictionsChanged.value);
 
 const hasPredictions = computed(() =>
     props.predictions && Object.keys(props.predictions).length > 0
