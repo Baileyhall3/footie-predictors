@@ -1,12 +1,12 @@
 <template>
   <router-link 
     :to="`/group/${group[groupIdField]}`" 
-    class="bg-white shadow-md rounded-xl p-4 transition hover:shadow-lg"
+    class="bg-white shadow rounded-xl p-4 transition hover:shadow-md"
   >
-    <div class=" flex items-center">
+    <div class=" flex items-center min-w-0 w-full">
       <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
-      <div>
-        <div class="flex items-center">
+      <div class="min-w-0">
+        <div class="flex items-center min-w-0">
           <span title="Join requested for this group" v-if="group.joinRequestSent">
             <Send class="size-4 me-2" />
           </span>
@@ -16,7 +16,7 @@
           <span title="You are the owner of this group" v-if="group.iAmOwner">
             <Crown class="size-5 text-yellow-300 me-1" />
           </span>
-          <h3 class="text-lg font-semibold">{{ group[groupNameField] }}</h3>
+          <h3 class="text-lg font-semibold truncate">{{ group[groupNameField] }}</h3>
         </div>
         <div class="flex items-center" v-if="!props.hideMemberCount">
           <UsersIcon class="size-5 me-1 text-black" />

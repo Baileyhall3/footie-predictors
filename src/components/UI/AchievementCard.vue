@@ -1,17 +1,17 @@
 <template>
     <div
-        class="relative rounded-xl p-4 transition-all duration-300"
+        class="relative rounded-xl p-4 transition-all duration-300 cursor-pointer" 
         :class="[
             props.achievement.is_unlocked
-            ? 'bg-white shadow-md hover:shadow-xl'
+            ? 'bg-white shadow hover:shadow-md'
             : 'bg-gray-100 opacity-60 grayscale'
         ]"
+        @click="openDetailDialog"
     >
         <div class="flex items-start gap-3">
             <div
-                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl leading-none cursor-pointer"
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl leading-none"
                 :class="props.achievement.is_unlocked ? 'bg-green-100' : 'bg-gray-300'"
-                @click="openDetailDialog"
             >
                 <template v-if="props.achievement.is_unlocked">
                     {{ props.achievement.icon }}

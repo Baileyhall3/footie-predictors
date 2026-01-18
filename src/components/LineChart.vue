@@ -1,6 +1,10 @@
 <template>
-    <div class="px-4">
-        <Line :data="chartData" :options="chartOptions" />
+    <div class="overflow-x-auto">
+        <div class="min-w-[700px] w-full">
+            <div class="px-4">
+                <Line :data="chartData" :options="chartOptions" />
+            </div>
+        </div>
     </div>
 </template>
 
