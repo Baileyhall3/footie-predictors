@@ -1,15 +1,23 @@
 <template>
-    <header :class="[props.headerColor, props.sticky ? 'sticky top-0' : '', 'z-50', props.headerTextColor]"
-        class="w-full shadow-lg">
+    <header 
+        :class="[
+            props.headerColor, 
+            props.sticky ? 'sticky top-0' : '', 
+            'z-50', 
+            props.headerTextColor
+        ]"
+        class="w-full shadow-lg"
+        style="padding-top: env(safe-area-inset-top)"
+    >
         
         <div class="bg-green-600 text-white">
             <!-- Top Navbar -->
-             <div class="container mx-auto justify-between flex items-center py-3 px-6">
+             <div class="container mx-auto justify-between flex items-center py-2 sm:py-3 px-2">
                  <div class="flex items-center relative justify-between w-full">
                      <!-- Logo & Title -->
                      <div class="flex items-center space-x-2">
                          <TrophyIcon class="size-6" style="color: gold;" />
-                         <router-link to="/" class="text-2xl font-bold">{{ props.headerTitle }}</router-link>
+                         <router-link to="/" class="text-xl sm:text-2xl font-bold">{{ props.headerTitle }}</router-link>
                      </div>
          
                      <!-- Desktop Navigation -->

@@ -398,7 +398,6 @@ import CreateGroupMember from "../components/CreateGroupMember.vue";
 import LeaderboardCard from "../components/LeaderboardCard.vue";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
-import { footballApiService } from "../api/footballApiService";
 import { groupsService } from "../api/groupsService";
 import MembersCard from "../components/MembersCard.vue";
 import DoesNotExist from "../components/DoesNotExist.vue";

@@ -146,8 +146,8 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, onUnmounted, computed } from 'vue';
 import DateUtils from '../utils/dateUtils';
-import { footballApiService } from '../api/footballApiService';
 import { XMarkIcon } from '@heroicons/vue/24/solid';
+import { footballApiClient } from '../api/footballApi.client';
 
 interface MatchItem {
     id: string;
@@ -224,7 +224,7 @@ const handleClickOutside = (event: any) => {
 const selectLeague = async(league: any) => {
     selectedLeague.value = league;
     leagueDropdownOpen.value = false;
-    const { data: teamsData } = await footballApiService.getTeams(league.id);
+    const teamsData = await footballApiClient.getTeams(league.id);
     teams.value = teamsData;
 };
 
@@ -292,14 +292,12 @@ watch(() => props.deadline, (newVal) => {
 
 // Fetch leagues from football-data.org API
 async function fetchLeagues() {
-  const { data: leagueData } = await footballApiService.getLeagues();
-  leagues.value = leagueData;
+    leagues.value = await footballApiClient.getLeagues();
 }
 
 // Fetch matches for a selected league
 async function fetchMatches(leagueId: string | null, teamId: string | null) {
-    const { data: matchesData } = await footballApiService.getMatches(leagueId, teamId);
-
+    const matchesData = await footballApiClient.getMatches(leagueId, teamId);
     const today = new Date();
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(today.getDate() - 7);

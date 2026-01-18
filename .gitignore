@@ -1,5 +1,20 @@
 node_modules/
+dist/
+
+# iOS
+ios/App/Pods/
+ios/App/build/
+ios/App/DerivedData/
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+
+# Environment
 .env
+.env.*
 
 supabase/.supabase/
 supabase/.temp/
