@@ -16,7 +16,7 @@
                         class="w-10 h-10 flex-shrink-0" 
                         alt="Group Logo"
                     />
-                    <div>
+                    <div class="min-w-0 max-w-full">
                         <router-link :to="`/group/${group?.id}`" class="hover:underline">
                             <h2 class="text-2xl font-bold truncate">
                                 {{ group?.name }}

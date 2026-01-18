@@ -2,6 +2,34 @@
     <div class="container mx-auto py-8">
         <LoadingScreen v-if="loading" />
         <template v-else>
+          <PageHeader>
+              <template #header>
+                  <router-link :to="`/gameweek/${gameweek?.id}`" class="hover:underline">
+                      <h2 class="text-2xl font-bold truncate">
+                          Gameweek {{ gameweek?.week_number }}
+                      </h2>
+                  </router-link> 
+              </template>
+              <template #actionItems>
+                  <button @click="copyPageLink('Prediction')" class="p-1 rounded-md hover:bg-gray-200" title="Copy match predictions link">
+                      <LinkIcon class="size-6 text-blue-500" />
+                  </button>
+                  <Dropdown>
+                      <template #trigger>
+                          <EllipsisVerticalIcon class="size-6 text-gray-500" />
+                      </template>
+                      <template #items>
+                          <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
+                              Go to Group
+                          </router-link>
+                      </template>
+                  </Dropdown>
+              </template>
+              <template #details>
+                  <h6 class="text-gray-500">Match Predictions</h6>
+              </template>
+          </PageHeader>
+
           <ScoreCard2 
               :matches="[match]"
               oneMatchPerRow
@@ -158,7 +186,7 @@ import { userStore } from '../store/userStore';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import SearchBar from '../components/UI/SearchBar.vue';
 import { EyeIcon, FunnelIcon as FunnelIconOutline } from "@heroicons/vue/24/outline";
-import { EyeIcon as EyeIconSolid, FunnelIcon } from "@heroicons/vue/24/solid";
+import { EyeIcon as EyeIconSolid, FunnelIcon, EllipsisVerticalIcon, LinkIcon } from "@heroicons/vue/24/solid";
 import DataGrid from '../components/UI/grid/DataGrid.vue';
 import GridCol from '../components/UI/grid/GridCol.vue';
 import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
@@ -169,12 +197,14 @@ import { getPredictionColor } from '../utils/sharedFunctions';
 import Lookup from '../components/UI/Lookup.vue';
 import type { LookupOption } from '../components/UI/Lookup.vue';
 import CollapseButton from '../components/UI/CollapseButton.vue';
+import PageHeader from '../components/PageHeader.vue';
+import { copyPageLink } from '../utils/sharedFunctions';
+import Dropdown from "../components/UI/Dropdown.vue";
 
 const route = useRoute();
 
 const loading = ref<boolean>(true);
 const matchId = ref<string>();
-const gameweekId = ref<string>();
 const match = ref<Match>();
 const error = ref<string>();
 const groupMembersLength = ref<number>(0);
@@ -193,6 +223,7 @@ const optionsLkp = ref<Array<LookupOption>>([
 ]);
 const userMatchPrediction = ref<Prediction>();
 const isCollapsed = ref<boolean>(false);
+const gameweek = ref<{id: string, week_number: number, group_id: string}>();
 
 let correctScoreCount = 0;
 let correctResultCount = 0;
@@ -210,7 +241,7 @@ async function fetchMatchData() {
     const { data: matchData, error } = await gameweeksService.getMatchById(matchId.value);
     if (error) throw new Error('Failed to load match');
     match.value = matchData[0];
-    gameweekId.value = matchData[0].gameweek_id;
+    gameweek.value = matchData[0].gameweek;
     
     matchIsFinished.value = matchData[0].final_home_score !== null && matchData[0].final_away_score !== null ? true : false;
 

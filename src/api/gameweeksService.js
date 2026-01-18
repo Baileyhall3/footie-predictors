@@ -153,7 +153,7 @@ export const gameweeksService = {
             *,
             homeClub:clubs!home_team_api_id(api_club_id, crest_url),
             awayClub:clubs!away_team_api_id(api_club_id, crest_url),
-            gameweek:gameweeks(id, group_id)
+            gameweek:gameweeks(id, group_id, week_number)
           `)
           .eq('id', id)
       );
