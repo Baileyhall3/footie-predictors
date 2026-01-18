@@ -1,5 +1,5 @@
-import { footballApiServer } from "../src/api/footballApi.server.js";
 import { gameweeksService } from "../src/api/gameweeksService.js";
+import { footballApiServer } from "./footballApi.server.js";
 
 export default async function handler(req, res) {
   try {
