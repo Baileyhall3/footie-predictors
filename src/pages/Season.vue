@@ -253,7 +253,6 @@ async function fetchAllData() {
                     userGameweekPredictions.value = predictionsData.predictions;
                     totalPoints.value = predictionsData.totalPoints;
                 }
-                debugger
             }
 
             const { data: leaderboardData, error: leaderboardError } = await seasonsService.getSeasonLeaderboard(seasonId.value);

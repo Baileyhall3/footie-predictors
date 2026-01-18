@@ -155,7 +155,7 @@ async function fetchAllData() {
         });
 
         userGroups.value = finalGroups;
-        console.log('Final Groups with Gameweeks, Matches, and Predictions:', finalGroups);
+        // console.log('Final Groups with Gameweeks, Matches, and Predictions:', finalGroups);
         allUserGroups.value = finalGroups;
 
     } catch (error) {
