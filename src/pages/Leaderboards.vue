@@ -3,7 +3,7 @@
         <div class="mb-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Your Rankings</h2>
-                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
+                <SearchBar2 v-if="userGroups.length > 0" v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
             </div>
             <LoadingScreen v-if="isLoading" />
             <template v-else>
@@ -45,9 +45,7 @@
                         </div>
                     </div>
                 </template>
-                <template v-else>
-                    <p class="text-gray-500">No groups joined yet.</p>
-                </template>
+                <NoGroupsJoined v-else />
             </template>
         </div>
     </div>
@@ -62,6 +60,7 @@ import LeaderboardCard from "../components/LeaderboardCard.vue";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import { Group } from "../types";
 import { SearchBar2 } from '../components/UI/input';
+import NoGroupsJoined from '../components/UI/NoGroupsJoined.vue';
 
 // State
 const isLoading = ref<boolean>(true);

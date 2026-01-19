@@ -4,7 +4,7 @@
         <template v-else>
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Your Stats</h2>
-                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
+                <SearchBar2 v-if="groupStats.length > 0" v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" v-if="groupStats.length > 0">
@@ -26,16 +26,7 @@
                     </template>
                 </GroupCard>
             </div>
-            <div v-else class="bg-white rounded-xl shadow p-10 text-center text-gray-500 mt-4 border border-dashed border-gray-300">
-                <div class="text-4xl mb-4">🤷‍♂️</div>
-                <p class="text-lg font-medium mb-2">You're not part of any groups yet!</p>
-                <p class="text-sm text-gray-400">Join or 
-                    <router-link to="/create-group" class="text-blue-600 hover:underline">
-                        create a group
-                    </router-link> 
-                    to start tracking your stats.
-                </p>
-            </div>
+            <NoGroupsJoined v-else />
         </template>
     </div>
 </template>
@@ -49,6 +40,7 @@ import StatRow from '../components/StatRow.vue';
 import GroupCard from '../components/GroupCard.vue';
 import { UserStats } from '../types';
 import { SearchBar2 } from '../components/UI/input';
+import NoGroupsJoined from '../components/UI/NoGroupsJoined.vue';
 
 const loading = ref(false);
 const groupStats = ref<Array<UserStats>>([]);
