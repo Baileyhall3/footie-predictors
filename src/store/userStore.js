@@ -465,6 +465,27 @@ export const userStore = {
       return { data: null, error };
     }
   },
+
+  async deleteAccount() {
+    state.loading = true;
+
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-account")
+
+      if (error) {
+        console.error(error)
+        return error
+      } else {
+        // log out user locally
+        await supabase.auth.signOut()
+      }
+    } catch (err) {
+      console.error(err);
+      this.error = err;
+    } finally {
+      state.loading = false;
+    }
+  },
   
   clearError() {
     state.error = null

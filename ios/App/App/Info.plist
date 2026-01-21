@@ -47,5 +47,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>We use the camera so you can take photos for your profile picture and group icons.</string>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We use your photo library so you can upload profile pictures and group icons.</string>
+
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We save edited images when you upload profile pictures or group icons.</string>
 </dict>
 </plist>

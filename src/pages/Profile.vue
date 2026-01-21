@@ -132,6 +132,19 @@
                 </span>
                 Sign Out
               </button>
+              <button 
+                @click="handleDeleteAccount" 
+                class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition flex items-center justify-center"
+                :disabled="userStore.loading"
+              >
+                <span v-if="userStore.loading" class="mr-2">
+                  <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </span>
+                Delete Account
+              </button>
             </div>
           </div>
         </div>
@@ -140,6 +153,11 @@
   </div>
 
   <NewDisplayPicture ref="displayPictureDialog" />
+  <DeleteConfirm 
+    ref="deleteConfirm" 
+    title="Delete Account" 
+    message="Are you sure you want to delete your Footie Predictors account? All of your data will be erased. This action cannot be undone." 
+  />
 </template>
 
 <script setup lang="ts">
@@ -158,6 +176,7 @@ import NotificationPreferences from '../components/NotificationPreferences.vue';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import { userService } from '../api/userService';
 import AchievementCard from '../components/UI/AchievementCard.vue';
+import DeleteConfirm from "../components/DeleteConfirm.vue";
 
 const router = useRouter();
 const editMode = ref(false);
@@ -167,6 +186,8 @@ const userData = ref({ username: userStore.userProfile.username });
 const preferences = ref<Array<NotificationPreference>>([]);
 const achievements = ref<Array<Achievement>>([]);
 const loading = ref<boolean>();
+const deleteConfirm = ref<InstanceType<typeof DeleteConfirm> | null>(null);
+
 
 onMounted(() => {
   getAllData();
@@ -239,6 +260,18 @@ const handleLogout = async () => {
     router.push('/login')
   }
 }
+
+const handleDeleteAccount = async () => {
+  const confirmed = await deleteConfirm.value?.show();
+  if (confirmed) {
+    const { error } = await userStore.deleteAccount();
+    if (!error) {
+      router.push('/login');
+    }
+  } else {
+    console.log("Deletion cancelled!");
+  }
+};
 
 const openDisplayPictureDialog = () => {
   displayPictureDialog.value.show();
