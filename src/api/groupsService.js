@@ -118,7 +118,6 @@ export const groupsService = {
             users (
               id,
               username,
-              email,
               is_fake,
               bg_colour,
               profile_picture_url
@@ -142,7 +141,6 @@ export const groupsService = {
         .map(membership => ({
         id: membership.users.id,
         username: membership.users.username,
-        email: membership.users.email,
         is_admin: membership.is_admin,
         joined_at: membership.joined_at,
         membership_id: membership.id,
@@ -174,7 +172,6 @@ export const groupsService = {
             users:admin_id (
               id,
               username,
-              email
             )
           `)
           .eq('id', groupId)
@@ -191,7 +188,6 @@ export const groupsService = {
       const admin = {
         id: data.users.id,
         username: data.users.username,
-        email: data.users.email,
       };
 
       return { data: admin, error: null };

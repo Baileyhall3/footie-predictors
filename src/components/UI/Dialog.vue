@@ -13,7 +13,8 @@
                 ]"
             >
                 <div class="flex items-center px-6 py-4 border-b bg-white z-10">
-                    <div class="text-lg font-semibold">
+                    <slot name="header"></slot>
+                    <div class="text-lg font-semibold" v-if="!$slots.header">
                         {{ title }}
                     </div>
                     <button type="button" class="ms-auto text-gray-600 hover:text-gray-800" @click="hide">

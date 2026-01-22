@@ -53,11 +53,8 @@
 </template>
 
 <script setup lang="ts">
-import Dialog from '../UI/Dialog.vue';
 import { ref, computed } from 'vue';
-import { userStore } from '../../store/userStore';
 import "vue3-toastify/dist/index.css";
-import { PhotoIcon } from '@heroicons/vue/24/solid';
 import { Achievement } from '../../types';
 import { XMarkIcon } from '@heroicons/vue/24/solid';
 
@@ -65,21 +62,12 @@ const props = defineProps<{
     achievement: Achievement;
 }>();
 
-const hasChanges = ref<boolean>(false);
 const isVisible = ref<boolean>(false);
 const errorMsg = ref<string>('');
-const fileInputRef = ref<HTMLInputElement | null>(null);
-const selectedFile = ref<File | null>(null);
-const previewUrl = ref<string | null>(null);
-const hasRemovedProfilePicture = ref<boolean>(false);
 
 const isHidden = computed(() => {
     return props.achievement.is_hidden && !props.achievement.is_unlocked;
 });
-
-const cancel = () => {
-    hide();
-}
 
 const show = () => {
     isVisible.value = true;

@@ -91,7 +91,6 @@ import { Crown } from 'lucide-vue-next';
 import { StarIcon } from "@heroicons/vue/24/solid";
 
 interface Owner {
-    email: string;
     username: string;
     id: string;
 }

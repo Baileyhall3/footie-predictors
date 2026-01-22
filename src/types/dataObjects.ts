@@ -78,7 +78,6 @@ export interface Prediction {
 
 export interface GroupMember {
     id: string;
-    email?: string;
     is_admin: boolean;
     is_fake: boolean;
     joined_at: Date | string;

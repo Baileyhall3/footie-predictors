@@ -2,14 +2,13 @@
     <div class="bg-gray-100 min-h-screen p-4">
       <div class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto mt-8">
         <h2 class="text-2xl font-semibold mb-4">Privacy Policy</h2>
-        <p class="text-sm text-gray-500 mb-8">Last Updated: 27/03/2025</p>
+        <p class="text-sm text-gray-500 mb-8">Last Updated: 21/01/2026</p>
   
         <div class="mb-4">
           <p class="text-lg font-semibold">1. Information We Collect</p>
           <ul class="list-disc pl-5">
             <li>Account data (e.g., email, username).</li>
-            <li>Usage data (e.g., IP address, device type).</li>
-            <li>Cookies for analytics and functionality.</li>
+            <li>Usage data (e.g., device type, pages visited within the app).</li>
           </ul>
         </div>
   

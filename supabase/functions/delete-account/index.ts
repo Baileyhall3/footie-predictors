@@ -8,13 +8,11 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // 1️⃣ Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // 2️⃣ Require auth
     const authHeader = req.headers.get("Authorization")
     if (!authHeader) {
       return new Response(
@@ -23,10 +21,10 @@ serve(async (req) => {
       )
     }
 
-    // 3️⃣ Create Supabase client with user context
-    const supabase = createClient(
+    // 1️⃣ USER CLIENT (JWT ONLY)
+    const userClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
       {
         global: {
           headers: {
@@ -36,11 +34,10 @@ serve(async (req) => {
       }
     )
 
-    // 4️⃣ Get the authenticated user
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser()
+    } = await userClient.auth.getUser()
 
     if (userError || !user) {
       return new Response(
@@ -49,19 +46,26 @@ serve(async (req) => {
       )
     }
 
-    // 5️⃣ Delete user data first
-    await supabase.from("users").delete().eq("id", user.id)
+    // 2️⃣ ADMIN CLIENT (SERVICE ROLE ONLY — NO HEADERS)
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    )
+
+    // 3️⃣ Delete app data
+    await adminClient.from("users").delete().eq("id", user.id)
 
     // TODO: delete memberships, predictions, notifications, etc.
 
-    // 6️⃣ Delete auth user (requires service role)
-    await supabase.auth.admin.deleteUser(user.id)
+    // 4️⃣ DELETE AUTH USER (THIS NOW WORKS)
+    await adminClient.auth.admin.deleteUser(user.id)
 
     return new Response(
       JSON.stringify({ success: true }),
       { headers: corsHeaders }
     )
   } catch (err) {
+    console.error(err)
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: corsHeaders }

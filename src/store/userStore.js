@@ -472,16 +472,14 @@ export const userStore = {
     try {
       const { data, error } = await supabase.functions.invoke("delete-account")
 
-      if (error) {
-        console.error(error)
-        return error
-      } else {
-        // log out user locally
-        await supabase.auth.signOut()
-      }
-    } catch (err) {
-      console.error(err);
-      this.error = err;
+      if (error) throw error
+
+      await supabase.auth.signOut()
+      return { error: null }
+    } catch (error) {
+      console.error(error);
+      this.error = error;
+      return { error }
     } finally {
       state.loading = false;
     }
