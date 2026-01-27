@@ -1,5 +1,5 @@
 <template>
-    <div class="px-2 mb-4">
+    <div class="px-2 my-4">
         <div class="flex items-center justify-between gap-4 mb-4 flex-nowrap">
             <div class="flex items-center gap-3 min-w-0 max-w-full flex-1">
                 <slot name="header"></slot>

@@ -1,13 +1,13 @@
 <template>
     <LoadingScreen v-if="loading" />
-    <div class="container mx-auto py-8" v-else>
+    <template v-else>
         <DoesNotExist v-if="!seasonExists" entity="season" />
         <div v-else-if="error" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
             <p class="font-medium">Error loading season data</p>
             <p class="text-sm">{{ error }}</p>
             <button @click="fetchAllData" class="mt-2 text-sm text-red-700 underline">Try again</button>
         </div>
-        <template v-else>
+        <div class="h-full flex flex-col min-h-0" v-else>
             <PageHeader>
                 <template #header>
                     <h2 class="text-2xl font-semibold">{{ season?.name }}</h2>
@@ -155,8 +155,8 @@
                     </RoundedContainer>
                 </Tab>
             </Tabs>
-        </template>
-    </div>
+        </div>
+    </template>
 
     <DeleteConfirm ref="endSeasonConfirm" title="Please Confirm" message="Are you sure you want to end this season? This cannot be undone." confirmText="End Season" />
 </template>

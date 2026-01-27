@@ -2,9 +2,6 @@
     <div v-if="selectedTab === index">
         <slot />
     </div>
-    <!-- <div v-show="show">
-        <slot />
-    </div> -->
 </template>
   
 <script setup lang="ts">

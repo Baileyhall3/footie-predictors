@@ -1,25 +1,28 @@
 <template>
-    <div>
+    <div class="flex flex-col h-full min-h-0">
         <!-- Tab headers -->
-        <div class="flex overflow-x-auto no-scrollbar bg-white mb-8 space-x-4">
-            <button v-for="(tab, index) in tabs"
-                :key="index"
-                @click="selectTab(index)"
-                class="shrink-0"
-                :class="[
-                    'px-4 py-2 text-sm font-medium transition whitespace-nowrap',
-                    selected === index
-                        ? `border-b-2 border-${props.borderColour}-600 text-${props.borderColour}-600`
-                        : `text-gray-500 hover:text-${props.borderColour}-600`
-                ]"
-            >
-                {{ tab.header }}
-            </button>
+        <div class="relative z-10 bg-white shrink-0 border-b">
+            <div class="flex overflow-x-auto no-scrollbar space-x-4">
+                <button v-for="(tab, index) in tabs"
+                    :key="index"
+                    @click="selectTab(index)"
+                    class="shrink-0 px-4 py-2 text-sm font-medium transition whitespace-nowrap"
+                    :class="[
+                        selected === index
+                            ? `border-b-2 border-${props.borderColour}-600 text-${props.borderColour}-600`
+                            : `text-gray-500 hover:text-${props.borderColour}-600`
+                    ]"
+                >
+                    {{ tab.header }}
+                </button>
+            </div>
         </div>
 
         <!-- Tab content -->
-        <div>
-            <slot />
+         <div class="flex-1 overflow-y-auto min-h-0">
+            <div class="pt-8">
+                <slot />
+            </div>
         </div>
     </div>
 </template>

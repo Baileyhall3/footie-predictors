@@ -6,7 +6,7 @@
             'z-50', 
             props.headerTextColor
         ]"
-        class="w-full shadow-lg"
+        class="w-full shadow-lg shrink-0"
         style="padding-top: env(safe-area-inset-top)"
     >
         <div class="bg-green-600 text-white">

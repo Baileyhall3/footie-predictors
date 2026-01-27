@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-100 pb-8">
+  <div class="h-screen bg-gray-100 flex flex-col">
     <!-- Loading Screen -->
     <LoadingScreen v-if="isLoading"/>
     
@@ -12,9 +12,19 @@
       <!-- Background Blur -->
       <div v-if="mobileNavControls.isOpen" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md z-40" @click="mobileNavControls.close"></div>
 
-      <transition name="fade">
-        <router-view v-if="isVisible" />
-      </transition>
+        <div
+        :class="[
+          'flex-1 overflow-y-auto',  
+        ]"
+      >
+        <div class="h-full flex flex-col container mx-auto">
+          <div class="flex-1  min-h-0">          <!-- ✅ min-h-0 -->
+            <transition name="fade">
+              <router-view v-if="isVisible" />
+            </transition>
+          </div>
+        </div>
+      </div>
 
       <!-- Bottom nav (mobile only) -->
       <BottomNav v-if="isMobile && userStore.isAuthenticated" />

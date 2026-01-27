@@ -1,6 +1,6 @@
 <template>
     <nav
-        class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg lg:hidden"
+        class="bottom-0 left-0 right-0 z-50 bg-white border-t shadow lg:hidden shrink-0"
         style="padding-bottom: env(safe-area-inset-bottom)"
     >
         <div class="flex justify-around items-center h-14 text-xs">
