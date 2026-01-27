@@ -43,6 +43,8 @@
     "vue3-toastify": "^0.2.8"
   },
   "devDependencies": {
+    "@vueuse/core": "^14.1.0",
+    "@vueuse/nuxt": "^14.1.0",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "postcss-import": "^16.1.0",
