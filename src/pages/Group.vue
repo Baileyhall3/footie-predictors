@@ -2,7 +2,7 @@
   <DoesNotExist v-if="!groupExists && !loading" />
   <!-- Loading State -->
   <LoadingScreen v-if="loading" />
-  <div class="container mx-auto py-8" v-else>
+  <template v-else>
 
     <!-- Error State -->
     <div v-if="error" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
@@ -12,7 +12,7 @@
     </div>
 
     <!-- Content (only shown when not loading and no error) -->
-    <div v-if="!error && !loading && groupExists">
+    <div v-if="!error && !loading && groupExists" class="flex flex-col h-full">
       <template v-if="group?.iAmMember && !group?.joinRequestSent">
         <!-- Group header Section -->
          <PageHeader>
@@ -372,7 +372,7 @@
         </p>
       </RoundedContainer>
     </div>  
-  </div>
+  </template>
 
   <PinDialog ref="pinDialog" :groupPin="String(group?.group_pin)" @submit-pin="updateMemberStatus(true, false)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />

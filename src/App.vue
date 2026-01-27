@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <div class="h-screen bg-gray-100 flex flex-col">
     <!-- Loading Screen -->
     <LoadingScreen v-if="isLoading"/>
     
@@ -7,13 +7,27 @@
     <template v-else>
       <Header
         headerTitle="Footie Predictors"
+        :hideNav="isMobile && userStore.isAuthenticated"
       />
       <!-- Background Blur -->
       <div v-if="mobileNavControls.isOpen" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md z-40" @click="mobileNavControls.close"></div>
 
-      <transition name="fade">
-        <router-view v-if="isVisible" />
-      </transition>
+        <div
+        :class="[
+          'flex-1 overflow-y-auto',  
+        ]"
+      >
+        <div class="h-full flex flex-col container mx-auto">
+          <div class="flex-1  min-h-0">          <!-- ✅ min-h-0 -->
+            <transition name="fade">
+              <router-view v-if="isVisible" />
+            </transition>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom nav (mobile only) -->
+      <BottomNav v-if="isMobile && userStore.isAuthenticated" />
     </template>
   </div>
   <Analytics mode="production" />
@@ -27,6 +41,8 @@ import mobileNavControls from './shared';
 import { userStore } from './store/userStore';
 import { groupsStore } from "./store/groupsStore";
 import { Analytics } from '@vercel/analytics/vue';
+import { useWindowSize } from "@vueuse/core";
+import BottomNav from "./components/nav/BottomNav.vue";
 
 const isVisible = ref(false);
 const authInitialized = ref(false);
@@ -36,6 +52,10 @@ const isLoading = computed(() => {
   // Show loading if auth is not initialized or content is not visible yet
   return !authInitialized.value || !isVisible.value;
 });
+
+const { width } = useWindowSize()
+
+const isMobile = computed(() => width.value < 1024)
 
 onMounted(async () => {
   try {

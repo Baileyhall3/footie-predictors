@@ -171,7 +171,7 @@ export const groupsService = {
             admin_id,
             users:admin_id (
               id,
-              username,
+              username
             )
           `)
           .eq('id', groupId)
