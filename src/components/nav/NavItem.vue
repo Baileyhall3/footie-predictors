@@ -4,7 +4,7 @@
         class="flex flex-col items-center justify-center gap-1 px-2 py-1"
         :class="isActive ? 'text-green-600' : 'text-gray-500'"
     >
-        <slot />
+        <slot :isActive="isActive" />
         <span class="text-[11px] font-medium">{{ label }}</span>
     </router-link>
 </template>
