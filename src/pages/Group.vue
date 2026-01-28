@@ -374,7 +374,7 @@
     </div>  
   </template>
 
-  <PinDialog ref="pinDialog" :groupPin="String(group?.group_pin)" @submit-pin="updateMemberStatus(true, false)" />
+  <PinDialog ref="pinDialog" :groupId="groupId" @submit-pin="updateMemberStatus(true, false)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
   <CreateGroupMember ref="createMemberDialog" :groupId="groupId" :seasonId="activeSeason?.id" @user-created="getGroupMembers(); getLeaderboard();" />
   <CreateNotification :groupId="groupId" ref="createNotificationDialog" />

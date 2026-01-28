@@ -33,46 +33,30 @@ export const groupsService = {
    */
   async createGroup(groupData, adminId, iconFile = null, seasonData) {
     try {
-      const { data: group, error } = await supabaseDb.create('groups', {
-        name: groupData.name,
-        admin_id: adminId,
-        description: groupData.description,
-        exact_score_points: groupData.exact_score_pts,
-        correct_result_points: groupData.correct_result_pts,
-        incorrect_points: groupData.incorrect_points,
-        is_public: groupData.is_public,
-        group_pin: groupData.group_pin,
-        max_members: groupData.max_members
-      });
-  
-      if (error) throw error;
+      const { data: group, error } = await supabase.rpc('create_group', {
+        p_name: groupData.name,
+        p_admin_id: adminId,
+        p_description: groupData.description,
+        p_exact_score_points: groupData.exact_score_pts,
+        p_correct_result_points: groupData.correct_result_pts,
+        p_incorrect_points: groupData.incorrect_points,
+        p_is_public: groupData.is_public,
+        p_group_pin: groupData.group_pin?.toString() ?? null,
+        p_max_members: groupData.max_members,
+        p_season_name: seasonData.name ?? 'Season 1',
+        p_season_start_date: seasonData.start_date,
+        p_season_end_date: seasonData.end_date
+      })
+
+      if (error) {
+        console.error(error)
+      }
 
       if (iconFile) {
         const { url, error: uploadError } = await this.uploadGroupIcon(iconFile, group.id);
         if (uploadError) throw memberError;
         // supabaseDb.update('groups', group.id, { icon_url: url });
       }
-  
-      // Add creator as a group admin
-      const { error: memberError } = await supabaseDb.create('group_members', {
-        group_id: group.id,
-        user_id: adminId,
-        is_admin: true
-      });
-  
-      if (memberError) throw memberError;
-
-      
-      const { data: sznData, error: seasonError } = await supabaseDb.create('seasons', {
-        name: seasonData.name ?? 'Season 1',
-        group_id: group.id,
-        start_date: seasonData.start_date,
-        end_date: seasonData.end_date
-      });
-      
-      if (seasonError) throw seasonError;
-
-      await supabaseDb.update('groups', group.id, { active_season_id: sznData.id });
   
       return { data: group, error: null };
     } catch (error) {
@@ -572,5 +556,26 @@ export const groupsService = {
       return { error }
     }
   },
+
+  /**
+   * Verify a group pin
+   * @param {string} groupId - the ID of the group
+   * @param {string} pin - Stringified version of numeric group PIN
+   * @returns 
+   */
+  async verifyGroupPin(groupId, pin) {
+    const { data, error } = await supabase.rpc('verify_group_pin', {
+      p_group_id: groupId,
+      p_pin: pin
+    })
+
+    if (error) {
+      console.error('verifyGroupPin error:', error)
+      throw error
+    }
+
+    // data is guaranteed boolean here
+    return data === true
+  }
 
 }
