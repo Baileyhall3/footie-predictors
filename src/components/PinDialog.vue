@@ -36,15 +36,13 @@
 
 <script setup lang="ts">
 import { nextTick, ref } from "vue";
+import { groupsService } from "../api/groupsService";
+
+const props = defineProps<{
+    groupId: string;
+}>()
 
 const emit = defineEmits(["submit-pin"]);
-
-const props = defineProps({
-    groupPin: {
-        type: String,
-        required: true,
-    },
-});
 
 const pin = ref(["", "", "", ""]);
 const pinInputs = ref<HTMLInputElement[]>([]);
@@ -61,16 +59,21 @@ const show = () => {
     });
 };
 
-const confirm = () => {
-    const enteredPin = pin.value.join("");
-    console.log(enteredPin, props.groupPin)
-    if (enteredPin === props.groupPin) {
-        emit("submit-pin", enteredPin);
-        isVisible.value = false;
-    } else {
-        errorMessage.value = "Incorrect PIN. Try again.";
+const confirm = async () => {
+    try {
+        const enteredPin = pin.value.join("")
+        const isValid = await groupsService.verifyGroupPin(props.groupId, enteredPin)
+
+        if (isValid) {
+            emit("submit-pin", enteredPin)
+            isVisible.value = false
+        } else {
+            errorMessage.value = "Incorrect PIN. Try again."
+        }
+    } catch (err) {
+        errorMessage.value = "Something went wrong. Please try again."
     }
-};
+}
 
 const cancel = () => {
     isVisible.value = false;

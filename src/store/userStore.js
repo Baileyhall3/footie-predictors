@@ -338,8 +338,7 @@ export const userStore = {
               correct_result_points,
               incorrect_points,
               is_public,
-              max_members,
-              group_pin
+              max_members
             )
           `)
           .eq('user_id', state.user.id)

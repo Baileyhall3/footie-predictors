@@ -154,7 +154,7 @@ const group = ref<{
   exact_score_points?: number;
   incorrect_points?: number;
   is_public?: boolean;
-  group_pin?: number | String;
+  pin_hash?: number | String;
   max_members?: number;
   description?: string;
   icon_url?: string | null;
@@ -197,17 +197,17 @@ const handleBackspace = (index, event) => {
   }
 };
 
-// Update `group_pin` when PIN changes
+// Update `pin_hash` when PIN changes
 const updateGroupPin = () => {
   const pinValue = pin.value.join(""); 
-  group.value.group_pin = pinValue.length === 4 ? parseInt(pinValue, 10) : null;
+  group.value.pin_hash = pinValue.length === 4 ? parseInt(pinValue, 10) : null;
 };
 
 // Reset PIN when switching to public
 watch(() => group.value.is_public, (newVal) => {
   if (newVal) {
     pin.value = ["", "", "", ""];
-    group.value.group_pin = "";
+    group.value.pin_hash = "";
   }
 });
 
@@ -231,8 +231,8 @@ const fetchAllData = async () => {
     group.value = groupData;
     hadIcon.value = group.value.icon_url ? true : false;
 
-    if (groupData.group_pin !== null && groupData.group_pin !== undefined) {
-      pin.value = String(groupData.group_pin).padStart(4, "0").split(""); 
+    if (groupData.pin_hash !== null && groupData.pin_hash !== undefined) {
+      pin.value = String(groupData.pin_hash).padStart(4, "0").split(""); 
     } else {
       pin.value = ["", "", "", ""]; 
     }
@@ -270,7 +270,7 @@ const updateGroup = async () => {
     errorMessage.value = 'You are missing values for one or more of your scoring system options.';
     return;
   }
-  if (!group.value.is_public && !group.value.group_pin) {
+  if (!group.value.is_public && !group.value.pin_hash) {
     errorMessage.value = 'Please enter a PIN for your private group.';
     return;
   }
@@ -280,7 +280,7 @@ const updateGroup = async () => {
   }
 
   if (group.value.is_public) {
-    group.value.group_pin = null;
+    group.value.pin_hash = null;
   }
 
   isSubmitting.value = true;
