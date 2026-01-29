@@ -7,7 +7,7 @@
     <template v-else>
       <Header
         headerTitle="Footie Predictors"
-        :hideNav="isMobile && userStore.isAuthenticated"
+        :hideNav="!!Capacitor.isNativePlatform()"
       />
       <!-- Background Blur -->
       <div v-if="mobileNavControls.isOpen" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md z-40" @click="mobileNavControls.close"></div>
@@ -27,7 +27,7 @@
       </div>
 
       <!-- Bottom nav (mobile only) -->
-      <BottomNav v-if="isMobile && userStore.isAuthenticated" />
+      <BottomNav v-if="Capacitor.isNativePlatform() && userStore.isAuthenticated" />
     </template>
   </div>
   <Analytics mode="production" />
@@ -43,9 +43,14 @@ import { groupsStore } from "./store/groupsStore";
 import { Analytics } from '@vercel/analytics/vue';
 import { useWindowSize } from "@vueuse/core";
 import BottomNav from "./components/nav/BottomNav.vue";
+import { useNavigationMode } from "./shared";
+
+import { Capacitor } from "@capacitor/core";
 
 const isVisible = ref(false);
 const authInitialized = ref(false);
+
+const { useHamburger, showBottomNav } = useNavigationMode();
 
 // Computed property to determine if we should show the loading screen
 const isLoading = computed(() => {

@@ -1,21 +1,21 @@
 <template>
     <nav
-        class="bottom-0 left-0 right-0 z-50 bg-white border-t shadow lg:hidden shrink-0"
+        class="sticky bottom-0 left-0 right-0 z-50 bg-white border-t shadow lg:hidden shrink-0"
         style="padding-bottom: env(safe-area-inset-bottom)"
     >
-        <div class="flex justify-around items-center h-14 text-xs">
+        <div class="grid grid-cols-5 items-center h-14 text-xs">
             <NavItem to="/" label="Home">
                 <HomeIcon class="size-6" />
             </NavItem>
 
-            <NavItem to="/groups" label="Groups">
-                <UserGroupIcon class="size-6" />
-            </NavItem>
-
+            
             <NavItem to="/predictions" label="Predictions">
                 <TargetIcon class="size-6" />
             </NavItem>
-
+            
+            <NavItem to="/groups" label="Groups">
+                <UserGroupIcon class="size-6" />
+            </NavItem>
             <NavItem to="/leaderboards" label="Leaderboards">
                 <TrophyIcon class="size-6" />
             </NavItem>
