@@ -27,6 +27,30 @@
                             <router-link to="/leaderboards" class="hover:underline">Leaderboards</router-link>
                             <router-link to="/user-stats" class="hover:underline">Stats</router-link>
                             <router-link to="/profile" class="hover:underline">Profile</router-link>
+                            <router-link 
+                                v-if="userStore.userProfile?.favourite_group_id"
+                                :to="`/group/${userStore.userProfile.favourite_group_id}`"
+                            >
+                                <div
+                                    class="relative w-5 h-5 ring-1 ring-green-600 ring-offset-2 me-2 rounded-full"
+                                >
+                                    <!-- Circle clip ONLY for the image -->
+                                    <div class="w-full h-full rounded-full overflow-hidden">
+                                        <img
+                                            :src="userStore.userProfile.favourite_group_icon_url ?? '/images/green-football-md.png'"
+                                            alt="Group Logo"
+                                            class="w-full h-full object-cover"
+                                        />
+                                    </div>
+
+                                    <!-- Favourite badge (now free to escape the circle) -->
+                                    <div
+                                        class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-600 ring-2 ring-white flex items-center justify-center"
+                                    >
+                                        <StarIcon class="w-3 h-3 text-yellow-400" />
+                                    </div>
+                                </div>
+                            </router-link>
                             <router-link to="/notifications" class="relative hover:underline">
                                 <BellIcon class="size-5" />
                                 <span
@@ -45,6 +69,30 @@
         
                     <!-- Mobile Menu Button -->
                     <div class="flex items-center ml-auto lg:hidden text-white">
+                        <router-link 
+                            v-if="userStore.userProfile?.favourite_group_id"
+                            :to="`/group/${userStore.userProfile.favourite_group_id}`"
+                        >
+                            <div
+                                class="relative w-5 h-5 ring-1 ring-green-600 ring-offset-2 me-2 rounded-full"
+                            >
+                                <!-- Circle clip ONLY for the image -->
+                                <div class="w-full h-full rounded-full overflow-hidden">
+                                    <img
+                                        :src="userStore.userProfile.favourite_group_icon_url ?? '/images/green-football-md.png'"
+                                        alt="Group Logo"
+                                        class="w-full h-full object-cover"
+                                    />
+                                </div>
+
+                                <!-- Favourite badge (now free to escape the circle) -->
+                                <div
+                                    class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-600 ring-2 ring-white flex items-center justify-center"
+                                >
+                                    <StarIcon class="w-3 h-3 text-yellow-400" />
+                                </div>
+                            </div>
+                        </router-link>
                         <router-link to="/notifications" @click="mobileNavControls.close" class="relative hover:underline me-2" v-if="userStore.isAuthenticated">
                             <BellIcon class="size-5" />
                             <span
@@ -95,7 +143,7 @@
 
 <script setup lang="ts">
 import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline';
-import { TrophyIcon } from '@heroicons/vue/24/solid';
+import { TrophyIcon, StarIcon } from '@heroicons/vue/24/solid';
 import mobileNavControls from '../shared';
 import { BellIcon } from '@heroicons/vue/24/solid';
 import { userStore } from '../store/userStore';

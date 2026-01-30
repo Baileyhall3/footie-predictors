@@ -122,11 +122,12 @@ export const userStore = {
       }
       
       state.loading = true
-      const { data, error } = await supabaseDb.getById('users', state.user.id)
+      const { data, error } = await supabaseDb.getById('public_users', state.user.id)
       
       if (error) throw error
       
       state.userProfile = data
+      console.log('Fetched user profile:', data)
       return data
     } catch (error) {
       console.error('Error fetching user profile:', error)
