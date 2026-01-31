@@ -5,7 +5,12 @@
     
     <!-- Main App Content -->
     <template v-else>
+      
+      <!-- <MobileHeader /> -->
+      <MobileHeader v-if="Capacitor.isNativePlatform() && isMobile && !isGroupRoute && userStore.isAuthenticated" />
+
       <Header
+        v-else-if="userStore.isAuthenticated "
         headerTitle="Footie Predictors"
         :hideNav="!!Capacitor.isNativePlatform()"
       />
@@ -44,13 +49,18 @@ import { Analytics } from '@vercel/analytics/vue';
 import { useWindowSize } from "@vueuse/core";
 import BottomNav from "./components/nav/BottomNav.vue";
 import { useNavigationMode } from "./shared";
-
+import MobileHeader from "./components/nav/MobileHeader.vue";
 import { Capacitor } from "@capacitor/core";
+import { useRoute } from 'vue-router';
+
+const route = useRoute()
 
 const isVisible = ref(false);
 const authInitialized = ref(false);
 
-const { useHamburger, showBottomNav } = useNavigationMode();
+const isGroupRoute = computed(() => {
+  return route.meta?.isGroupContext === true;
+});
 
 // Computed property to determine if we should show the loading screen
 const isLoading = computed(() => {

@@ -22,8 +22,10 @@
               class="w-10 h-10 flex-shrink-0" 
               alt="Group Logo"
             />
-            <div class="flex items-center min-w-0">
-              <button v-if="userStore.userProfile.favourite_group_id === groupId" 
+            <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
+          </template>
+          <template #actionItems>
+            <button v-if="userStore.userProfile.favourite_group_id === groupId" 
                 @click="toggleGroupFavourite(false)" 
                 class="me-2" 
                 title="Remove as favourite group"
@@ -38,10 +40,6 @@
               >
                 <StarOutlineIcon class="size-6 text-yellow-400 hover:text-yellow-500" />
               </button>
-              <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
-            </div>
-          </template>
-          <template #actionItems>
               <button @click="copyPageLink('Group')" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
                 <LinkIcon class="size-6 text-blue-500" />
               </button>

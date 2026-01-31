@@ -5,3 +5,5 @@ export { default as Dropdown } from './Dropdown.vue';
 export { default as Dialog } from './Dialog.vue';
 export { default as Lookup } from './Lookup.vue';
 export { default as LoadingSpinner } from './LoadingSpinner.vue';
+export { default as FavouriteGroupIcon } from './FavouriteGroupIcon.vue';
+export { default as NotificationBell } from './NotificationBell.vue';

@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto py-8">
+    <MainContent>
         <div class="mb-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Your Predictions</h2>
@@ -58,7 +58,7 @@
                 <NoGroupsJoined v-else />
             </template>
         </div>
-    </div>
+    </MainContent>
 </template>
 
 <script setup lang="ts">
@@ -77,6 +77,7 @@ import { SearchBar2 } from '../components/UI/input';
 import { mapPredictions } from "../utils/sharedFunctions";
 import { RoundedContainer } from "../components/UI";
 import NoGroupsJoined from "../components/UI/NoGroupsJoined.vue";
+import MainContent from "../components/layout/MainContent.vue";
 
 const isLoading = ref<boolean>(true);
 const userGroups = ref<Array<Group>>([]); // incorrect type

@@ -46,7 +46,7 @@ const router = createRouter({
       name: 'Login',
       component: Login,
       meta: {
-        title: 'Login - Footie Predictors',
+        title: 'Login',
         requiresAuth: false
       }
     },
@@ -55,7 +55,7 @@ const router = createRouter({
       name: 'Register',
       component: Register,
       meta: {
-        title: 'Register - Footie Predictors',
+        title: 'Register',
         requiresAuth: false
       }
     },
@@ -64,7 +64,7 @@ const router = createRouter({
       name: 'Reset Password',
       component: ResetPassword,
       meta: {
-        title: 'Reset Password - Footie Predictors',
+        title: 'Reset Password',
         requiresAuth: false
       }
     },
@@ -73,7 +73,7 @@ const router = createRouter({
       name: 'Privacy Policy',
       component: PrivacyPolicy,
       meta: {
-        title: 'Privacy Policy - Footie Predictors',
+        title: 'Privacy Policy',
         requiresAuth: false
       }
     },
@@ -82,7 +82,7 @@ const router = createRouter({
       name: 'App Info',
       component: AppInfo,
       meta: {
-        title: 'App Info - Footie Predictors',
+        title: 'App Info',
         requiresAuth: false
       }
     },
@@ -100,7 +100,7 @@ const router = createRouter({
       name: 'Groups',
       component: Groups,
       meta: {
-        title: 'Groups - Footie Predictors',
+        title: 'Groups',
         requiresAuth: true
       }
     },
@@ -109,8 +109,9 @@ const router = createRouter({
       name: 'Group',
       component: Group,
       meta: {
-        title: 'Group - Footie Predictors',
-        requiresAuth: true
+        title: 'Group',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -118,8 +119,9 @@ const router = createRouter({
       name: 'GroupLeaderboards',
       component: GroupLeaderboards,
       meta: {
-        title: 'Group Leaderboards - Footie Predictors',
-        requiresAuth: true
+        title: 'Group Leaderboards',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -127,8 +129,9 @@ const router = createRouter({
       name: 'GroupCreateSeason',
       component: CreateSeason,
       meta: {
-        title: 'Create Season - Footie Predictors',
-        requiresAuth: true
+        title: 'Create Season',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -136,8 +139,9 @@ const router = createRouter({
       name: 'GroupStats',
       component: GroupStats,
       meta: {
-        title: 'Group Stats - Footie Predictors',
-        requiresAuth: true
+        title: 'Group Stats',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -145,8 +149,9 @@ const router = createRouter({
       name: 'UpdateGroup',
       component: UpdateGroup,
       meta: {
-        title: 'Update Group - Footie Predictors',
-        requiresAuth: true
+        title: 'Update Group',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -154,8 +159,9 @@ const router = createRouter({
       name: 'GroupNotifications',
       component: GroupNotifications,
       meta: {
-        title: 'Group Notifications - Footie Predictors',
-        requiresAuth: true
+        title: 'Group Notifications',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -163,8 +169,9 @@ const router = createRouter({
       name: 'GroupAdminView',
       component: GroupAdminView,
       meta: {
-        title: 'Group Admin View - Footie Predictors',
-        requiresAuth: true
+        title: 'Group Admin View',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -172,8 +179,9 @@ const router = createRouter({
       name: 'Season',
       component: Season,
       meta: {
-        title: 'Season - Footie Predictors',
-        requiresAuth: true
+        title: 'Season',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -181,8 +189,9 @@ const router = createRouter({
       name: 'CreateGameweek',
       component: CreateGameweek,
       meta: {
-        title: 'Create Gameweek - Footie Predictors',
-        requiresAuth: true
+        title: 'Create Gameweek',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -190,8 +199,9 @@ const router = createRouter({
       name: 'Gameweek',
       component: Gameweek,
       meta: {
-        title: 'Gameweek - Footie Predictors',
-        requiresAuth: true
+        title: 'Gameweek',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -199,8 +209,9 @@ const router = createRouter({
       name: 'Gameweek Add Matches',
       component: AddGameweekMatches,
       meta: {
-        title: 'Gameweek Add Matches - Footie Predictors',
-        requiresAuth: true
+        title: 'Gameweek Add Matches',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -208,8 +219,9 @@ const router = createRouter({
       name: 'Gameweek Predictions',
       component: GameweekPredictions,
       meta: {
-        title: 'Gameweek Predictions - Footie Predictors',
-        requiresAuth: true
+        title: 'Gameweek Predictions',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -217,8 +229,9 @@ const router = createRouter({
       name: 'Match Predictions',
       component: MatchPredictions,
       meta: {
-        title: 'Match Predictions - Footie Predictors',
-        requiresAuth: true
+        title: 'Match Predictions',
+        requiresAuth: true,
+        isGroupContext: true
       }
     },
     {
@@ -226,8 +239,9 @@ const router = createRouter({
       name: 'Admin Gameweek Predictions',
       component: AdminUserPredictions,
       meta: {
-        title: 'Admin Gameweek Predictions - Footie Predictors',
-        requiresAuth: true
+        title: 'Admin Gameweek Predictions',
+        requiresAuth: true,
+        isGroupContext: true
       }
     }, 
     {
@@ -235,8 +249,9 @@ const router = createRouter({
       name: 'User Gameweek Predictions',
       component: UserGameweekPredictions,
       meta: {
-        title: 'User Gameweek Predictions - Footie Predictors',
-        requiresAuth: true
+        title: 'User Gameweek Predictions',
+        requiresAuth: true,
+        isGroupContext: true
       }
     }, 
     {
@@ -244,8 +259,9 @@ const router = createRouter({
       name: 'User Group Profile',
       component: GroupUserProfile,
       meta: {
-        title: 'User Group Profile - Footie Predictors',
-        requiresAuth: true
+        title: 'User Group Profile',
+        requiresAuth: true,
+        isGroupContext: true
       }
     }, 
     {
@@ -253,7 +269,7 @@ const router = createRouter({
       name: 'Predictions',
       component: Predictions,
       meta: {
-        title: 'Predictions - Footie Predictors',
+        title: 'Predictions',
         requiresAuth: true
       }
     },
@@ -262,7 +278,7 @@ const router = createRouter({
       name: 'Leaderboards',
       component: Leaderboards,
       meta: {
-        title: 'Leaderboards - Footie Predictors',
+        title: 'Leaderboards',
         requiresAuth: true
       }
     },
@@ -271,7 +287,7 @@ const router = createRouter({
       name: 'Create Group',
       component: CreateGroup,
       meta: {
-        title: 'Create Group - Footie Predictors',
+        title: 'Create Group',
         requiresAuth: true
       }
     },
@@ -280,7 +296,7 @@ const router = createRouter({
       name: 'Profile',
       component: Profile,
       meta: {
-        title: 'My Profile - Footie Predictors',
+        title: 'My Profile',
         requiresAuth: true
       }
     },
@@ -289,7 +305,7 @@ const router = createRouter({
       name: 'User Stats',
       component: UserStats,
       meta: {
-        title: 'User Stats - Footie Predictors',
+        title: 'User Stats',
         requiresAuth: true
       }
     },
@@ -298,7 +314,7 @@ const router = createRouter({
       name: 'AuthTest',
       component: AuthTest,
       meta: {
-        title: 'Auth Test - Footie Predictors',
+        title: 'Auth Test',
         requiresAuth: true
       }
     },
@@ -307,7 +323,7 @@ const router = createRouter({
       name: 'Notifications',
       component: UserNotifications,
       meta: {
-        title: 'Notifications - Footie Predictors',
+        title: 'Notifications',
         requiresAuth: true
       }
     },

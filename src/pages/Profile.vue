@@ -1,6 +1,6 @@
 <template>
   <LoadingScreen v-if="loading" />
-  <div class="container mx-auto py-8" v-else>
+  <MainContent v-else>
     <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
       <!-- Profile Header -->
       <div class="bg-gradient-to-r px-6 py-8 text-white" 
@@ -150,7 +150,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </MainContent>
 
   <NewDisplayPicture ref="displayPictureDialog" />
   <DeleteConfirm 
@@ -177,6 +177,7 @@ import LoadingScreen from '../components/LoadingScreen.vue';
 import { userService } from '../api/userService';
 import AchievementCard from '../components/UI/AchievementCard.vue';
 import DeleteConfirm from "../components/DeleteConfirm.vue";
+import MainContent from '../components/layout/MainContent.vue';
 
 const router = useRouter();
 const editMode = ref(false);

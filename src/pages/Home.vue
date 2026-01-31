@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-6 py-8">
+  <MainContent>
     <!-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 md:gap-8"> -->
     <div>
       <!-- Welcome Message -->
@@ -109,7 +109,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </MainContent>
 </template>
 
 <script setup>
@@ -122,6 +122,7 @@ import ScoreCard from "../components/ScoreCard.vue";
 import { groupsService } from "../api/groupsService";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import { RoundedContainer } from "../components/UI";
+import MainContent from "../components/layout/MainContent.vue";
 
 // State
 const isLoading = ref(true);

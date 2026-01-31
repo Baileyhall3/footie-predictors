@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto px-6 py-8">
+    <MainContent>
         <div class="mb-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Your Rankings</h2>
@@ -48,7 +48,7 @@
                 <NoGroupsJoined v-else />
             </template>
         </div>
-    </div>
+    </MainContent>
 </template>
 
 <script setup lang="ts">
@@ -61,6 +61,7 @@ import LoadingScreen from "../components/LoadingScreen.vue";
 import { Group } from "../types";
 import { SearchBar2 } from '../components/UI/input';
 import NoGroupsJoined from '../components/UI/NoGroupsJoined.vue';
+import MainContent from "../components/layout/MainContent.vue";
 
 // State
 const isLoading = ref<boolean>(true);

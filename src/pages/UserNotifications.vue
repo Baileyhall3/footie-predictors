@@ -1,6 +1,6 @@
 <template>
     <LoadingScreen v-if="isLoading" />
-    <div v-else class="container mx-auto px-6 py-8">
+    <MainContent v-else>
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <h2 class="text-2xl font-bold">Your Notifications</h2>
             <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
@@ -57,18 +57,17 @@
         <div v-else class="bg-white rounded-xl shadow p-10 text-center text-gray-500 mt-4 border border-dashed border-gray-300">
             <p class="text-lg font-medium mb-2">No notifications yet!</p>
         </div>
-    </div>
+    </MainContent>
 </template>
 
 <script setup lang="ts">
 import LoadingScreen from '../components/LoadingScreen.vue';
 import { ref, onMounted, computed } from 'vue';
 import type { Notification } from '../types';
-import { notificationsService } from '../api/notificationsService';
-import { userStore } from '../store/userStore';
 import { SearchBar2 } from '../components/UI/input';
 import NotificationCard from '../components/NotificationCard.vue';
 import { notificationsStore } from '../store/notificationsStore';
+import MainContent from '../components/layout/MainContent.vue';
 
 type ReadFilter = 'all' | 'unread' | 'read'
 
