@@ -16,6 +16,9 @@
           <span title="You are the owner of this group" v-if="group.iAmOwner">
             <Crown class="size-5 text-yellow-300 me-1" />
           </span>
+          <span title="This is your favourite group" v-if="userStore.userProfile?.favourite_group_id === group[groupIdField]">
+            <StarIcon class="size-5 me-1 text-yellow-400" />
+          </span>
           <h3 class="text-lg font-semibold truncate">{{ group[groupNameField] }}</h3>
         </div>
         <div class="flex items-center" v-if="!props.hideMemberCount">
@@ -30,8 +33,9 @@
 
 <script setup lang="ts">
 import type { Group } from '../types';
-import { UsersIcon } from '@heroicons/vue/24/solid';
+import { UsersIcon, StarIcon } from '@heroicons/vue/24/solid';
 import { Crown, Send } from 'lucide-vue-next'; 
+import { userStore } from '../store/userStore';
 
 export interface IProps {
   group: Group,

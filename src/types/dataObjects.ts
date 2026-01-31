@@ -34,6 +34,7 @@ export interface Group {
     iAmAdmin: boolean,
     iAmOwner: boolean,
     owner: string
+    has_pin: boolean;
 }
 
 export interface Gameweek {

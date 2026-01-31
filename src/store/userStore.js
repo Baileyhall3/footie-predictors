@@ -484,6 +484,39 @@ export const userStore = {
       state.loading = false;
     }
   },
+
+  /**
+   * Toggle the user's favourite group
+   * @param {{id: String, name: String, icon_url: String | null} | null} group 
+   * @returns 
+   */
+  async updateFavouriteGroup(group) {
+    try {
+      state.loading = true
+      state.error = null
+      
+      if (!state.user) throw new Error('User not authenticated')
+      
+      const { data, error } = await supabaseDb.update('users', 
+        state.user.id, 
+        { favourite_group_id: group ? group.id : null }
+      )
+      
+      if (error) throw error
+      
+      // Update local state
+      state.userProfile.favourite_group_id = group ? group.id : null;
+      state.userProfile.favourite_group = group ? group.name : null;
+      state.userProfile.favourite_group_icon_url = group ? group.icon_url : null;
+      
+      return { data, error: null }
+    } catch (error) {
+      state.error = error.message
+      return { data: null, error }
+    } finally {
+      state.loading = false
+    }
+  },
   
   clearError() {
     state.error = null

@@ -22,7 +22,24 @@
               class="w-10 h-10 flex-shrink-0" 
               alt="Group Logo"
             />
-            <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
+            <div class="flex items-center min-w-0">
+              <button v-if="userStore.userProfile.favourite_group_id === groupId" 
+                @click="toggleGroupFavourite(false)" 
+                class="me-2" 
+                title="Remove as favourite group"
+              >
+                <StarIcon class="size-6 text-yellow-400" />
+              </button>
+              <button 
+                v-else
+                @click="toggleGroupFavourite(true)" 
+                class="me-2" 
+                title="Set as favourite group"
+              >
+                <StarOutlineIcon class="size-6 text-yellow-400 hover:text-yellow-500" />
+              </button>
+              <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
+            </div>
           </template>
           <template #actionItems>
               <button @click="copyPageLink('Group')" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
@@ -93,6 +110,9 @@
                 <p class="text-sm text-gray-600"><span class="font-semibold">Owner:</span> {{ group?.owner }}</p>
                 <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Established:</span> {{ DateUtils.toLongDate(group?.created_at) }}</p>
                 <p class="text-sm text-gray-600 mt-1"><span class="font-semibold">Scoring System:</span> {{ getScoringSystem(group) }}</p>
+                
+                <p v-if="group.is_public" class="text-sm text-gray-600 mt-1"><span class="font-semibold">Public:</span> Anyone can join</p>
+                <p v-else class="text-sm text-gray-600 mt-1"><span class="font-semibold">Private:</span> Join by PIN or request approval</p>
               </RoundedContainer>
               <RoundedContainer>
                 <template #header>
@@ -389,7 +409,8 @@ import { userStore } from "../store/userStore";
 import { gameweeksService } from "../api/gameweeksService";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
-import { LinkIcon, EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
+import { LinkIcon, EllipsisVerticalIcon, StarIcon } from "@heroicons/vue/24/solid";
+import { StarIcon as StarOutlineIcon } from "@heroicons/vue/24/outline";
 import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
@@ -571,6 +592,14 @@ async function submitPredictions() {
   } finally {
     loading.value = false;
   }
+}
+
+function toggleGroupFavourite(isFavourite: boolean) {
+  userStore.updateFavouriteGroup(isFavourite ? group.value : null);
+  toast(`Group ${isFavourite ? 'set' : 'removed'} as favourite!`, {
+    "type": "success",
+    "position": "top-center"
+  });
 }
 
 const updateMemberAdminStatus = async (member: GroupMember) => {

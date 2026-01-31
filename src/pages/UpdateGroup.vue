@@ -1,18 +1,12 @@
 <template>
     <div class="container mx-auto px-4 py-8">
-      <!-- <div v-if="!isAdmin && !loading" class="bg-red-100 p-4 rounded-md text-red-600">
-        <p>You must be an admin to update this group.</p>
-        <button @click="redirectToGroup" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">
-          Go to Group
-        </button>
-      </div> -->
-      <NoAccess v-if="!isAdmin && !loading" />
+      <NoAccess v-if="!group?.iAmOwner && !loading" />
       <div v-else class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
         <div class="bg-gradient-to-r from-green-600 to-green-800 px-6 py-8 text-white">
           <h1 class="text-3xl font-bold">{{ group.name }}</h1>
-          <p v-if="admin" class="mt-2 text-green-100">
+          <!-- <p v-if="admin" class="mt-2 text-green-100">
             Owner: {{ admin.username }}
-          </p>
+          </p> -->
         </div>
   
         <div class="p-6">
@@ -66,23 +60,46 @@
                     { value: false, label: 'Private (Invite only)' }
                   ]" />
 
-                <!-- PIN Input (Only Visible When Private) -->
+                <!-- PIN Section (Only Visible When Private) -->
                 <div v-if="!group.is_public" class="mt-4">
-                  <label class="block font-medium">Set Group PIN</label>
-                    <div class="flex gap-2 justify-center mt-2">
-                      <input
-                        v-for="(digit, index) in pin"
-                        :key="index"
-                        ref="pinInputs"
-                        type="number"
-                        maxlength="1"
-                        class="w-12 h-12 text-center border rounded-md text-xl font-bold"
-                        v-model="pin[index]"
-                        @input="handleInput(index, $event)"
-                        @keydown.backspace="handleBackspace(index, $event)"
-                      />
-                    </div>
+
+                  <label class="block font-medium">
+                    Group PIN
+                  </label>
+
+                  <!-- Status hint -->
+                  <p class="text-sm text-gray-500 mt-1">
+                    <span v-if="hasPin">
+                      A PIN is currently set. Enter a new PIN below to replace it.
+                    </span>
+                    <span v-else>
+                      No PIN is set. Please create one to make this group private.
+                    </span>
+                  </p>
+
+                  <!-- PIN inputs -->
+                  <div class="flex gap-2 justify-center mt-3">
+                    <input
+                      v-for="(digit, index) in pin"
+                      :key="index"
+                      ref="pinInputs"
+                      type="number"
+                      inputmode="numeric"
+                      pattern="[0-9]*"
+                      maxlength="1"
+                      class="w-12 h-12 text-center border rounded-md text-xl font-bold"
+                      v-model="pin[index]"
+                      @input="handleInput(index, $event)"
+                      @keydown.backspace="handleBackspace(index, $event)"
+                    />
                   </div>
+
+                  <!-- Helper text -->
+                  <p class="text-xs text-gray-400 mt-2 text-center">
+                    Leave blank to keep the existing PIN.
+                  </p>
+
+                </div>
 
                   <!-- Maximum Members -->
                   <div>
@@ -166,13 +183,10 @@ const members = ref([]);
 const showDeleteConfirmation = ref(false);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
-const admin = ref({});
 const numberOfMembers = ref();
 const selectedFile = ref(null);
 const hadIcon = ref<boolean>();
-
-// Computed properties
-const isAdmin = ref(false);
+const hasPin = ref<boolean>(false);
 
 function handleFileRemoved() {
   group.value.icon_url = null;
@@ -225,31 +239,13 @@ const fetchAllData = async () => {
     }
     
     // Fetch group details
-    const { data: groupData, error: groupError } = await groupsStore.fetchGroupById(groupId.value);
+    const { data: groupData, error: groupError } = await groupsService.getGroupByIdUsingView(groupId.value);
     if (groupError) throw new Error('Failed to load group details');
-
-    group.value = groupData;
-    hadIcon.value = group.value.icon_url ? true : false;
-
-    if (groupData.pin_hash !== null && groupData.pin_hash !== undefined) {
-      pin.value = String(groupData.pin_hash).padStart(4, "0").split(""); 
-    } else {
-      pin.value = ["", "", "", ""]; 
-    }
-
-    // Fetch admin for group
-    const { data: adminData, error: adminError } = await groupsService.getGroupAdmin(groupId.value);
-    if (adminError) throw new Error('Failed to retrieve group admin');
-
-    admin.value = adminData;
-    isAdmin.value = userStore.user?.id == admin.value.id;
-
-    const { data: membersData, error: membersError } = await groupsService.getGroupMembers(groupId.value);
-    if (membersError) throw new Error('Failed to retrieve group members');
-
-    members.value = membersData || [];
-    numberOfMembers.value = membersData.length;
     
+    group.value = groupData;
+    hasPin.value = groupData.has_pin;
+    hadIcon.value = group.value.icon_url ? true : false;
+    pin.value = ["", "", "", ""]; 
   } catch (err) {
     console.error('Error fetching group data:', err);
     error.value = err.message || 'An error occurred while loading group data';
@@ -270,12 +266,12 @@ const updateGroup = async () => {
     errorMessage.value = 'You are missing values for one or more of your scoring system options.';
     return;
   }
-  if (!group.value.is_public && !group.value.pin_hash) {
+  if (!group.value.is_public && !hasPin.value && !group.value.pin_hash) {
     errorMessage.value = 'Please enter a PIN for your private group.';
     return;
   }
-  if (group.value.max_members < numberOfMembers.value) {
-    errorMessage.value = `There are currently ${numberOfMembers.value} members in your group. Maximum members cannot be lower than this.`;
+  if (group.value.max_members < group.value.member_count) {
+    errorMessage.value = `There are currently ${group.value.member_count} members in your group. Maximum members cannot be lower than this.`;
     return;
   }
 
@@ -286,13 +282,7 @@ const updateGroup = async () => {
   isSubmitting.value = true;
 
   try {
-    // Get the authenticated user
-    const { data: user, error: userError } = await supabase.auth.getUser();
 
-    if (userError || !user?.user) {
-      throw new Error('You must be logged in to update a group.');
-    }
-    
     if ((hadIcon.value && selectedFile.value) || (hadIcon.value && !group.value.icon_url)) {
       const { success, error } = await groupsService.deleteGroupIcon(group.value.id);
       if (error) throw new Error('Error deleting current group icon.');
@@ -307,8 +297,20 @@ const updateGroup = async () => {
       }
     }
 
+    const payload: any = {
+      name: group.value.name,
+      description: group.value.description,
+      exact_score_points: group.value.exact_score_points,
+      correct_result_points: group.value.correct_result_points,
+      incorrect_points: group.value.incorrect_points,
+      is_public: group.value.is_public,
+      max_members: group.value.max_members,
+      icon_url: group.value.icon_url,
+      pin_hash: group.value.pin_hash,
+    }
+
     // Update the group in Supabase
-    const { data: updatedGroup, error } = await groupsService.updateGroup(group.value.id, group.value);
+    const { data: updatedGroup, error } = await groupsService.updateGroup(group.value.id, payload);
 
     if (error) {
       throw error;
