@@ -9,8 +9,8 @@
                     class="shrink-0 px-4 py-2 text-sm font-medium transition whitespace-nowrap"
                     :class="[
                         selected === index
-                            ? `border-b-2 border-${props.borderColour}-600 text-${props.borderColour}-600`
-                            : `text-gray-500 hover:text-${props.borderColour}-600`
+                        ? `border-b-2 border-${props.borderColour}-600 text-${props.borderColour}-600`
+                        : `text-gray-500 hover:text-${props.borderColour}-600`
                     ]"
                 >
                     {{ tab.header }}
@@ -19,8 +19,13 @@
         </div>
 
         <!-- Tab content -->
-         <div class="flex-1 overflow-y-auto min-h-0">
-            <div class="pt-8">
+         <div 
+            class="flex-1 overflow-y-auto min-h-0 touch-pan-y"
+            @touchstart="onTouchStart"
+            @touchmove="onTouchMove"
+            @touchend="onTouchEnd"
+        >
+            <div :style="{ transform: `translateX(${deltaX * 0.25}px)` }" class="transition-transform pt-8">
                 <slot />
             </div>
         </div>
@@ -29,6 +34,7 @@
   
 <script setup lang="ts">
 import { ref, provide, reactive, computed, watch } from 'vue';
+import type { TouchEvent } from 'vue'
 
 type BorderColor =
   | 'blue'
@@ -84,6 +90,45 @@ function selectTab(index: number) {
 provide('registerTab', registerTab);
 provide('selectedTab', selected);
 // provide('loadedTabs', loadedTabs);
+
+// Swipe handling
+const startY = ref(0);
+const startX = ref(0)
+const deltaX = ref(0)
+const threshold = 60
+
+function onTouchStart(e: TouchEvent) {
+  startX.value = e.touches[0].clientX
+  startY.value = e.touches[0].clientY
+}
+
+function onTouchMove(e: TouchEvent) {
+  const dx = e.touches[0].clientX - startX.value
+  const dy = e.touches[0].clientY - startY.value
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    deltaX.value = dx
+  }
+}
+
+function onTouchEnd() {
+  if (Math.abs(deltaX.value) > threshold) {
+    if (deltaX.value < 0) {
+      // Swipe left → next tab
+      if (selected.value < tabs.length - 1) {
+        selectTab(selected.value + 1)
+      }
+    } else {
+      // Swipe right → previous tab
+      if (selected.value > 0) {
+        selectTab(selected.value - 1)
+      }
+    }
+  }
+
+  // Always snap back
+  deltaX.value = 0
+}
 </script>
   
 <style scoped>
