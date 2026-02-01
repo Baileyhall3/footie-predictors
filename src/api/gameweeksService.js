@@ -416,6 +416,9 @@ export const gameweeksService = {
           .select('*')
           .is('final_home_score', null)
           .is('final_away_score', null)
+          .lte('kickoff_time', new Date().toISOString())
+          .order('kickoff_time', { ascending: false })
+          .limit(25)
       );
     
       if (error) {
