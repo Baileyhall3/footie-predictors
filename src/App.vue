@@ -10,7 +10,7 @@
       <MobileHeader v-if="Capacitor.isNativePlatform() && isMobile && !isGroupRoute && userStore.isAuthenticated" />
 
       <Header
-        v-else-if="userStore.isAuthenticated "
+        v-else-if="!Capacitor.isNativePlatform() || !isMobile"
         headerTitle="Footie Predictors"
         :hideNav="!!Capacitor.isNativePlatform()"
       />

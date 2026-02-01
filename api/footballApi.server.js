@@ -11,6 +11,8 @@ export const footballApiServer = {
 
     const data = await res.json();
 
+    console.log(`Fetched score for match ID ${matchId}:`, data);
+
     if (data.status === 'FINISHED') {
       return {
         homeScore: data.score.fullTime.home,

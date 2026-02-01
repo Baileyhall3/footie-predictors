@@ -7,11 +7,13 @@ export default async function handler(req, res) {
 
     const matches = await gameweeksService.fetchFinishedMatches();
 
+    console.log(`Found ${matches.length} finished matches to update.`);
+
     for (const match of matches) {
       const { homeScore, awayScore } =
         await footballApiServer.fetchMatchScore(match.api_match_id);
 
-      if (homeScore !== null) {
+      if (homeScore !== null && awayScore !== null) {
         await gameweeksService.updateMatchScore(
           match.id,
           homeScore,
