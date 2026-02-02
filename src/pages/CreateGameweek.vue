@@ -70,6 +70,7 @@ import NoAccess from '../components/NoAccess.vue';
 import { userIsAdmin } from '../utils/checkPermissions';
 import { groupsStore } from '../store/groupsStore';
 import { seasonsService } from '../api/seasonsService';
+import { supabase } from '../api/supabase';
   
 const route = useRoute();
 const router = useRouter();
@@ -147,40 +148,33 @@ const createGameweek = async () => {
   } 
 
   loading.value = true;
-      
-  // const { data: newGameweek } = await gameweeksService.createGameweek({
-  //   group_id: groupId,
-  //   week_number: weekNumber.value,
-  //   deadline: deadline.value,
-  //   is_active: setActive.value
-  // });
 
-  const { data: newGameweek } = await gameweeksService.createGameweekWithNotifications({
-    group_id: groupId,
-    week_number: weekNumber.value,
-    deadline: deadline.value,
-    is_active: setActive.value
-  });
+  try {
+    const { data, error } = await supabase.rpc(
+      'create_gameweek_with_matches_and_notifications',
+      {
+        p_group_id: groupId,
+        p_week_number: weekNumber.value,
+        p_deadline: deadline.value,
+        p_is_active: setActive.value,
+        p_matches: selectedMatches.value
+      }
+    );
 
-  if (!newGameweek) return;
+    if (error) {
+      throw error;
+    }
 
-  for (const match of selectedMatches.value) {
-    await gameweeksService.createMatch({
-      gameweek_id: newGameweek.id,
-      api_match_id: match.api_match_id,
-      home_team: match.home_team,
-      away_team: match.away_team,
-      match_time: match.match_time,
-      home_team_api_id: match.home_team_api_id,
-      away_team_api_id: match.away_team_api_id,
-      home_team_crest: match.home_team_crest,
-      away_team_crest: match.away_team_crest,
-      competition: match.competition,
-      competition_emblem_url: match.competition_emblem_url
-    });
+    router.push(`/group/${groupId}`);
+
+  } catch(err) {
+    console.error(err);
+    errorMessage.value = 'An error occurred while creating the gameweek. Please try again.';
+    loading.value = false;
+    return;
+  } finally {
+    loading.value = false;
   }
-
-  router.push(`/group/${groupId}`);
 };
 
 function handleInput(event) {
