@@ -556,6 +556,8 @@ export const gameweeksService = {
     }
   },
 
+  // #region RPC
+
   /**
    * Creates a gameweek and notifies users who are part of the group and are subscribed
    * @param {*} gameweek 
@@ -593,4 +595,15 @@ export const gameweeksService = {
       return { data: null, error }
     }
   },
+
+  async updateMatchScoresBatch(updates) {
+    const { error } = await supabaseService.rpc(
+      "update_match_scores",
+      { p_updates: updates }
+    );
+
+    if (error) {
+      throw error;
+    }
+  }
 }
