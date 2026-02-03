@@ -410,7 +410,7 @@ export const gameweeksService = {
     if (!gameweekId) {
       console.log('all matchessss')
       
-      const now = new Date();
+      const now = new Date().toISOString();
 
       const { data, error } = await supabaseDb.customQuery((supabase) =>
         supabase
