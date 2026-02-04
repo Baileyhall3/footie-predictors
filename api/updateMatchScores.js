@@ -1,6 +1,8 @@
 import { gameweeksService } from "../src/api/gameweeksService.js";
 import { footballApiServer } from "./footballApi.server.js";
 
+const CHUNK_SIZE = 25;
+
 export default async function handler(req, res) {
   try {
     console.log("Running scheduled job...");
@@ -14,20 +16,44 @@ export default async function handler(req, res) {
 
     const updates = [];
 
-    for (const match of matches) {
+    // split into chunks of 25
+    for (let i = 0; i < matches.length; i += CHUNK_SIZE) {
+      const chunk = matches.slice(i, i + CHUNK_SIZE);
+
+      const apiMatchIds = chunk.map(m => m.api_match_id);
+
       try {
-        const { homeScore, awayScore } =
-          await footballApiServer.fetchMatchScore(match.api_match_id);
-  
-        if (homeScore !== null && awayScore !== null) {
-          updates.push({
-            match_id: match.id,
-            home_score: homeScore,
-            away_score: awayScore,
-          });
+        const finishedMatches =
+          await footballApiServer.getFinishedMatches(apiMatchIds);
+
+        // index by api_match_id for fast lookup
+        const finishedById = new Map(
+          finishedMatches.map(m => [
+            m.id,
+            {
+              homeScore: m.score.fullTime.home,
+              awayScore: m.score.fullTime.away
+            }
+          ])
+        );
+
+        for (const match of chunk) {
+          const score = finishedById.get(match.api_match_id);
+
+          if (score && score.homeScore !== null && score.awayScore !== null) {
+            updates.push({
+              match_id: match.id,
+              home_score: score.homeScore,
+              away_score: score.awayScore
+            });
+          }
         }
       } catch (e) {
-        console.error(`Error fetching score for match ID ${match.api_match_id}:`, e);
+        console.error(
+          `Error fetching scores for match chunk:`,
+          apiMatchIds,
+          e
+        );
       }
     }
 
@@ -40,14 +66,12 @@ export default async function handler(req, res) {
 
     console.log("✅ Match scores updated successfully.");
 
-    res.status(200).json({
+    return res.status(200).json({
       ok: true,
-      updated: updates.length,
+      updated: updates.length
     });
-
-    res.status(200).json({ ok: true });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: true });
+    return res.status(500).json({ error: true });
   }
 }

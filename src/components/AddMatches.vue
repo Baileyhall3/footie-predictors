@@ -8,6 +8,28 @@
     <!-- League & Match Selection -->
     <div>
         <template v-if="!setManually">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">
+                    Show matches up until
+                </label>
+
+                <div class="p-2 border border-gray-300 rounded-md">
+                    <DatePicker
+                    v-model="matchesUntil"
+                    showIcon
+                    dateFormat="dd/mm/yy"
+                    class="w-full"
+                    :minDate="props.deadline"
+                    placeholder="e.g. 2–4 weeks after deadline"
+                    fluid
+                    hideOnDateTimeSelect
+                    />
+                </div>
+
+                <p class="text-xs text-gray-500 mt-1">
+                    Limits how far into the future fixtures are loaded.
+                </p>
+            </div>
             <div class="mb-4" ref="leagueDropdown">
                 <label class="block text-sm font-medium text-gray-700">Select League</label>
                 <div class="relative">
@@ -148,6 +170,7 @@ import { ref, onMounted, watch, onUnmounted, computed } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { XMarkIcon } from '@heroicons/vue/24/solid';
 import { footballApiClient } from '../api/footballApi.client';
+import { m } from 'vue-router/dist/router-CWoNjPRp.mjs';
 
 interface MatchItem {
     id: string;
@@ -177,6 +200,7 @@ const selectedLeague = ref();
 const selectedMatch = ref();
 const selectedTeam = ref();
 const setManually = ref(false);
+const matchesUntil = ref('');
 
 const minDateTime = computed(() => {
     return new Date(props.deadline);
@@ -277,18 +301,35 @@ onMounted(async () => {
     fetchLeagues();
 });
 
-watch(() => selectedLeague.value, (newVal) => {
-  fetchMatches(newVal.id, null);
-});
+watch(
+  () => [
+    selectedLeague.value?.id,
+    selectedTeam.value?.id,
+    props.deadline,
+    matchesUntil.value
+  ],
+  ([leagueId, teamId, deadline, until]) => {
+    if (!deadline || !until) return;
+    if (!leagueId && !teamId) return;
 
-watch(() => selectedTeam.value, (newVal) => {
-  fetchMatches(null, newVal.id);
-});
+    fetchMatches(leagueId ?? null, teamId ?? null);
+  }
+);
 
-watch(() => props.deadline, (newVal) => {
-  const newDeadlineMatches = matches.value.filter(x => new Date(x.utcDate) >= new Date(newVal));
-  matches.value = newDeadlineMatches;
-});
+watch(
+  () => props.deadline,
+  (newDeadline) => {
+    if (!newDeadline) return;
+
+    // only auto-set if user hasn't manually chosen
+    // if (!matchesUntil.value) {
+      const d = new Date(newDeadline);
+      d.setMonth(d.getMonth() + 6);
+      matchesUntil.value = d;
+    // }
+  },
+  { immediate: true }
+);
 
 // Fetch leagues from football-data.org API
 async function fetchLeagues() {
@@ -297,14 +338,19 @@ async function fetchLeagues() {
 
 // Fetch matches for a selected league
 async function fetchMatches(leagueId: string | null, teamId: string | null) {
-    const matchesData = await footballApiClient.getMatches(leagueId, teamId);
-    const today = new Date();
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(today.getDate() - 7);
     const deadlineDate = new Date(props.deadline);
+    const matchesUntilDate = new Date(matchesUntil.value);
 
-    const upcomingMatches = matchesData.filter(x => new Date(x.utcDate) >= deadlineDate);
-    matches.value = upcomingMatches;
+    const matchesData = await footballApiClient.getMatches(
+        leagueId,
+        teamId,
+        deadlineDate,
+        matchesUntilDate
+    );
+
+    matches.value = matchesData.filter(
+        m => new Date(m.utcDate) >= deadlineDate && new Date(m.utcDate) <= matchesUntilDate
+    );
 }
 
 const addMatch = () => {

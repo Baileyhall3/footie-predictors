@@ -1,3 +1,4 @@
+import DateUtils from "../utils/dateUtils";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /*
@@ -19,12 +20,19 @@ export const footballApiClient = {
     return data.competitions.filter(({ id }) => selectableLeagueIds.includes(id));
   },
 
-  async getMatches(leagueId, teamId) {
+  async getMatches(leagueId, teamId, dateFrom, dateTo) {
+    const from = DateUtils.formatDateForApi(dateFrom);
+    const to = DateUtils.formatDateForApi(dateTo);
+
+    if (dateTo < dateFrom) {
+      throw new Error('dateTo must be after dateFrom');
+    }
+
     let res = null;
     if (leagueId) {
-      res = await fetch(`${BASE_URL}/competitions/${leagueId}/matches`);
+      res = await fetch(`${BASE_URL}/competitions/${leagueId}/matches?dateFrom=${from}&dateTo=${to}`);
     } else if (teamId) {
-      res = await fetch(`${BASE_URL}/teams/${teamId}/matches`);
+      res = await fetch(`${BASE_URL}/teams/${teamId}/matches?dateFrom=${from}&dateTo=${to}`);
     }
     const data = await res.json();
     return data.matches;

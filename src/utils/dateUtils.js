@@ -132,6 +132,16 @@ class DateUtils {
             return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
         }
     }
+
+    static formatDateForApi(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    static addMonths(date, months) {
+        const d = new Date(date);
+        d.setMonth(d.getMonth() + months);
+        return d;
+    }
 }
 
 export default DateUtils;

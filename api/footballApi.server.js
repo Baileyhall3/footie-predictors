@@ -21,5 +21,30 @@ export const footballApiServer = {
     }
 
     return { homeScore: null, awayScore: null };
+  },
+
+  async getFinishedMatches(matchIds) {
+    const res = await fetch(
+      `${BASE_URL}/matches?ids=${matchIds.join(',')}&status=FINISHED`,
+      {
+        headers: {
+          'X-Auth-Token': process.env.FOOTBALL_API_KEY,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error(`Football API error: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    // Normalize return shape
+    return data.matches.map(match => ({
+      api_match_id: match.id,
+      homeScore: match.score.fullTime.home,
+      awayScore: match.score.fullTime.away
+    }));
   }
 };
