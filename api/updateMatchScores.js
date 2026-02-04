@@ -15,6 +15,7 @@ export default async function handler(req, res) {
       .select('*')
       .is('final_home_score', null)
       .is('final_away_score', null)
+      .not('api_match_id', 'is', null)
       .lte('match_time', now)
       .order('match_time', { ascending: false })
       .limit(25)
