@@ -1,4 +1,3 @@
-import { gameweeksService } from "../src/api/gameweeksService.js";
 import { footballApiServer } from "./footballApi.server.js";
 import { supabaseService } from "./supabaseService.js";
 
@@ -78,8 +77,6 @@ export default async function handler(req, res) {
       console.log("✅ No matches had final scores yet.");
       return res.status(200).json({ ok: true, updated: 0 });
     }
-
-    await gameweeksService.updateMatchScoresBatch(updates);
 
     const { error: procError } = await supabaseService.rpc(
       "update_match_scores",
