@@ -46,10 +46,10 @@ export default async function handler(req, res) {
         // index by api_match_id for fast lookup
         const finishedById = new Map(
           finishedMatches.map(m => [
-            m.id,
+            m.api_match_id,
             {
-              homeScore: m.score.fullTime.home,
-              awayScore: m.score.fullTime.away
+              homeScore: m.homeScore,
+              awayScore: m.awayScore
             }
           ])
         );
