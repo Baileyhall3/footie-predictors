@@ -40,6 +40,8 @@ export const footballApiServer = {
 
     const data = await res.json();
 
+    console.log('match data ', data);
+
     // Normalize return shape
     return data.matches.map(match => ({
       api_match_id: match.id,
