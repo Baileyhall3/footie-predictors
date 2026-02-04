@@ -1,5 +1,6 @@
 import { gameweeksService } from "../src/api/gameweeksService.js";
 import { footballApiServer } from "./footballApi.server.js";
+import { supabaseService } from "./supabaseService.js";
 
 const CHUNK_SIZE = 25;
 
@@ -7,7 +8,22 @@ export default async function handler(req, res) {
   try {
     console.log("Running scheduled job...");
 
-    const matches = await gameweeksService.fetchFinishedMatches();
+    const now = new Date().toISOString();
+
+    const { data: matches, error } = await supabaseService
+      .from('matches')
+      .select('*')
+      .is('final_home_score', null)
+      .is('final_away_score', null)
+      .lte('match_time', now)
+      .order('match_time', { ascending: false })
+      .limit(25)
+  
+    if (error) {
+      console.error("Error fetching matches:", error);
+      return [];
+    }
+    
     console.log(`Found ${matches.length} finished matches to update.`);
 
     if (!matches.length) {
