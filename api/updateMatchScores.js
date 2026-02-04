@@ -81,6 +81,15 @@ export default async function handler(req, res) {
 
     await gameweeksService.updateMatchScoresBatch(updates);
 
+    const { error: procError } = await supabaseService.rpc(
+      "update_match_scores",
+      { p_updates: updates }
+    );
+
+    if (procError) {
+      throw procError;
+    }
+
     console.log("✅ Match scores updated successfully.");
 
     return res.status(200).json({
