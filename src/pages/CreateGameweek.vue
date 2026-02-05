@@ -86,9 +86,11 @@ const isAdmin = ref(false);
 const groupExists = ref(true);
 
 const minDateTime = computed(() => {
-  const d = new Date();
-  d.setDate(d.getDate() - 7);
-  return d;
+  // const d = new Date();
+  // d.setDate(d.getDate() - 7);
+  // return d;
+
+  return new Date();
 });
 
 onMounted(async () => {

@@ -37,6 +37,7 @@
                                         correct_result_points: group.correct_result_points,
                                         incorrect_points: group.incorrect_points
                                     }"      
+                                    :deadline="group.gameweek.deadline"
                                     @update-prediction="(data) => handlePredictionUpdate({ ...data, group })"
                                     @predictions-submitted="submitPredictions(group)"
                                 >

@@ -50,12 +50,14 @@
             </template>
           </Dropdown>
         </template>
-        <template #details>
+        <!-- <template #details>
           <p class="text-lg">
             <span class="font-semibold">Deadline: </span>
             <DeadlineCountdown :deadline="new Date(gameweek?.deadline)" v-if="gameweek?.deadline" />
           </p>
-        </template>
+
+          <DeadlineCard :deadline="gameweek?.deadline" v-if="gameweek?.deadline" />
+        </template> -->
       </PageHeader>
       <Tabs @tab-selected="handleTabSelected">
         <Tab header="Predictions">
@@ -91,6 +93,7 @@
                     :matchesClickable="gameweek?.is_locked"
                     :group-scoring="groupScoring"
                     showActualAndPredictedScores
+                    :deadline="gameweek?.deadline"
                     @update-prediction="handlePredictionUpdate"
                     @predictions-submitted="submitPredictions"
                 />
@@ -224,6 +227,7 @@ import PageHeader from '../components/PageHeader.vue';
 import { CancelBtn, EditBtn, AddBtn } from '../components/UI/buttons';
 import { mapPredictions } from '../utils/sharedFunctions';
 import StatRow from '../components/StatRow.vue';
+import DeadlineCard from '../components/UI/DeadlineCard.vue';
 
 const route = useRoute();
 const router = useRouter();
