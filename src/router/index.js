@@ -21,6 +21,7 @@ import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
 import ResetPassword from '../pages/ResetPassword.vue';
 import Profile from '../pages/Profile.vue';
+import MyUserProfile from '../pages/MyUserProfile.vue';
 import AuthTest from '../pages/AuthTest.vue';
 import Leaderboards from '../pages/Leaderboards.vue';
 import GroupLeaderboards from '../pages/GroupLeaderboards.vue';
@@ -294,7 +295,7 @@ const router = createRouter({
     {
       path: '/profile',
       name: 'Profile',
-      component: Profile,
+      component: MyUserProfile,
       meta: {
         title: 'My Profile',
         requiresAuth: true

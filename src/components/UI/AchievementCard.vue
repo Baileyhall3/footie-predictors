@@ -1,6 +1,6 @@
 <template>
     <div
-        class="relative rounded-xl p-4 transition-all duration-300 cursor-pointer" 
+        class="relative rounded-xl p-4 transition-all duration-300 cursor-pointer bg-white" 
         :class="[
             props.achievement.is_unlocked
             ? 'bg-white shadow hover:shadow-md'
