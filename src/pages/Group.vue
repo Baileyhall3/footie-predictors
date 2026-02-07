@@ -190,6 +190,7 @@
                     :totalPoints="activeGameweek?.is_locked ? currentUserGameweekData.total_points : null"
                     :group-scoring="groupScoring"
                     :show-actual-and-predicted-scores="true"
+                    :deadline="activeGameweek?.deadline"
                     @update-prediction="handlePredictionUpdate"
                     @predictions-submitted="submitPredictions"
                   >

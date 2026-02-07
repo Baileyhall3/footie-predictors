@@ -20,14 +20,16 @@
                 <ChevronUpIcon v-else class="size-5 ms-2 transition-transform duration-300" />
             </button>
         </div>
-
-        <h3 class="text-lg" v-if="props.totalPoints !== null && props.totalPoints !== undefined && props.locked">
-            <!-- <span class="font-medium">Total Points: </span> -->
+        <h3 class="text-lg" v-if="(props.totalPoints !== null && props.totalPoints !== undefined && props.locked)">
             <span class="font-semibold text-green-500">{{ props.totalPoints }}pts</span>
         </h3>
     </div>
+
     <TransitionGroup name="scores" tag="div">
         <template v-if="(!matchesCollapsed && props.allowCollapse) || !props.allowCollapse">
+
+            <DeadlineCard :deadline="props.deadline" v-if="props.deadline && !props.locked" />
+            
             <div v-for="(group, day) in groupedMatches" :key="day" :class="'mt-' + props.topMargin">
                 <div class="flex justify-between">
                     <h3 class="text-lg" v-if="!props.disableTimeHeader">
@@ -168,6 +170,7 @@ import { TargetIcon, ClockIcon } from 'lucide-vue-next';
 import HomeAndAwayScore from './UI/scoreCard/HomeAndAwayScore.vue';
 import { Check } from 'lucide-vue-next';
 import { LoadingSpinner } from './UI/LoadingSpinner.vue';
+import DeadlineCard from './UI/DeadlineCard.vue';
 
 export interface IProps {
     matches: [];
@@ -188,6 +191,7 @@ export interface IProps {
     disableMatchTime?: boolean
     groupScoring?: GroupScoring;
     showActualAndPredictedScores?: boolean;
+    deadline?: Date;
 }
 
 const props = withDefaults(defineProps<IProps>(), { 
