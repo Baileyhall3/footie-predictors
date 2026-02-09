@@ -27,32 +27,28 @@
             </button>
         </div>
 
-        <div v-if="groupedNotifications.length">
-            <div 
+        <template v-if="groupedNotifications.length">
+            <GroupedGroup 
                 v-for="(group, index) in groupedNotifications" 
                 :key="group.group_id || `general-${index}`" 
-                class="mb-8"
+                :group="{
+                    group_id: group.group_id,
+                    group_name: group.group_id ? group.group_name : 'General',
+                    group_icon_url: group.group_icon_url
+                }"
+                :hide-image="!group.group_id"   
             >
-                <div class="flex items-center mb-4">
-                    <template v-if="group.group_id">
-                        <img :src="group.group_icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
-                        <h3 class="text-xl font-semibold">
-                            <router-link 
-                                :to="`/group/${group.group_id}`" 
-                                class="text-blue-600 hover:underline"
-                            >
-                                {{ group.group_name }}
-                            </router-link>
-                        </h3>
-                    </template>
-                    <template v-else>
-                        <h3 class="text-xl font-semibold">General</h3>
-                    </template>
-                </div>
+                <NotificationCard :notifications="group.visibleNotifications" />
 
-                <NotificationCard :notifications="group.notifications" />
-            </div>
-        </div>
+                <button
+                    v-if="group.hasMore && group.group_id"
+                    class="mt-2 text-sm text-blue-600 hover:underline justify-center flex w-full"
+                    @click="group.group_id ? $router.push(`/group/${group.group_id}/notifications`) : ''"
+                >
+                    View all ({{ group.totalCount }})
+                </button>
+            </GroupedGroup>
+        </template>
 
         <div v-else class="bg-white rounded-xl shadow p-10 text-center text-gray-500 mt-4 border border-dashed border-gray-300">
             <p class="text-lg font-medium mb-2">No notifications yet!</p>
@@ -68,6 +64,7 @@ import { SearchBar2 } from '../components/UI/input';
 import NotificationCard from '../components/NotificationCard.vue';
 import { notificationsStore } from '../store/notificationsStore';
 import MainContent from '../components/layout/MainContent.vue';
+import GroupedGroup from '../components/UI/GroupedGroup.vue';
 
 type ReadFilter = 'all' | 'unread' | 'read'
 
@@ -91,20 +88,21 @@ const groupedNotifications = computed(() => {
 
     if (searchQuery.value.trim()) {
         const query = searchQuery.value.trim().toLowerCase();
-        filtered = filtered.filter(n => 
+        filtered = filtered.filter(n =>
             n.group_name?.toLowerCase().includes(query)
         );
     }
 
-    const groups: Record<string, { 
-        group_name: string | null, 
-        group_id: string | null, 
-        group_icon_url: string | null, 
-        notifications: Notification[] 
+    const groups: Record<string, {
+        group_name: string | null,
+        group_id: string | null,
+        group_icon_url: string | null,
+        notifications: Notification[]
     }> = {};
 
     filtered.forEach(notif => {
         const key = notif.group_id || 'general';
+
         if (!groups[key]) {
             groups[key] = {
                 group_name: notif.group_name,
@@ -113,10 +111,16 @@ const groupedNotifications = computed(() => {
                 notifications: []
             };
         }
+
         groups[key].notifications.push(notif);
     });
 
-    return Object.values(groups).sort((a, b) => {
+    return Object.values(groups).map(group => ({
+        ...group,
+        totalCount: group.notifications.length,
+        hasMore: group.notifications.length > 5,
+        visibleNotifications: group.notifications.slice(0, 5)
+    })).sort((a, b) => {
         if (!a.group_id) return -1;
         if (!b.group_id) return 1;
         return 0;

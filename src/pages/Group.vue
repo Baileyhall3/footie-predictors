@@ -148,7 +148,7 @@
               </RoundedContainer>
             </div>
 
-            <RoundedContainer v-if="gameweeks.length === 0 && !activeSeason?.is_finished" class="mx-auto text-center">
+            <RoundedContainer v-if="gameweeks.length === 0 && !activeSeason?.is_finished && group.iAmAdmin" class="mx-auto text-center">
               <h2 class="text-xl font-semibold mb-2">You haven't created a gameweek yet</h2>
               <p class="text-gray-600 mb-6">Set one up now to start predicting with your group members!</p>
               <router-link :to="`/group/${group?.id}/create-gameweek`">
@@ -165,6 +165,15 @@
                 :isCurrentUser="gameweekWinner.userIsGameweekWinner"
                 :weekNumber="activeGameweek?.week_number"
               />
+              <RoundedContainer class="mx-auto text-center" v-if="group.iAmAdmin">
+                <h2 class="text-xl font-semibold mb-2">Active gameweek has finished</h2>
+                <p class="text-gray-600 mb-6">Set up a new gameweek to keep predicting with your group members!</p>
+                <router-link :to="`/group/${group?.id}/create-gameweek`">
+                  <button class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition">
+                    Create Gameweek
+                  </button>
+                </router-link>
+              </RoundedContainer>
             </template>
 
             <GroupLeaderboard 

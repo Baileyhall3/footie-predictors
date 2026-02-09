@@ -155,6 +155,12 @@ async function fetchAllData() {
             };
         });
 
+        finalGroups.sort((a, b) => {
+            const aDeadline = new Date(a.gameweek.deadline).getTime();
+            const bDeadline = new Date(b.gameweek.deadline).getTime();
+            return bDeadline - aDeadline;
+        });
+
         userGroups.value = finalGroups;
         // console.log('Final Groups with Gameweeks, Matches, and Predictions:', finalGroups);
         allUserGroups.value = finalGroups;
