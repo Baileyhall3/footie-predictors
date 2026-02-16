@@ -1,4 +1,6 @@
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
+import { useWindowSize } from "@vueuse/core";
+import { Capacitor } from "@capacitor/core";
 
 const mobileNavControls = reactive({
     isOpen: false,
@@ -29,5 +31,17 @@ export function useNavigationMode() {
   return {
     showBottomNav: isMobile && appLike,
     useHamburger: isMobile && !appLike,
+  }
+}
+
+export function useLayout() {
+  const { width } = useWindowSize()
+
+  const isMobile = computed(() => width.value < 1024);
+
+  return {
+    isMobile,
+    isApp: Capacitor.isNativePlatform(),
+    isMobileNav: computed(() => isMobile.value && Capacitor.isNativePlatform()),
   }
 }

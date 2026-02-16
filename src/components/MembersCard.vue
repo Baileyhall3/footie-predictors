@@ -55,14 +55,6 @@
                         Group Profile
                     </RouterLink>
 
-                    <RouterLink
-                        v-if="member.is_fake && props.gameweek && !props.gameweek?.is_locked"
-                        :to="`/admin-gameweek-predictions/${props.gameweek.id}/${member.id}`"
-                        class="dropdown-item"
-                    >
-                        Predict
-                    </RouterLink>
-
                     <button @click="removeMember(member)" class="dropdown-item text-red-700">
                         Remove
                     </button>

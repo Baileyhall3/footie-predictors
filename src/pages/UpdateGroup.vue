@@ -1,4 +1,5 @@
 <template>
+    <GroupMobileHeader v-if="isMobileNav" :groupName="group.name" />
     <div class="container mx-auto px-4 py-8">
       <NoAccess v-if="!group?.iAmOwner && !loading" />
       <div v-else class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
@@ -125,7 +126,7 @@
   
             <!-- Group Actions -->
             <div>
-              <h2 class="text-xl font-semibold text-gray-800 mb-4">Group Actions</h2>
+              <h2 class="text-xl font-semibold text-gray-800 mb-4">Actions</h2>
               <div class="space-y-3">
                 <button 
                   @click="deleteGroup" 
@@ -155,9 +156,12 @@ import DeleteConfirm from "../components/DeleteConfirm.vue";
 import SelectInput from "../components/UI/SelectInput.vue";
 import NoAccess from "../components/NoAccess.vue";
 import FileUpload from "../components/UI/FileUpload.vue";
+import { useLayout } from "../shared";
+import GroupMobileHeader from "../components/nav/GroupMobileHeader.vue";
 
 const route = useRoute();
 const router = useRouter();
+const { isMobileNav, isMobile } = useLayout();
 const deleteConfirm = ref<InstanceType<typeof DeleteConfirm> | null>(null);
 
 // State

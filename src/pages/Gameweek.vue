@@ -10,6 +10,17 @@
     </div>
 
     <div class="h-full flex flex-col min-h-0" v-else>
+      <GroupMobileHeader v-if="isMobileNav">
+          <template #actions>
+            <GameweekActionItems 
+              :gameweek="gameweek" 
+              :isAdmin="isAdmin" 
+              @toggleLock="changeGameWeekLockedStatus"
+              @toggleActive="changeGameWeekActiveStatus"
+              @deleteGameweek="deleteGameweek"
+            />
+          </template>
+      </GroupMobileHeader>
       <PageHeader>
         <template #header>
           <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
@@ -22,33 +33,14 @@
           </div>
         </template>
         <template #actionItems>
-          <button @click="copyPageLink('Gameweek')" class="p-1 rounded-md hover:bg-gray-200" title="Copy gameweek link">
-            <LinkIcon class="size-6 text-blue-500" />
-          </button>
-          <Dropdown>
-            <template #trigger>
-              <EllipsisVerticalIcon class="size-6 text-gray-500" />
-            </template>
-            <template #items>
-              <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item item-separator">
-                Go to Group
-              </router-link>
-              <router-link :to="`/season/${gameweek?.season_id}`" class="text-blue-600 dropdown-item item-separator">
-                {{ gameweek?.season_name }}
-              </router-link>
-              <template v-if="isAdmin">
-                <button @click="changeGameWeekLockedStatus" class="dropdown-item item-separator">
-                  {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
-                </button>
-                <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="changeGameWeekActiveStatus" class="dropdown-item item-separator">
-                  Set Active
-                </button>
-                <button @click="deleteGameweek" class="dropdown-item text-red-700 item-separator">
-                  Delete
-                </button>
-              </template>
-            </template>
-          </Dropdown>
+          <GameweekActionItems 
+            v-if="!isMobileNav"
+            :gameweek="gameweek" 
+            :isAdmin="isAdmin" 
+            @toggleLock="changeGameWeekLockedStatus"
+            @toggleActive="changeGameWeekActiveStatus"
+            @deleteGameweek="deleteGameweek"
+          />
         </template>
         <!-- <template #details>
           <p class="text-lg">
@@ -227,10 +219,13 @@ import PageHeader from '../components/PageHeader.vue';
 import { CancelBtn, EditBtn, AddBtn } from '../components/UI/buttons';
 import { mapPredictions } from '../utils/sharedFunctions';
 import StatRow from '../components/StatRow.vue';
-import DeadlineCard from '../components/UI/DeadlineCard.vue';
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import GameweekActionItems from '../components/UI/actionItems/Gameweek.vue';
+import { useLayout } from '../shared';
 
 const route = useRoute();
 const router = useRouter();
+const { isMobileNav } = useLayout();
 
 const loading = ref<boolean>(true);
 const gameweekId = ref<string | null>(null);

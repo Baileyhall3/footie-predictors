@@ -1,6 +1,6 @@
 <template>
     <header
-        class="sticky top-0 z-40 bg-white border-b"
+        class="sticky top-0 z-40 bg-white"
         style="padding-top: env(safe-area-inset-top)"
     >
         <div class="h-12 flex items-center justify-between px-3">
@@ -27,7 +27,7 @@ import { ChevronLeftIcon } from '@heroicons/vue/24/outline';
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{
-    backTo: string;
+    backTo?: string;
 }>();
 
 const router = useRouter();

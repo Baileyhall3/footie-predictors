@@ -3,7 +3,6 @@
   <!-- Loading State -->
   <LoadingScreen v-if="loading" />
   <template v-else>
-
     <!-- Error State -->
     <div v-if="error" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
       <p class="font-medium">Error loading group data</p>
@@ -14,6 +13,16 @@
     <!-- Content (only shown when not loading and no error) -->
     <div v-if="!error && !loading && groupExists" class="flex flex-col h-full">
       <template v-if="group?.iAmMember && !group?.joinRequestSent">
+        <GroupMobileHeader v-if="isMobileNav && (group?.iAmMember || (group?.is_public && !group?.iAmMember))">
+          <template #actions>
+            <GroupActionItems 
+              :group="group" 
+              :activeSeason="activeSeason"
+              :active-gameweek="activeGameweek"
+              @leftGroupClicked="updateMemberStatus(false, false)"
+            />
+          </template>
+        </GroupMobileHeader>
         <!-- Group header Section -->
          <PageHeader>
           <template #header>
@@ -25,77 +34,13 @@
             <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
           </template>
           <template #actionItems>
-            <button v-if="userStore.userProfile.favourite_group_id === groupId" 
-                @click="toggleGroupFavourite(false)" 
-                class="me-2" 
-                title="Remove as favourite group"
-              >
-                <StarIcon class="size-6 text-yellow-400" />
-              </button>
-              <button 
-                v-else
-                @click="toggleGroupFavourite(true)" 
-                class="me-2" 
-                title="Set as favourite group"
-              >
-                <StarOutlineIcon class="size-6 text-yellow-400 hover:text-yellow-500" />
-              </button>
-              <button @click="copyPageLink('Group')" class="p-1 rounded-md hover:bg-gray-200" title="Copy group link">
-                <LinkIcon class="size-6 text-blue-500" />
-              </button>
-              <Dropdown>
-                <template #trigger>
-                  <EllipsisVerticalIcon class="size-6 text-gray-500" />
-                </template>
-                <template #items>
-                  <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item item-separator" v-if="activeGameweek">
-                    Gameweek {{ activeGameweek?.week_number }}
-                  </router-link>
-                  <router-link :to="`/season/${activeSeason?.id}`" class="text-blue-600 dropdown-item item-separator" v-if="activeSeason">
-                    {{ activeSeason?.name }}
-                  </router-link>
-                  <router-link :to="`/user-group-profile/${groupId}/${userStore.user?.id}`" class="text-blue-600 dropdown-item item-separator">
-                    My Group Profile
-                  </router-link>
-                  <router-link :to="`/group/${groupId}/notifications`" class="text-blue-600 dropdown-item item-separator">
-                    Notifications
-                  </router-link>
-                  <template v-if="group?.iAmAdmin">
-                    <router-link :to="`/group/${group?.id}/admin-view`" >
-                      <button class="dropdown-item item-separator text-blue-600 ">
-                        Admin View
-                      </button>
-                    </router-link>
-                    <button class="dropdown-item item-separator" @click="createNotificationDialog.show()">
-                      Create Notification
-                    </button>
-                  </template>
-                  <template v-if="group?.iAmOwner">
-                     <router-link :to="`/group/${group?.id}/update-group`" >
-                       <button class="dropdown-item item-separator">
-                         Edit
-                       </button>
-                     </router-link>
-                     <router-link :to="`/group/${group?.id}/create-gameweek`" v-if="!activeSeason?.is_finished">
-                       <button class="dropdown-item item-separator">
-                         Create Gameweek
-                       </button>
-                     </router-link>
-                     <router-link :to="`/group/${group?.id}/create-season`">
-                       <button class="dropdown-item">
-                         New season
-                       </button>
-                     </router-link>
-                  </template>
-                  <template v-else>
-                    <button @click="updateMemberStatus(false, false)" 
-                      class="dropdown-item text-red-700"
-                    >
-                      Leave Group
-                    </button>
-                  </template>
-                </template>
-              </Dropdown>
+            <GroupActionItems 
+              v-if="!isMobileNav"
+              :group="group" 
+              :activeSeason="activeSeason"
+              :active-gameweek="activeGameweek"
+              @leftGroupClicked="updateMemberStatus(false, false)"
+            />
           </template>
           <template #details>
             <p class="text-gray-500" v-if="group?.description">{{ group?.description }}</p>
@@ -140,9 +85,9 @@
                 </div>
                 <p class="text-sm text-gray-500" v-if="group?.iAmOwner && activeSeason?.is_finished">
                   This season has now ended. 
-                  <router-link :to="`/group/${group?.id}/create-season`" class="text-blue-600 hover:underline hover:cursor-pointer">
+                  <span class="text-blue-600 hover:underline hover:cursor-pointer" @click="createSeasonDialog.show()">
                     Create a new season
-                  </router-link> 
+                  </span> 
                   to begin predicting once more!
                 </p>
               </RoundedContainer>
@@ -396,7 +341,7 @@
   <PinDialog ref="pinDialog" :groupId="groupId" @submit-pin="updateMemberStatus(true, false)" />
   <DeleteConfirm ref="removeMemberConfirm" :title="deleteConfirmTitle" :message="deleteConfirmMsg" :confirmText="deleteConfirmText" />
   <CreateGroupMember ref="createMemberDialog" :groupId="groupId" :seasonId="activeSeason?.id" @user-created="getGroupMembers(); getLeaderboard();" />
-  <CreateNotification :groupId="groupId" ref="createNotificationDialog" />
+  <CreateSeason :group="group" ref="createSeasonDialog" />
 </template>
 
 <script setup lang="ts">
@@ -408,8 +353,6 @@ import { userStore } from "../store/userStore";
 import { gameweeksService } from "../api/gameweeksService";
 import LoadingScreen from "../components/LoadingScreen.vue";
 import DateUtils from "../utils/dateUtils";
-import { LinkIcon, EllipsisVerticalIcon, StarIcon } from "@heroicons/vue/24/solid";
-import { StarIcon as StarOutlineIcon } from "@heroicons/vue/24/outline";
 import ScoreCard from "../components/ScoreCard.vue";
 import { predictionsService } from '../api/predictionsService';
 import PinDialog from "../components/PinDialog.vue";
@@ -432,16 +375,21 @@ import Dropdown from "../components/UI/Dropdown.vue";
 import { seasonsService } from "../api/seasonsService";
 import PageHeader from "../components/PageHeader.vue";
 import { Season, Gameweek, Group, GroupMember, Prediction, LeaderboardEntry, GwLeaderboardEntry, GroupScoring } from '../types';
-import { copyPageLink, mapPredictions } from "../utils/sharedFunctions";
+import { mapPredictions } from "../utils/sharedFunctions";
 import CreateNotification from "../components/dialogs/CreateNotification.vue";
+import GroupMobileHeader from "../components/nav/GroupMobileHeader.vue";
+import { useLayout } from "../shared";
+import GroupActionItems from "../components/UI/actionItems/Group.vue";
+import CreateSeason from "../components/dialogs/CreateSeason.vue";
 
 const route = useRoute();
 const router = useRouter();
+const { isMobileNav } = useLayout();
 
 const pinDialog = ref(null);
 const removeMemberConfirm = ref(null);
 const createMemberDialog = ref(null);
-const createNotificationDialog = ref(null);
+const createSeasonDialog = ref(null);
 
 // State
 const loading = ref<boolean>(true);

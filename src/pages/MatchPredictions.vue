@@ -1,7 +1,13 @@
 <template>
-    <div class="container mx-auto py-8">
-        <LoadingScreen v-if="loading" />
-        <template v-else>
+    <DoesNotExist v-if="!matchExists && !loading" entity="match"/>
+    <LoadingScreen v-else-if="loading" />
+    <template v-else>
+        <div v-if="!error && !loading && matchExists" class="flex flex-col h-full">
+          <GroupMobileHeader v-if="isMobileNav">
+            <template #actions>
+              <MatchPredictionsActionItems :groupId="gameweek?.group_id" />
+            </template>
+          </GroupMobileHeader>
           <PageHeader>
               <template #header>
                   <router-link :to="`/gameweek/${gameweek?.id}`" class="hover:underline">
@@ -11,73 +17,54 @@
                   </router-link> 
               </template>
               <template #actionItems>
-                  <button @click="copyPageLink('Prediction')" class="p-1 rounded-md hover:bg-gray-200" title="Copy match predictions link">
-                      <LinkIcon class="size-6 text-blue-500" />
-                  </button>
-                  <Dropdown>
-                      <template #trigger>
-                          <EllipsisVerticalIcon class="size-6 text-gray-500" />
-                      </template>
-                      <template #items>
-                          <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 dropdown-item">
-                              Go to Group
-                          </router-link>
-                      </template>
-                  </Dropdown>
+                <template v-if="!isMobileNav">
+                  <MatchPredictionsActionItems :groupId="gameweek?.group_id" />
+                </template>
               </template>
               <template #details>
-                  <h6 class="text-gray-500">Match Predictions</h6>
+                  <p class="text-gray-500">Match Predictions</p>
               </template>
           </PageHeader>
 
-          <ScoreCard2 
-              :matches="[match]"
-              oneMatchPerRow
-              notPrediction
-              :topMargin="0"
-              homeCrestField="home_team_crest"
-              awayCrestField="away_team_crest"
-          >
-          <div class="mt-6 space-y-2 text-center text-gray-700">
-              <template v-if="matchIsFinished">
-                <div class="items-center flex justify-center">
-                  <p class="text-md font-semibold text-green-600">
-                    ✅ {{ correctScoreCount }} {{ correctScoreCount === 1 ? 'user' : 'users' }} got the exact score!
-                  </p>
-                  <button type="button" @click="toggleCorrectScores()" class="ms-2 text-green-600">
-                    <EyeIconSolid class="size-6" v-if="correctScoresOnly" />
-                    <EyeIcon class="size-6" v-else />
-                  </button>
-                </div>
-                <div class="items-center flex justify-center">
-                  <p class="text-md font-medium">
-                  🎯 {{ ((correctResultCount / groupMembersLength) * 100).toFixed(0) }}% predicted the correct result.
-                  </p>
-                </div>
-                <div class="items-center flex justify-center" v-if="userMatchPrediction">
-                  <p class="text-md font-medium">
-                    <span :class="getPredictionColor(userMatchPrediction)">
-                    🔮 {{ userMatchPrediction?.predicted_home_score }}-{{ userMatchPrediction?.predicted_away_score }} was your prediction.
-                    </span>
-                  </p>
-                </div>
-              </template>
-              <p v-if="mostCommonPrediction" class="text-md mt-4 font-medium">
-              💡 <span class="font-bold">{{ mostCommonPrediction }}</span> {{ matchIsFinished ? ' was ' : ' is ' }} the most popular prediction.
-              </p>
-          </div>
-        </ScoreCard2>
-
-          <!-- <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div class="flex flex-wrap gap-4">
-              <div class="justify-start flex">
-                <SearchBar searchBasis="user predictions" @search-entered="handleSearchQuery" />
-              </div>
-              <p class="mt-2" v-if="searchString">
-                Showing predictions for "<span class="font-semibold">{{ searchString }}</span>"
-              </p>
+          <div class="mt-8">
+            <ScoreCard2 
+                :matches="[match]"
+                oneMatchPerRow
+                notPrediction
+                :topMargin="0"
+                homeCrestField="home_team_crest"
+                awayCrestField="away_team_crest"
+            >
+            <div class="mt-6 space-y-2 text-center text-gray-700">
+                <template v-if="matchIsFinished">
+                  <div class="items-center flex justify-center">
+                    <p class="text-md font-semibold text-green-600">
+                      ✅ {{ correctScoreCount }} {{ correctScoreCount === 1 ? 'user' : 'users' }} got the exact score!
+                    </p>
+                    <button type="button" @click="toggleCorrectScores()" class="ms-2 text-green-600">
+                      <EyeIconSolid class="size-6" v-if="correctScoresOnly" />
+                      <EyeIcon class="size-6" v-else />
+                    </button>
+                  </div>
+                  <div class="items-center flex justify-center">
+                    <p class="text-md font-medium">
+                    🎯 {{ ((correctResultCount / groupMembersLength) * 100).toFixed(0) }}% predicted the correct result.
+                    </p>
+                  </div>
+                  <div class="items-center flex justify-center" v-if="userMatchPrediction">
+                    <p class="text-md font-medium">
+                      <span :class="getPredictionColor(userMatchPrediction)">
+                      🔮 {{ userMatchPrediction?.predicted_home_score }}-{{ userMatchPrediction?.predicted_away_score }} was your prediction.
+                      </span>
+                    </p>
+                  </div>
+                </template>
+                <p v-if="mostCommonPrediction" class="text-md mt-4 font-medium">
+                💡 <span class="font-bold">{{ mostCommonPrediction }}</span> {{ matchIsFinished ? ' was ' : ' is ' }} the most popular prediction.
+                </p>
             </div>
-          </div> -->
+            </ScoreCard2>
+          </div>
 
           <DataGrid 
               ref="matchPredictionsGridRef"
@@ -174,8 +161,8 @@
               </template>
             </ScoreCard2>
           </div>
-        </template>
-    </div>
+        </div>
+      </template>
 </template>
 
 <script setup lang="ts">
@@ -200,8 +187,14 @@ import CollapseButton from '../components/UI/CollapseButton.vue';
 import PageHeader from '../components/PageHeader.vue';
 import { copyPageLink } from '../utils/sharedFunctions';
 import Dropdown from "../components/UI/Dropdown.vue";
+import DoesNotExist from '../components/DoesNotExist.vue';
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import { useLayout } from '../shared';
+import MatchPredictionsActionItems from '../components/UI/actionItems/MatchPredictions.vue';
 
 const route = useRoute();
+
+const { isMobileNav, isMobile } = useLayout();
 
 const loading = ref<boolean>(true);
 const matchId = ref<string>();
@@ -224,6 +217,7 @@ const optionsLkp = ref<Array<LookupOption>>([
 const userMatchPrediction = ref<Prediction>();
 const isCollapsed = ref<boolean>(false);
 const gameweek = ref<{id: string, week_number: number, group_id: string}>();
+const matchExists = ref<boolean>(true);
 
 let correctScoreCount = 0;
 let correctResultCount = 0;
@@ -239,6 +233,12 @@ async function fetchMatchData() {
     matchId.value = route.params.id || route.query.id;
 
     const { data: matchData, error } = await gameweeksService.getMatchById(matchId.value);
+    
+    if (matchData[0] === undefined) {
+      matchExists.value = false;
+      loading.value = false;
+      return;
+    }
     if (error) throw new Error('Failed to load match');
     match.value = matchData[0];
     gameweek.value = matchData[0].gameweek;

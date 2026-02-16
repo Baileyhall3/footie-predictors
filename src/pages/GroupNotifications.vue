@@ -1,6 +1,11 @@
 <template>
     <LoadingScreen v-if="loading" />
-    <div class="container mx-auto py-8" v-else>
+    <div class="h-full flex flex-col min-h-0" v-else>
+        <GroupMobileHeader v-if="isMobileNav">
+          <template #actions>
+            <GroupNotificationsActionItems :groupId="groupId" />
+          </template>
+        </GroupMobileHeader>
         <PageHeader>
             <template #header>
                 <img 
@@ -14,38 +19,31 @@
                 </div>
             </template>
             <template #actionItems>
-                <Dropdown>
-                    <template #trigger>
-                        <EllipsisVerticalIcon class="size-6 text-gray-500" />
-                    </template>
-                    <template #items="{ close }">
-                        <router-link :to="`/group/${groupId}`" class="text-blue-600 dropdown-item item-separator">
-                            Go to Group
-                        </router-link>
-                        <button 
-                            class="dropdown-item disabled:opacity-50 item-separator" 
-                            @click="markAllAsRead(); close();"
-                            :disabled="unreadNotifications.length === 0"
-                            :title="unreadNotifications.length === 0 ? 'All notifications have been read' : 'Mark all notifications as read'"
-                        >
-                            Mark All as Read
-                        </button>
-                        <button
-                            class="dropdown-item disabled:opacity-50 text-red-600"
-                            :disabled="readNotifications.length === 0"
-                            @click="deleteAllRead(); close();"
-                            :title="readNotifications.length === 0 ? 'No notifications have been read' : 'Delete all notifications that have been read'"
-                        >
-                            Delete All Read
-                        </button>
-                    </template>
-                </Dropdown>
+                <GroupNotificationsActionItems :groupId="groupId" v-if="!isMobileNav" />
             </template>
         </PageHeader>
         <Tabs>
             <Tab header="Notifications">
                 <LoadingContainer v-if="notifsLoading" />
                 <template v-else>
+                    <div class="flex gap-2 mb-4 ">
+                        <button 
+                            @click="markAllAsRead" 
+                            class="px-4 flex items-center bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            :disabled="unreadNotifications.length === 0"
+                            :title="unreadNotifications.length === 0 ? 'All notifications have been read' : 'Mark all notifications as read'"
+                        >
+                        <CheckCheck class="size-5 me-2" />
+                        Mark All as Read
+                    </button>
+                    <button @click="deleteAllRead" class="px-4 py-2 flex items-center bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
+                        :disabled="readNotifications.length === 0"
+                        :title="readNotifications.length === 0 ? 'No notifications have been read' : 'Delete all notifications that have been read'"
+                    >
+                        <Trash2 class="size-5 me-2" />  
+                        Delete All Read
+                    </button>
+                    </div>
                     <RoundedContainer v-if="notifications.length === 0">
                         <p class="text-gray-600">
                             No notifications for this group yet.
@@ -75,13 +73,15 @@ import { groupsService } from '../api/groupsService';
 import { notificationsService } from '../api/notificationsService';
 import { userStore } from '../store/userStore';
 import LoadingContainer from '../components/LoadingContainer.vue';
-import { EllipsisVerticalIcon } from '@heroicons/vue/24/solid';
-import Dropdown from '../components/UI/Dropdown.vue';
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import DateUtils from '../utils/dateUtils';
 import NotificationPreferences from '../components/NotificationPreferences.vue';
 import NotificationCard from '../components/NotificationCard.vue';
+import { CheckCheck, Trash2 } from 'lucide-vue-next';
+import GroupNotificationsActionItems from '../components/UI/actionItems/GroupNotifications.vue';
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import { useLayout } from '../shared';
 
 const group = ref<Group>();
 const loading = ref<boolean>();
@@ -89,6 +89,8 @@ const groupId = ref<string>();
 const notifications = ref<Array<Notification>>([]);
 const notifsLoading = ref<boolean>();
 const preferences = ref<Array<NotificationPreference>>([]);
+
+const { isMobile, isMobileNav } = useLayout();
 
 const route = useRoute();
 const router = useRouter();

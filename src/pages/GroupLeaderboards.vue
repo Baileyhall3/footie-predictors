@@ -8,6 +8,11 @@
             <button @click="fetchAllData" class="mt-2 text-sm text-red-700 underline">Try again</button>
         </div>
         <div class="h-full flex flex-col min-h-0" v-else>
+            <GroupMobileHeader v-if="isMobileNav">
+                <template #actions>
+                    <GroupLeaderboardActionItems :groupId="groupId" />
+                </template>
+            </GroupMobileHeader>
             <PageHeader>
                 <template #header>
                     <!-- <h2 class="text-2xl font-semibold">{{ group?.name }} Leaderboards</h2> -->
@@ -27,19 +32,7 @@
                 </template>
 
                 <template #actionItems>
-                    <button @click="copyPageLink('Leaderboard')" class="p-1 rounded-md hover:bg-gray-200" title="Copy leaderboards link">
-                        <LinkIcon class="size-6 text-blue-500" />
-                    </button>
-                    <Dropdown>
-                        <template #trigger>
-                            <EllipsisVerticalIcon class="size-6 text-gray-500" />
-                        </template>
-                        <template #items>
-                            <router-link :to="`/group/${groupId}`" class="text-blue-600 dropdown-item">
-                                Go to Group
-                            </router-link>
-                        </template>
-                    </Dropdown>
+                    <GroupLeaderboardActionItems :groupId="groupId" v-if="!isMobileNav" />
                 </template>
 
                 <template #details>
@@ -240,15 +233,17 @@ import DataGrid from '../components/UI/grid/DataGrid.vue';
 import GridCol from '../components/UI/grid/GridCol.vue';
 import { LeaderboardEntry, Gameweek, Group, Season } from '../types';
 import UsernameDisplay from '../components/UI/UsernameDisplay.vue';
-import { FunnelIcon, EllipsisVerticalIcon, LinkIcon } from '@heroicons/vue/24/solid';
+import { FunnelIcon } from '@heroicons/vue/24/solid';
 import { FunnelIcon as FunnelIconOutline } from '@heroicons/vue/24/outline';
-import { copyPageLink } from '../utils/sharedFunctions';
-import Dropdown from "../components/UI/Dropdown.vue";
 import { seasonsService } from '../api/seasonsService';
 import FilterButton from '../components/UI/FilterButton.vue';
+import GroupLeaderboardActionItems from '../components/UI/actionItems/GroupLeaderboard.vue';
+import GroupMobileHeader from "../components/nav/GroupMobileHeader.vue";
+import { useLayout } from "../shared";
 
 const route = useRoute();
 const router = useRouter();
+const { isMobile, isMobileNav } = useLayout();
 
 const loading = ref<boolean>(true);
 const notInGroup = ref<boolean>(false);

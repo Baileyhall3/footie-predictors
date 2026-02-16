@@ -1,7 +1,9 @@
 <template>
-    <div class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto mt-6 mb-6">
-        <LoadingScreen v-if="loading" />
-        <div class="mb-8">
+    <NoAccess v-if="!isAdmin && !loading" />
+    <div v-else class="flex flex-col h-full">
+        <GroupMobileHeader v-if="isMobileNav" />
+        <div class="bg-white shadow rounded-xl p-6 max-w-2xl mx-auto">
+            <LoadingScreen v-if="loading" />
             <h2 class="text-2xl font-semibold mb-4">Gameweek {{ gameweek?.week_number }} - Add Matches</h2>
             <!-- <p class="text-lg">Deadline: {{ DateUtils.toFullDateTime(gameweek?.deadline) }}</p> -->
             <div class="mb-8 mt-4" v-if="gameweek">
@@ -19,35 +21,35 @@
                     />
                 </div>
             </div>
-        </div>
-
-        <AddMatches 
-            :deadline="gameweek?.deadline"
-            :selectedMatches="matches"
-            @error-message="handleErrorMessage"
-            @match-added="handleMatchAdded"
-            @match-removed="handleApiMatchRemoved"
-        />
     
-        <div class="mt-4 mb-4" v-if="matches.length > 0">
-            <p class="text-lg font-semibold">Matches</p>
-            <ScoreCard 
-                :matches="matches"
-                canRemove
-                oneMatchPerRow
-                @match-removed="handleMatchRemoved"
+            <AddMatches 
+                :deadline="gameweek?.deadline"
+                :selectedMatches="matches"
+                @error-message="handleErrorMessage"
+                @match-added="handleMatchAdded"
+                @match-removed="handleApiMatchRemoved"
             />
-        </div>
+        
+            <div class="mt-4 mb-4" v-if="matches.length > 0">
+                <p class="text-lg font-semibold">Matches</p>
+                <ScoreCard 
+                    :matches="matches"
+                    canRemove
+                    oneMatchPerRow
+                    @match-removed="handleMatchRemoved"
+                />
+            </div>
+        
+            <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
     
-        <p v-if="errorMessage" class="text-red-500 mt-3">{{ errorMessage }}</p>
-
-        <div class="justify-between items-center flex gap-4">
-            <button @click="cancelChanges" :disabled="!hasChanges" class="w-full bg-gray-300 text-gray-800 hover:bg-gray-400 py-2 rounded-md mt-4 disabled:opacity-50">
-                Cancel Changes
-            </button>
-            <button @click="doUpdates" :disabled="!hasChanges" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md mt-4 disabled:opacity-50">
-                Update Gameweek
-            </button>
+            <div class="justify-between items-center flex gap-4">
+                <button @click="cancelChanges" :disabled="!hasChanges" class="w-full bg-gray-300 text-gray-800 hover:bg-gray-400 py-2 rounded-md mt-4 disabled:opacity-50">
+                    Cancel Changes
+                </button>
+                <button @click="doUpdates" :disabled="!hasChanges" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md mt-4 disabled:opacity-50">
+                    Update Gameweek
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -59,9 +61,14 @@ import { gameweeksService } from '../api/gameweeksService';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import AddMatches from '../components/AddMatches.vue';
 import ScoreCard from '../components/ScoreCard.vue';
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import { useLayout } from '../shared';
+import NoAccess from '../components/NoAccess.vue';
 
 const route = useRoute();
 const router = useRouter();
+
+const { isMobileNav, isMobile } = useLayout();
 
 const loading = ref(true);
 const gameweekId = ref(null);
@@ -71,6 +78,7 @@ const errorMessage = ref('');
 const hasChanges = ref(false);
 const removedMatchesIds = ref([]);
 const originalDeadline = ref();
+const isAdmin = ref(true);
 
 watch(() => gameweek.value?.deadline, (newVal) => {
     if (newVal != originalDeadline.value) {
@@ -93,6 +101,13 @@ async function fetchGameweek() {
     const { data, error } = await gameweeksService.getGameweekById(gameweekId.value);
     if (error) return console.error(error);
     gameweek.value = data;
+
+    console.log('gameweek ', gameweek.value);
+
+    // const { data: membersData, error: membersError } = await groupsStore.fetchGroupMembers(groupId);
+    // if (membersError) throw new Error('Failed to load group members');
+
+    // isAdmin.value = userIsAdmin(membersData);
 
     originalDeadline.value = gameweek.value.deadline;
 

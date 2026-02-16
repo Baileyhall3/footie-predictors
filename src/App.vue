@@ -7,12 +7,11 @@
     <template v-else>
       
       <!-- <MobileHeader /> -->
-      <MobileHeader v-if="Capacitor.isNativePlatform() && isMobile && !isGroupRoute && userStore.isAuthenticated" />
+      <MobileHeader v-if="isMobileNav && !isGroupRoute && userStore.isAuthenticated" />
 
       <Header
-        v-else-if="!Capacitor.isNativePlatform() || !isMobile"
+        v-else-if="!isMobileNav || (!isGroupRoute && isMobile && userStore.isAuthenticated)"
         headerTitle="Footie Predictors"
-        :hideNav="!!Capacitor.isNativePlatform()"
       />
       <!-- Background Blur -->
       <div v-if="mobileNavControls.isOpen" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md z-40" @click="mobileNavControls.close"></div>
@@ -52,6 +51,7 @@ import { useNavigationMode } from "./shared";
 import MobileHeader from "./components/nav/MobileHeader.vue";
 import { Capacitor } from "@capacitor/core";
 import { useRoute } from 'vue-router';
+import { useLayout } from "./shared";
 
 const route = useRoute()
 
@@ -62,15 +62,16 @@ const isGroupRoute = computed(() => {
   return route.meta?.isGroupContext === true;
 });
 
+//         v-else-if="!Capacitor.isNativePlatform() || !isMobile || (!isGroupRoute && Capacitor.isNativePlatform() && userStore.isAuthenticated)"
+
+
 // Computed property to determine if we should show the loading screen
 const isLoading = computed(() => {
   // Show loading if auth is not initialized or content is not visible yet
   return !authInitialized.value || !isVisible.value;
 });
 
-const { width } = useWindowSize()
-
-const isMobile = computed(() => width.value < 1024)
+const { isMobile, isMobileNav } = useLayout()
 
 onMounted(async () => {
   try {

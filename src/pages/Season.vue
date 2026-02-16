@@ -8,6 +8,16 @@
             <button @click="fetchAllData" class="mt-2 text-sm text-red-700 underline">Try again</button>
         </div>
         <div class="h-full flex flex-col min-h-0" v-else>
+            <GroupMobileHeader v-if="isMobileNav">
+                <template #actions>
+                    <SeasonActionItems 
+                        :season="season" 
+                        :activeGameweek="activeGameweek" 
+                        :isAdmin="isAdmin" 
+                        @seasonEnded="endSeason"
+                    />
+                </template>
+            </GroupMobileHeader>
             <PageHeader>
                 <template #header>
                     <h2 class="text-2xl font-semibold">{{ season?.name }}</h2>
@@ -20,32 +30,13 @@
                 </template>
 
                 <template #actionItems>
-                    <button @click="copyPageLink('Season')" class="p-1 rounded-md hover:bg-gray-200" title="Copy season link">
-                        <LinkIcon class="size-6 text-blue-500" />
-                    </button>
-                    <Dropdown>
-                        <template #trigger>
-                            <EllipsisVerticalIcon class="size-6 text-gray-500" />
-                        </template>
-                        <template #items>
-                            <router-link :to="`/group/${season?.group_id}`" class="text-blue-600 dropdown-item item-separator">
-                                Go to Group
-                            </router-link>
-                            <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item" v-if="activeGameweek">
-                                Gameweek {{ activeGameweek?.week_number }}
-                            </router-link>
-                            <router-link :to="`/group/${season?.group_id}/create-gameweek`" v-if="isAdmin && !season?.is_finished">
-                                <button class="dropdown-item item-separator">
-                                    Create Gameweek
-                                </button>
-                            </router-link>
-                            <template v-if="isAdmin && !season?.end_date">
-                                <button class="dropdown-item" @click="endSeason">
-                                    End Season
-                                </button>
-                            </template>
-                        </template>
-                    </Dropdown>
+                    <SeasonActionItems 
+                        v-if="!isMobileNav"
+                        :season="season" 
+                        :activeGameweek="activeGameweek" 
+                        :isAdmin="isAdmin" 
+                        @seasonEnded="endSeason"
+                    />
                 </template>
 
                 <template #details>
@@ -185,8 +176,12 @@ import DeleteConfirm from '../components/DeleteConfirm.vue';
 import GameweekWinnerCard from '../components/GameweekWinnerCard.vue';
 import { copyPageLink } from '../utils/sharedFunctions';
 import ActiveIcon from '../components/UI/ActiveIcon.vue';
+import SeasonActionItems from '../components/UI/actionItems/Season.vue';
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import { useLayout } from '../shared';
 
 const route = useRoute();
+const { isMobileNav } = useLayout();
 
 const loading = ref<boolean>(false);
 const seasonExists = ref<boolean>(true);

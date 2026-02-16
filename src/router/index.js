@@ -8,10 +8,8 @@ import UpdateGroup from '../pages/UpdateGroup.vue';
 import CreateGameweek from '../pages/CreateGameweek.vue';
 import Gameweek from '../pages/Gameweek.vue';
 import GameweekPredictions from '../pages/GameweekPredictions.vue';
-import AdminUserPredictions from '../pages/AdminUserPredictions.vue';
 import AddGameweekMatches from '../pages/AddGameweekMatches.vue';
 import AppInfo from '../pages/AppInfo.vue';
-import UserStats from '../pages/UserStats.vue';
 import GroupStats from '../pages/GroupStats.vue';
 import GroupNotifications from '../pages/GroupNotifications.vue';
 import GroupAdminView from '../pages/GroupAdminView.vue';
@@ -20,7 +18,6 @@ import Predictions from '../pages/Predictions.vue';
 import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
 import ResetPassword from '../pages/ResetPassword.vue';
-import Profile from '../pages/Profile.vue';
 import MyUserProfile from '../pages/MyUserProfile.vue';
 import AuthTest from '../pages/AuthTest.vue';
 import Leaderboards from '../pages/Leaderboards.vue';
@@ -28,7 +25,6 @@ import GroupLeaderboards from '../pages/GroupLeaderboards.vue';
 import MatchPredictions from '../pages/MatchPredictions.vue';
 import UserGameweekPredictions from '../pages/UserGameweekPredictions.vue';
 import GroupUserProfile from '../pages/GroupUserProfile.vue';
-import CreateSeason from '../pages/CreateSeason.vue';
 import UserNotifications from '../pages/UserNotifications.vue';
 
 import Season from '../pages/Season.vue';
@@ -125,26 +121,16 @@ const router = createRouter({
         isGroupContext: true
       }
     },
-    {
-      path: '/group/:id/create-season',
-      name: 'GroupCreateSeason',
-      component: CreateSeason,
-      meta: {
-        title: 'Create Season',
-        requiresAuth: true,
-        isGroupContext: true
-      }
-    },
-    {
-      path: '/group/:id/stats',
-      name: 'GroupStats',
-      component: GroupStats,
-      meta: {
-        title: 'Group Stats',
-        requiresAuth: true,
-        isGroupContext: true
-      }
-    },
+    // {
+    //   path: '/group/:id/stats',
+    //   name: 'GroupStats',
+    //   component: GroupStats,
+    //   meta: {
+    //     title: 'Group Stats',
+    //     requiresAuth: true,
+    //     isGroupContext: true
+    //   }
+    // },
     {
       path: '/group/:id/update-group',
       name: 'UpdateGroup',
@@ -236,16 +222,6 @@ const router = createRouter({
       }
     },
     {
-      path: '/admin-gameweek-predictions/:gameweek_id/:user_id',
-      name: 'Admin Gameweek Predictions',
-      component: AdminUserPredictions,
-      meta: {
-        title: 'Admin Gameweek Predictions',
-        requiresAuth: true,
-        isGroupContext: true
-      }
-    }, 
-    {
       path: '/user-gameweek-predictions/:gameweek_id/:user_id',
       name: 'User Gameweek Predictions',
       component: UserGameweekPredictions,
@@ -298,15 +274,6 @@ const router = createRouter({
       component: MyUserProfile,
       meta: {
         title: 'My Profile',
-        requiresAuth: true
-      }
-    },
-    {
-      path: '/user-stats',
-      name: 'User Stats',
-      component: UserStats,
-      meta: {
-        title: 'User Stats',
         requiresAuth: true
       }
     },

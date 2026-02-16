@@ -1,8 +1,9 @@
 <template>
-    <div class="container mx-auto py-8">
+    <div class="h-full flex flex-col min-h-0">
         <LoadingScreen v-if="isLoading" />
         <NoAccess v-else-if="!hasAccess" />
         <template v-else>
+            <GroupMobileHeader v-if="isMobileNav" />
             <PageHeader>
                 <template #header>
                     <img 
@@ -11,38 +12,12 @@
                         alt="Group Logo"
                     />
                     <div>
-                        <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
+                        <router-link :to="`/group/${group?.id}`" class="hover:text-blue-600">
+                            <h2 class="text-2xl font-bold truncate">{{ group?.name }}</h2>
+                        </router-link>
                         <h6 class="text-gray-500">Admin View</h6>
                     </div>
                 </template>
-                <!-- <template #actionItems>
-                    <Dropdown>
-                        <template #trigger>
-                            <EllipsisVerticalIcon class="size-6 text-gray-500" />
-                        </template>
-                        <template #items="{ close }">
-                            <router-link :to="`/group/${groupId}`" class="text-blue-600 dropdown-item item-separator">
-                                Go to Group
-                            </router-link>
-                            <button 
-                                class="dropdown-item disabled:opacity-50 item-separator" 
-                                @click="markAllAsRead(); close();"
-                                :disabled="unreadNotifications.length === 0"
-                                :title="unreadNotifications.length === 0 ? 'All notifications have been read' : 'Mark all notifications as read'"
-                            >
-                                Mark All as Read
-                            </button>
-                            <button
-                                class="dropdown-item disabled:opacity-50 text-red-600"
-                                :disabled="readNotifications.length === 0"
-                                @click="deleteAllRead(); close();"
-                                :title="readNotifications.length === 0 ? 'No notifications have been read' : 'Delete all notifications that have been read'"
-                            >
-                                Delete All Read
-                            </button>
-                        </template>
-                    </Dropdown>
-                </template> -->
             </PageHeader>
             <Tabs>
                 <Tab header="Submitted Predictions">
@@ -222,6 +197,8 @@ import DataGrid from '../components/UI/grid/DataGrid.vue';
 import GridCol from '../components/UI/grid/GridCol.vue';
 import { userStore } from '../store/userStore';
 import { BellIcon, BellSlashIcon } from '@heroicons/vue/24/solid';
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import { useLayout } from '../shared';
 
 type MemberFilter = 'all' | 'submitted' | 'unsubmitted'
 
@@ -251,6 +228,8 @@ const preferencesGridData = ref<UserPreferences[]>([]);
 
 const route = useRoute();
 const router = useRouter();
+
+const { isMobileNav } = useLayout();
 
 onMounted(() => {
     fetchAllData();

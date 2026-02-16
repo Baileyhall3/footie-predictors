@@ -1,6 +1,6 @@
 <template>
     <LoadingScreen v-if="loading" />
-    <div class="container mx-auto py-8" v-else>
+    <div v-else class="flex flex-col h-full">
         <DoesNotExist v-if="!userExists" entity="user" />
         <div v-else-if="error" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
             <p class="font-medium">Error loading user data</p>
@@ -8,6 +8,11 @@
             <button @click="fetchAllData" class="mt-2 text-sm text-red-700 underline">Try again</button>
         </div>
         <template v-else>
+            <GroupMobileHeader v-if="isMobileNav">
+                <template #actions>
+                    <GroupUserProfileActionItems :groupId="groupId" />
+                </template>
+            </GroupMobileHeader>
             <PageHeader>
                 <template #header>
                     <div v-if="user?.profile_picture_url" class="w-8 h-8 flex items-center justify-center rounded-full overflow-hidden">
@@ -22,19 +27,7 @@
                 </template>
 
                 <template #actionItems>
-                    <button @click="copyPageLink('Profile')" class="p-1 rounded-md hover:bg-gray-200" title="Copy user profile link">
-                        <LinkIcon class="size-6 text-blue-500" />
-                    </button>
-                    <Dropdown>
-                        <template #trigger>
-                            <EllipsisVerticalIcon class="size-6 text-gray-500" />
-                        </template>
-                        <template #items>
-                            <router-link :to="`/group/${groupId}`" class="text-blue-600 dropdown-item">
-                                Go to Group
-                            </router-link>
-                        </template>
-                    </Dropdown>
+                    <GroupUserProfileActionItems :groupId="groupId" v-if="!isMobileNav" />
                 </template>
 
                 <template #details>
@@ -166,8 +159,6 @@ import { Prediction, UserStats, LeaderboardEntry } from '../types';
 import PageHeader from '../components/PageHeader.vue';
 import DateUtils from '../utils/dateUtils';
 import RoundedContainer from '../components/UI/RoundedContainer.vue';
-import Dropdown from "../components/UI/Dropdown.vue";
-import { EllipsisVerticalIcon, LinkIcon } from '@heroicons/vue/24/solid';
 import ScoreCard2 from '../components/ScoreCard2.vue';
 import { predictionsService } from '../api/predictionsService';
 import { userStore } from "../store/userStore";
@@ -179,9 +170,12 @@ import LeaderboardCard from '../components/LeaderboardCard.vue';
 import LineChart from '../components/LineChart.vue';
 import { LineData } from '../components/LineChart.vue';
 import { seasonsService } from '../api/seasonsService';
-import { copyPageLink } from '../utils/sharedFunctions';
+import GroupUserProfileActionItems from '../components/UI/actionItems/GroupUserProfile.vue';
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import { useLayout } from '../shared';
 
 const route = useRoute();
+const { isMobileNav } = useLayout();
 
 const loading = ref<boolean>(false);
 const userExists = ref<boolean>(true);

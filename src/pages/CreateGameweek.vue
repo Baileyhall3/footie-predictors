@@ -1,10 +1,8 @@
 <template>
-  <template v-if="!isAdmin && !loading">
-    <NoAccess />
-  </template>
-  
-  <div v-else class="container mx-auto py-8">
-    <div class="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto">
+  <NoAccess v-if="!isAdmin && !loading" />
+  <div v-else class="flex flex-col h-full">
+    <GroupMobileHeader :groupId="groupId" v-if="isMobileNav" />
+    <div class="bg-white shadow rounded-xl p-6 max-w-2xl mx-auto">
       <LoadingScreen v-if="loading" />
   
       <h2 class="text-2xl font-semibold mb-4">Gameweek {{ weekNumber }}</h2>
@@ -71,9 +69,12 @@ import { userIsAdmin } from '../utils/checkPermissions';
 import { groupsStore } from '../store/groupsStore';
 import { seasonsService } from '../api/seasonsService';
 import { supabase } from '../api/supabase';
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import { useLayout } from '../shared';
   
 const route = useRoute();
 const router = useRouter();
+const { isMobileNav } = useLayout();
 
 const groupId = route.params.id;
 const weekNumber = ref(1);
