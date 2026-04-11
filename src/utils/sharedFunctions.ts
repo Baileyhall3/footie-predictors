@@ -116,7 +116,9 @@ export function mapPredictions(
         predicted_away_score: predictionsMap[match.id]?.predicted_away_score ?? (match.final_away_score == undefined ? 0 : undefined),
         prediction_id: predictionsMap[match.id]?.id || null,
         home_team_crest: match.homeClub?.crest_url,
-        away_team_crest: match.awayClub?.crest_url
+        away_team_crest: match.awayClub?.crest_url,
+        competition_emblem_url: match.competition_emblem_url,
+        competition: match.competition
     }));
 
     // Initialize predictions object for v-model binding

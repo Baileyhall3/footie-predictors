@@ -144,7 +144,9 @@ export interface Match {
     group_id: string,
     gameweek_id: string
     final_home_score?: number,
-    final_away_score?: number
+    final_away_score?: number;
+    competition_emblem_url?: string;
+    competition?: string;
 }
 
 export type NotificationType = 

@@ -84,7 +84,14 @@
                         
                         <!-- Match Time / Prediction scores -->
                         <div class="grid grid-cols-[43%_14%_43%] w-full items-center mt-1" style="min-height: 1.5rem;">
-                            <div></div>
+                            <div>
+                                <!-- <img v-if="match.competition_emblem_url"
+                                    :src="match.competition_emblem_url"
+                                    alt="Competition Emblem"
+                                    :title="match.competition ?? 'Competition'"
+                                    class="w-6 h-6 flex-shrink-0"
+                                /> -->
+                            </div>
                             <Transition name="fade-slide" mode="out-in">
                                 <div
                                     :key="showPredictions && matchIsFinished(match)"

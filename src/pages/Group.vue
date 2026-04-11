@@ -218,25 +218,27 @@
           </Tab>
           <Tab header="Seasons">
             <RoundedContainer v-if="seasons?.length">
-              <div v-for="season in seasons" :key="season.id" class="flex justify-between items-center border-b py-3">
-                  <div>
-                      <div class="items-center flex">
-                          <router-link :to="`/season/${season.id}`" class="text-blue-600 hover:underline font-medium">
-                              {{ season.name }}
-                          </router-link>
-                      </div>
-                      <div class="text-sm text-gray-500">
-                          {{ season.start_date ? DateUtils.toShortDate(season.start_date) : 'TBD' }} - 
-                          {{ season.end_date ? DateUtils.toShortDate(season.end_date) : 'TBD' }}
-                      </div>
-                  </div>
-                  
-                  <div class="flex items-center gap-2">
-                      <div v-if="season.id === activeSeason?.id" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
-                          Active
-                      </div>
-                  </div>
-              </div>
+              <template v-for="(season, index) in seasons" :key="season.id">
+                <div class="flex justify-between items-center py-3" :class="{ 'border-b' : index !== seasons.length - 1}">
+                    <div>
+                        <div class="items-center flex">
+                            <router-link :to="`/season/${season.id}`" class="text-blue-600 hover:underline font-medium">
+                                {{ season.name }}
+                            </router-link>
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            {{ season.start_date ? DateUtils.toShortDate(season.start_date) : 'TBD' }} - 
+                            {{ season.end_date ? DateUtils.toShortDate(season.end_date) : 'TBD' }}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <div v-if="season.id === activeSeason?.id" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
+                            Active
+                        </div>
+                    </div>
+                </div>
+              </template>
             </RoundedContainer>
           </Tab>
           <Tab header="Leaderboard">
@@ -548,14 +550,6 @@ async function submitPredictions() {
   } finally {
     loading.value = false;
   }
-}
-
-function toggleGroupFavourite(isFavourite: boolean) {
-  userStore.updateFavouriteGroup(isFavourite ? group.value : null);
-  toast(`Group ${isFavourite ? 'set' : 'removed'} as favourite!`, {
-    "type": "success",
-    "position": "top-center"
-  });
 }
 
 const updateMemberAdminStatus = async (member: GroupMember) => {

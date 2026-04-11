@@ -32,36 +32,38 @@
         <p class="mt-2" style="align-self: end;" v-if="searchString">Showing results for "{{ searchString }}"</p>
       </template>
       
-      <div v-for="player in visibleLeaderboard" :key="player.id" class="flex justify-between items-center border-b py-3">
-        <UsernameDisplay 
-          :user="player" 
-          :includeUserPredictionLink="props.includeUserPredictionLink" 
-          :gameweek-id="gameweekId"
-          :currentUserId="userStore.user.id"
-          showUserPosition
-        >
-        <template #additionalDisplay>
-          <TrophyIcon v-if="player.user_id === props.winnerId" class="size-5 text-yellow-300" />
-          <StarIcon v-else-if="props.userId && player.user_id === props.userId" class="size-5 text-yellow-300" />
-        </template>
-        </UsernameDisplay>
-        
-        <div class="text-right">
-          <span v-if="!isEditing" class="font-semibold text-green-600">{{ player.total_points }} pts</span>
-          <template v-if="isEditing">
-            <input type="number" 
-                v-model="player.total_points"
-                @input="updateScore(player.id, player.user_id, $event.target.value)"
-                class="w-12 border rounded-md p-1 text-center" 
-                min="0" 
-            />
-            <span class="text-green-600 font-semibold"> pts</span>
+      <template v-for="(player, index) in visibleLeaderboard" :key="player.id">
+        <div class="flex justify-between items-center py-3" :class="{ 'border-b' : index !== (visibleLeaderboard.length - 1) }">
+          <UsernameDisplay 
+            :user="player" 
+            :includeUserPredictionLink="props.includeUserPredictionLink" 
+            :gameweek-id="gameweekId"
+            :currentUserId="userStore.user.id"
+            showUserPosition
+          >
+          <template #additionalDisplay>
+            <TrophyIcon v-if="player.user_id === props.winnerId" class="size-5 text-yellow-300" />
+            <StarIcon v-else-if="props.userId && player.user_id === props.userId" class="size-5 text-yellow-300" />
           </template>
-          <div class="text-xs text-gray-500">
-            {{ player.total_correct_scores ?? 0 }} exact scores
+          </UsernameDisplay>
+          
+          <div class="text-right">
+            <span v-if="!isEditing" class="font-semibold text-green-600">{{ player.total_points }} pts</span>
+            <template v-if="isEditing">
+              <input type="number" 
+                  v-model="player.total_points"
+                  @input="updateScore(player.id, player.user_id, $event.target.value)"
+                  class="w-12 border rounded-md p-1 text-center" 
+                  min="0" 
+              />
+              <span class="text-green-600 font-semibold"> pts</span>
+            </template>
+            <div class="text-xs text-gray-500">
+              {{ player.total_correct_scores ?? 0 }} exact scores
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </template>
   </TransitionGroup>
   <div v-if="props.previewOnly && recordsNotLoaded != 0" class="text-center mt-4">

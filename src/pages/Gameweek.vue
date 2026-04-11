@@ -53,6 +53,7 @@
       </PageHeader>
       <Tabs @tab-selected="handleTabSelected">
         <Tab header="Predictions">
+          <!-- <CalendarWrapper /> -->
           <template v-if="gameweek?.is_finished">
             <GameweekWinnerCard 
               :username="gameweekWinner.username"
@@ -222,6 +223,7 @@ import StatRow from '../components/StatRow.vue';
 import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
 import GameweekActionItems from '../components/UI/actionItems/Gameweek.vue';
 import { useLayout } from '../shared';
+import CalendarWrapper from '../components/UI/calendar/CalendarWrapper.vue';
 
 const route = useRoute();
 const router = useRouter();

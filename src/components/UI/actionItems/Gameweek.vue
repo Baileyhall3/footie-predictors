@@ -14,7 +14,7 @@
             {{ gameweek?.season_name }}
         </router-link>
         <template v-if="isAdmin">
-            <button @click="emit('toggleLock')" class="dropdown-item item-separator">
+            <button @click="emit('toggleLock')" class="dropdown-item item-separator" v-if="!gameweek?.is_finished">
                 {{ gameweek?.is_locked ? 'Unlock' : 'Lock' }}
             </button>
             <button v-if="!gameweek?.is_active && !gameweek?.is_finished" @click="emit('toggleActive')" class="dropdown-item item-separator">

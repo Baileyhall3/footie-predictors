@@ -12,25 +12,27 @@
         </div>
             
         <div v-if="gameweeks.length">
-            <div v-for="gameweek in gameweeks" :key="gameweek.id" class="flex justify-between items-start border-b py-3">
-                <div>
-                    <div class="items-center flex">
-                        <router-link :to="`/gameweek/${gameweek.id}`" class="text-blue-600 hover:underline font-medium">
-                            Gameweek {{ gameweek.week_number }}
-                        </router-link>
-                        <LockClosedIcon class="size-4 ms-2" v-if="gameweek.is_locked" />
-                        <ActiveIcon v-if="gameweek.is_active" :size="5" class="ms-2" />
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        <span class="font-semibold">Deadline: </span>
-                        {{ DateUtils.toFullDateTime(gameweek.deadline) }}
-                    </div>
-                    <div class="text-sm text-gray-600" v-if="gameweek.is_finished && gameweek.winner_name">
-                        <span class="font-semibold">Winner: </span>
-                        {{ gameweek.winner_name }}
+            <template v-for="(gameweek, index) in gameweeks" :key="gameweek.id">
+                <div class="flex justify-between items-start py-3" :class="{ 'border-b' : index !== (gameweeks.length - 1)}">
+                    <div>
+                        <div class="items-center flex">
+                            <router-link :to="`/gameweek/${gameweek.id}`" class="text-blue-600 hover:underline font-medium">
+                                Gameweek {{ gameweek.week_number }}
+                            </router-link>
+                            <LockClosedIcon class="size-4 ms-2" v-if="gameweek.is_locked" />
+                            <ActiveIcon v-if="gameweek.is_active" :size="5" class="ms-2" />
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="font-semibold">Deadline: </span>
+                            {{ DateUtils.toFullDateTime(gameweek.deadline) }}
+                        </div>
+                        <div class="text-sm text-gray-600" v-if="gameweek.is_finished && gameweek.winner_name">
+                            <span class="font-semibold">Winner: </span>
+                            {{ gameweek.winner_name }}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
         </div>
         <p v-else class="text-gray-600 py-2">No gameweeks yet.</p>
     </div>
