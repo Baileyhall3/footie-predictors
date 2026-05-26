@@ -10,13 +10,14 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   2002 = Bundesliga
   2019 = Serie A
   2224 = La Liga
+  2000 = World Cup
 */
 
 export const footballApiClient = {
   async getLeagues() {
     const res = await fetch(`${BASE_URL}/competitions`);
     const data = await res.json();
-    const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224];
+    const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224, 2000];
     return data.competitions.filter(({ id }) => selectableLeagueIds.includes(id));
   },
 
