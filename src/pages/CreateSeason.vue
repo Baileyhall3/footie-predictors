@@ -24,6 +24,14 @@
                         required
                     />
                 </div>
+                
+                <div class="mt-4">
+                    <CompetitionLookup  
+                        v-model:selectedCompetition="selectedCompetition" 
+                        @competition-selected="selectCompetition" 
+                        @competition-cleared="clearCompetition"
+                    />
+                </div>
             
                 <!-- Start Date -->
                 <div class="mt-4">
@@ -86,6 +94,8 @@ import { Group } from '../types';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import NoAccess from '../components/NoAccess.vue';
 import { userStore } from '../store/userStore';
+import CompetitionLookup from '../components/UI/input/CompetitionLookup.vue';
+import type { Competition } from '../api/competitionsService.ts';
 
 const router = useRouter();
 const route = useRoute();
@@ -96,11 +106,14 @@ const groupData = ref<Group>();
 const loading = ref<boolean>(false);
 const userIsAdmin = ref<boolean>(false);
 
+const selectedCompetition = ref<Competition | null>(null);
+
 const seasonData = ref({
     name: '',
     start_date: null,
     end_date: null,
-    group_id: null
+    group_id: null,
+    competition_id: null,
 });
 
 const minSeasonEndDate = computed(() => {
@@ -116,6 +129,16 @@ const minSeasonEndDate = computed(() => {
 onMounted(() => {
     fetchGroupData();
 });
+
+function selectCompetition(competition: Competition) {
+    seasonData.value.competition_id = competition.id;
+    selectedCompetition.value = competition;
+}
+
+function clearCompetition() {
+    seasonData.value.competition_id = null;
+    selectedCompetition.value = null;
+}
 
 async function fetchGroupData() {
     try {

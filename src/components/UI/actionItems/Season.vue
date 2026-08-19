@@ -13,7 +13,7 @@
             <router-link :to="`/gameweek/${activeGameweek?.id}`" class="text-blue-600 dropdown-item" v-if="activeGameweek">
                 Gameweek {{ activeGameweek?.week_number }}
             </router-link>
-            <router-link :to="`/group/${season?.group_id}/create-gameweek`" v-if="isAdmin && !season?.is_finished">
+            <router-link :to="`/group/${season?.group_id}/create-gameweek`" v-if="isAdmin && !season?.is_finished && !season?.competition_season_id">
                 <button class="dropdown-item item-separator">
                     Create Gameweek
                 </button>

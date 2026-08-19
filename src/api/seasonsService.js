@@ -35,10 +35,25 @@ export const seasonsService = {
         name: seasonData.name,
         start_date: seasonData.start_date,
         end_date: seasonData.end_date,
-        group_id: seasonData.group_id
+        group_id: seasonData.group_id,
+        competition_id: seasonData.competition_id,
+        competition_season_id: seasonData.competition_season_id
       });
   
       if (error) throw error;
+
+      if (season.competition_id && season.competition_season_id) {
+        const { data: generateGameweekData, error: generateGameweekError } = await supabase.functions.invoke('generate-gameweek', {
+            body: {
+                season_id: season.id
+            }
+        });
+  
+        if (generateGameweekError) {
+            console.log('error context:', await generateGameweekError.context?.json());
+            throw generateGameweekError;
+        }
+      }
   
       return { data: season, error: null };
     } catch (error) {

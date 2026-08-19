@@ -50,7 +50,7 @@
                         Edit
                     </button>
                 </router-link>
-                <router-link :to="`/group/${group?.id}/create-gameweek`" v-if="!activeSeason?.is_finished">
+                <router-link :to="`/group/${group?.id}/create-gameweek`" v-if="!activeSeason?.is_finished && !activeSeason?.competition_season_id">
                     <button class="dropdown-item item-separator">
                         Create Gameweek
                     </button>

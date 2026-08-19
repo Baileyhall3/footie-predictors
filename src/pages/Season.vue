@@ -22,6 +22,12 @@
                 <template #header>
                     <h2 class="text-2xl font-semibold">{{ season?.name }}</h2>
                     <ActiveIcon v-if="season?.is_active" :size="6" />
+                    <img v-if="season?.competition_emblem_url"
+                        :src="season.competition_emblem_url"
+                        alt="Competition Emblem"
+                        :title="season.competition"
+                        class="w-10 h-10 flex-shrink-0"
+                    />
                     <!-- <div class="flex items-center gap-2">
                         <div v-if="season?.is_active" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full transition">
                             Active
@@ -40,19 +46,30 @@
                 </template>
 
                 <template #details>
-                    <div class="gap-8 flex">
-                        <div class="flex flex-col">
-                            <span class="opacity-75">Start&nbsp;Date</span>
-                            <span class="font-medium">
-                            {{ season?.start_date ? DateUtils.toShortDate(season.start_date) : 'TBD' }}
-                            </span>
-                        </div>
-        
-                        <div class="flex flex-col">
-                            <span class="opacity-75">End&nbsp;Date</span>
-                            <span class="font-medium">
-                            {{ season?.end_date ? DateUtils.toShortDate(season.end_date) : '—' }}
-                            </span>
+                    <div class="flex flex-col gap-4">
+                        <div class="gap-8 flex">
+                            <!-- <div v-if="season?.competition_id" class="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-md border w-fit">
+                                <img v-if="season?.competition_emblem_url"
+                                    :src="season.competition_emblem_url"
+                                    alt="Competition Emblem"
+                                    :title="season.competition"
+                                    class="w-10 h-10 flex-shrink-0"
+                                />
+                                <span class="font-semibold">{{ season?.competition }}</span>
+                            </div> -->
+                            <div class="flex flex-col">
+                                <span class="opacity-75">Start&nbsp;Date</span>
+                                <span class="font-medium">
+                                {{ season?.start_date ? DateUtils.toShortDate(season.start_date) : 'TBD' }}
+                                </span>
+                            </div>
+            
+                            <div class="flex flex-col">
+                                <span class="opacity-75">End&nbsp;Date</span>
+                                <span class="font-medium">
+                                {{ season?.end_date ? DateUtils.toShortDate(season.end_date) : '—' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -128,7 +145,7 @@
                         :gameweeks="gameweeks" 
                         :groupId="season?.group_id" 
                         :isAdmin="isAdmin && season?.is_active" 
-                        :hideCreateGameweeks="season?.is_finished"
+                        :hideCreateGameweeks="season?.is_finished || season?.competition_season_id"
                     />
                 </Tab>
                 <Tab header="Leaderboard">
@@ -179,6 +196,7 @@ import ActiveIcon from '../components/UI/ActiveIcon.vue';
 import SeasonActionItems from '../components/UI/actionItems/Season.vue';
 import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
 import { useLayout } from '../shared';
+import { supabase } from '../api/supabase.js';
 
 const route = useRoute();
 const { isMobileNav } = useLayout();
@@ -198,7 +216,7 @@ const seasonStats = ref<Array<UserStats>>();
 const activeTabIndex = ref<number>(0);
 const endSeasonConfirm = ref();
 
-onMounted(() => {
+onMounted(async() => {
     fetchAllData();
 });
 

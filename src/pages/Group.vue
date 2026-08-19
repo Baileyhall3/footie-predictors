@@ -93,7 +93,7 @@
               </RoundedContainer>
             </div>
 
-            <RoundedContainer v-if="gameweeks.length === 0 && !activeSeason?.is_finished && group.iAmAdmin" class="mx-auto text-center">
+            <RoundedContainer v-if="gameweeks.length === 0 && !activeSeason?.is_finished && !activeSeason?.competition_season_id && group.iAmAdmin " class="mx-auto text-center">
               <h2 class="text-xl font-semibold mb-2">You haven't created a gameweek yet</h2>
               <p class="text-gray-600 mb-6">Set one up now to start predicting with your group members!</p>
               <router-link :to="`/group/${group?.id}/create-gameweek`">

@@ -1,0 +1,12 @@
+name: Generate Gameweeks
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"  # Runs every 20 minutes
+
+jobs:
+  generate-gameweeks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call API to generate gameweeks
+        run: curl -X GET https://www.footiepredictors.com/api/generateGameweeks

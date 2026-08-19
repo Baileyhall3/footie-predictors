@@ -17,7 +17,7 @@ export const footballApiClient = {
   async getLeagues() {
     const res = await fetch(`${BASE_URL}/competitions`);
     const data = await res.json();
-    const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224, 2000];
+    const selectableLeagueIds = [2016, 2021, 2001, 2015, 2002, 2019, 2224];
     return data.competitions.filter(({ id }) => selectableLeagueIds.includes(id));
   },
 

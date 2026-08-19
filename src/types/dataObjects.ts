@@ -12,7 +12,11 @@ export interface Season {
     group_icon_url: string | null,
     group_admin_name: string,
     winner_name: string | null,
-    is_active: boolean
+    is_active: boolean;
+    competition_emblem_url?: string | null;
+    competition?: string | null;
+    competition_id?: number | null;
+    competition_season_id?: number | null;
 }
 
 export interface Group {

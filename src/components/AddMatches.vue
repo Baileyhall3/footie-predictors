@@ -15,14 +15,14 @@
 
                 <div class="p-2 border border-gray-300 rounded-md">
                     <DatePicker
-                    v-model="matchesUntil"
-                    showIcon
-                    dateFormat="dd/mm/yy"
-                    class="w-full"
-                    :minDate="props.deadline"
-                    placeholder="e.g. 2–4 weeks after deadline"
-                    fluid
-                    hideOnDateTimeSelect
+                        v-model="matchesUntil"
+                        showIcon
+                        dateFormat="dd/mm/yy"
+                        class="w-full"
+                        :minDate="props.deadline"
+                        placeholder="e.g. 2–4 weeks after deadline"
+                        fluid
+                        hideOnDateTimeSelect
                     />
                 </div>
 
@@ -30,35 +30,14 @@
                     Limits how far into the future fixtures are loaded.
                 </p>
             </div>
-            <div class="mb-4" ref="leagueDropdown">
-                <label class="block text-sm font-medium text-gray-700">Select League</label>
-                <div class="relative">
-                    <button 
-                        @click="toggleLeagueDropdown"
-                        class="mt-1 p-2 w-full border rounded-md flex justify-between items-center"
-                    >   
-                        <template v-if="selectedLeague">
-                            <span>
-                                <img :src="selectedLeague.emblem" alt="League Emblem" class="w-6 h-6 inline-block mr-2">
-                                {{ selectedLeague.name }}
-                            </span>
-                            <button type="button" @mousedown.stop="clearLeague">
-                                <XMarkIcon class="size-5" />
-                            </button>
-                        </template>
-                        <span v-else>Select...</span>
-                    </button>
-                    
-                    <ul v-if="leagueDropdownOpen" class="absolute left-0 right-0 bg-white border rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto z-20">
-                        <li v-for="league in leagues" :key="league.id" 
-                            @click="selectLeague(league)"
-                            class="p-2 hover:bg-gray-100 flex items-center cursor-pointer">
-                            <img :src="league.emblem" alt="League Emblem" class="w-6 h-6 mr-2">
-                            {{ league.name }}
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            
+            <label class="block text-sm font-medium text-gray-700">Select Competition</label>
+            <CompetitionLookup 
+                v-model:selectedCompetition="selectedLeague" 
+                class="mb-4" 
+                @competition-selected="selectLeague" 
+                @competition-cleared="clearLeague"
+            />
 
             <div class="mb-4" ref="teamsDropdown" v-if="selectedLeague">
                 <label class="block text-sm font-medium text-gray-700">Select Team (optional)</label>
@@ -170,7 +149,7 @@ import { ref, onMounted, watch, onUnmounted, computed } from 'vue';
 import DateUtils from '../utils/dateUtils';
 import { XMarkIcon } from '@heroicons/vue/24/solid';
 import { footballApiClient } from '../api/footballApi.client';
-import { m } from 'vue-router/dist/router-CWoNjPRp.mjs';
+import CompetitionLookup from './UI/input/CompetitionLookup.vue';
 
 interface MatchItem {
     id: string;
@@ -193,7 +172,6 @@ export interface IProps {
 const props = defineProps<IProps>();
 const emit = defineEmits(["error-message", "match-added", "match-removed"]);
 
-const leagues = ref([]);
 const teams = ref([]);
 const matches = ref([]);
 const selectedLeague = ref();
@@ -298,7 +276,6 @@ const selectMatch = (match: any) => {
   
 onMounted(async () => {
     document.addEventListener("click", handleClickOutside);
-    fetchLeagues();
 });
 
 watch(
@@ -330,11 +307,6 @@ watch(
   },
   { immediate: true }
 );
-
-// Fetch leagues from football-data.org API
-async function fetchLeagues() {
-    leagues.value = await footballApiClient.getLeagues();
-}
 
 // Fetch matches for a selected league
 async function fetchMatches(leagueId: string | null, teamId: string | null) {
