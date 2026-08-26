@@ -38,6 +38,7 @@
                                         incorrect_points: group.incorrect_points
                                     }"      
                                     :deadline="group.gameweek.deadline"
+                                    :totalPoints="group.totalPoints"
                                     @update-prediction="(data) => handlePredictionUpdate({ ...data, group })"
                                     @predictions-submitted="submitPredictions(group)"
                                 >
@@ -126,7 +127,7 @@ async function fetchAllData() {
             gameweeksService.getMatches(gameweek.id)
         );
         const predictionPromises = activeGameweeks.map(gameweek =>
-            predictionsService.getUserGameweekPredictions(userStore.user?.id, gameweek.id)
+            predictionsService.getUserGameweekPredictionsUsingView(userStore.user?.id, gameweek.id)
         );
 
         const matchesResults = await Promise.all(matchPromises);
@@ -141,7 +142,8 @@ async function fetchAllData() {
         const finalGroups = activeGroups.map((group, index) => {
             const gameweek = activeGameweeks[index];  // Ensure that active gameweeks correspond correctly to groups
             const matches = matchesResults[index].data || [];
-            const predictionsData = predictionsResults[index].data || [];
+            const predictionsData = predictionsResults[index].data.predictions || [];
+            const totalPoints = predictionsResults[index].data.totalPoints || 0;
 
             const formattedMatches = mapPredictions(predictionsData, matches);
 
@@ -151,7 +153,8 @@ async function fetchAllData() {
                 matches: formattedMatches.matches,
                 predictions: formattedMatches.predictions,
                 allPredictionsSubmitted: predictionsData.length === matches.length,
-                predictionsChanged: false
+                predictionsChanged: false,
+                totalPoints
             };
         });
 
@@ -162,9 +165,7 @@ async function fetchAllData() {
         });
 
         userGroups.value = finalGroups;
-        // console.log('Final Groups with Gameweeks, Matches, and Predictions:', finalGroups);
         allUserGroups.value = finalGroups;
-
     } catch (error) {
         console.error(error);
     } finally {
