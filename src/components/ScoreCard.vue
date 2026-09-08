@@ -145,11 +145,11 @@
                     </component>
                 </div>
             </div>
-        
+            
             <template v-if="props.includeSubmitBtn && !props.locked && props.predictions && Object.keys(props.predictions).length > 0">
                 <button
                     @click="!predictionsSaved && submitPredictions()"
-                    class="w-full py-2 rounded-md mt-5 flex items-center justify-center transition-colors"
+                    class="w-full py-2 rounded-md mt-6 flex items-center justify-center transition-colors"
                     :class="predictionsSaved
                         ? 'bg-white ring-2 ring-green-400 text-black'
                         : 'bg-green-600 text-white'"
@@ -164,6 +164,18 @@
                     </template>
                 </button>
             </template>
+
+            <router-link
+                :to="`/gameweek-predictions/${props.gameweekId}`"
+                v-if="props.locked && props.gameweekId"
+                class="mt-6 w-full flex items-center justify-center
+                    py-2 border border-gray-200 rounded-md
+                    text-sm font-medium text-gray-600
+                    hover:bg-gray-50 hover:text-blue-600 transition"
+            >
+                View all predictions
+                <ChevronRightIcon class="size-4 ml-1" />
+            </router-link>
         </template>
     </TransitionGroup>
 </template>
@@ -171,7 +183,7 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue';
 import DateUtils from '../utils/dateUtils';
-import { LockClosedIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
+import { LockClosedIcon, ChevronDownIcon, ChevronUpIcon, ChevronRightIcon } from "@heroicons/vue/24/solid";
 import { GroupScoring } from '../types';
 import { TargetIcon, ClockIcon } from 'lucide-vue-next';
 import HomeAndAwayScore from './UI/scoreCard/HomeAndAwayScore.vue';

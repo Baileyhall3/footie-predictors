@@ -1,39 +1,25 @@
 <template>
-    <NoAccess v-if="!gameweekIsLocked && !loading" message="Gameweek is not locked yet." /> <!-- Add check to see if user is admin too? -->
-    <div v-else class="container mx-auto py-8">
-        <LoadingScreen v-if="loading" />
-
-        <div class="mb-1 ms-1">
-            <router-link :to="`/group/${gameweek?.group_id}`" class="text-blue-600 hover:underline font-medium">
-                ← Back to group
-            </router-link>
-        </div>
-
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-            <div class="flex items-center gap-2 mb-4">
-                <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }}</h2>
-                <div v-if="gameweek?.is_active" class="text-sm bg-blue-100 text-purple-800 px-3 py-1 rounded-full transition ms-2">
-                    Active
-                </div>
-            </div>     
-            <div class="justify-start flex">
-                <SearchBar searchBasis="user predictions" @search-entered="handleSearchQuery" />
+    <LoadingScreen v-if="isLoading" />
+    <NoAccess v-else-if="!gameweekIsLocked" message="Gameweek is not locked yet." /> <!-- Add check to see if user is admin too? -->
+    <MainContent v-else>
+        <div class="mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                <h2 class="text-2xl font-bold">Gameweek {{ gameweek?.week_number }} Predictions</h2>
+                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for user..." />
             </div>
-            <p class="mt-2" style="align-self: end;" v-if="searchString">Showing predictions for "{{ searchString }}"</p>
         </div>
-
         <!-- Matches List -->
-        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <RoundedContainer>
             <ScoreCard 
                 :matches="matches"
                 allowCollapse
                 header="Match Results"
                 matchesClickable
             />
-        </div>
+        </RoundedContainer>
 
         <!-- Predictions Section -->
-        <div v-for="user in displayedUsers" :key="user" class="bg-white shadow-lg rounded-xl p-6 mb-8">
+        <RoundedContainer v-for="user in displayedUsers" :key="user">
             <ScoreCard 
                 :matches="matches"
                 :predictions="groupedPredictions[user.username] || {}"
@@ -44,11 +30,11 @@
                 matchesClickable
                 :group-scoring="groupScoring"
             />
-        </div>
+        </RoundedContainer>
 
         <!-- Observer div to trigger lazy loading -->
         <div ref="loadMoreTrigger" class="h-10"></div>
-    </div>
+    </MainContent>
 </template>
 
 <script setup lang="ts">
@@ -58,24 +44,23 @@ import { gameweeksService } from '../api/gameweeksService';
 import { predictionsService } from '../api/predictionsService';
 import LoadingScreen from "../components/LoadingScreen.vue";
 import ScoreCard from '../components/ScoreCard.vue';
-import SearchBar from '../components/UI/SearchBar.vue';
 import { leaderboardService } from '../api/leaderboardService';
 import NoAccess from '../components/NoAccess.vue';
 import type { GroupScoring } from '../types';
 import { groupsStore } from '../store/groupsStore';
+import MainContent from "../components/layout/MainContent.vue";
+import { SearchBar2 } from '../components/UI/input';
+import { RoundedContainer } from "../components/UI";
 
 const route = useRoute();
-
-// TODO: use scoreCard2 component
 
 const loading = ref(true);
 const matches = ref([]);
 const gameweekId = ref();
 const gameweek = ref([]);
 const predictions = ref([]);
-const totalPoints = ref();
-const searchString = ref('');
 const usersList = ref([]); 
+const allUsers = ref([]);
 const displayedUsersCount = ref(25); // Initial users to display
 const loadMoreTrigger = ref(null); // Observer target
 const groupedPredictions = ref({});
@@ -83,6 +68,7 @@ const matchesCollapsed = ref(false);
 const scores = ref([]);
 const gameweekIsLocked = ref(false);
 const groupScoring = ref<GroupScoring>();
+const searchQuery = ref<string>('');
 
 const displayedUsers = computed(() => usersList.value.slice(0, displayedUsersCount.value));
 
@@ -164,7 +150,7 @@ async function mapPredictions() {
     groupedPredictions.value = grouped; 
 
     // Convert usernames to user objects & attach scores
-    usersList.value = Object.keys(grouped).map(username => {
+    const baseUsers = Object.keys(grouped).map(username => {
         // Find matching score entry
         const userScore = scores.value.find(score => score.username === username) || {};
 
@@ -174,13 +160,18 @@ async function mapPredictions() {
             total_correct_scores: userScore.total_correct_scores ?? 0,
         };
     });
+
+    allUsers.value = baseUsers.sort((a, b) => b.total_points - a.total_points); // Sort by total points descending
+    usersList.value = allUsers.value.slice(0, displayedUsersCount.value); // Initialize displayed users
 }
 
-
-async function handleSearchQuery(searchQuery: string) {
-    searchString.value = searchQuery;
-    matchesCollapsed.value = true;
-    fetchPredictions(searchQuery.toLowerCase())
+function handleSearchQuery() {
+    if (searchQuery.value.trim()) {
+        const query = searchQuery.value.toLowerCase();
+        usersList.value = allUsers.value.filter(user => user.username.toLowerCase().includes(query));
+    } else {
+        usersList.value = allUsers.value.slice(0, displayedUsersCount.value); // Reset to initial displayed users
+    }
 }
 
 function setupLazyLoading() {

@@ -16,7 +16,7 @@
                 :to="`/gameweek-predictions/${props.gameweekId}`" 
                 v-if="props.locked && props.gameweekId && !slots.headerActionItems"
                 class="text-sm text-blue-600 hover:underline"
-              >
+            >
                 View All →
             </router-link>
         </div>
