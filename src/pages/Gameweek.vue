@@ -63,10 +63,10 @@
             />
             <RoundedContainer headerText="How did you do?" collapsable>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
+                <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
                 <StatRow icon="✅" label="Correct Results" :value="currentUserGameweekData.total_correct_results" />
                 <StatRow icon="🎯" label="Correct Scores" :value="currentUserGameweekData.total_correct_scores" />
-                <StatRow icon="🔥" label="Total Points" :value="currentUserGameweekData.total_points" />
-                <StatRow icon="📈" label="Position" :value="currentUserGameweekData.position" />
               </div>
             </RoundedContainer>
           </template>

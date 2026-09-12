@@ -6,59 +6,57 @@
                 <SearchBar2 v-if="userGroups.length > 0" v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for group..." />
             </div>
             <LoadingScreen v-if="isLoading" />
-            <template v-else>
-                <template v-if="userGroups.length > 0">
-                    <div v-for="group in userGroups" :key="group.id">
-                        <RoundedContainer v-if="group.gameweek" collapsable>
-                            <template #header>
-                                <div class=" flex items-center">
-                                    <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
-                                    <h3 class="text-xl font-semibold">
-                                        <router-link 
-                                            :to="`/group/${group.id}`" 
-                                            class="hover:text-blue-600"
-                                        >
-                                            {{ group.name }}
-                                        </router-link>
-                                    </h3>
-                                </div>
-                            </template>
-                            
-                            <div>
-                                <ScoreCard 
-                                    :matches="group.matches"
-                                    :predictions="group.predictions"
-                                    :locked="group.gameweek.is_locked || !group.gameweek.is_active"
-                                    :includeSubmitBtn="!group.gameweek.is_locked && group.gameweek.is_active"
-                                    showActualAndPredictedScores
-                                    showLockedIcon
-                                    :groupScoring="{ 
-                                        exact_score_points: group.exact_score_points,
-                                        correct_result_points: group.correct_result_points,
-                                        incorrect_points: group.incorrect_points
-                                    }"      
-                                    :deadline="group.gameweek.deadline"
-                                    :totalPoints="group.totalPoints"
-                                    @update-prediction="(data) => handlePredictionUpdate({ ...data, group })"
-                                    @predictions-submitted="submitPredictions(group)"
-                                >
-                                    <template #header>
-                                        <router-link 
-                                            :to="`/gameweek/${group.gameweek.id}`" 
-                                            class="text-xl  hover:text-blue-600"
-                                        >
-                                            <h3 class="text-xl font-semibold">
-                                                Gameweek {{ group.gameweek.week_number }}
-                                            </h3>
-                                        </router-link>
-                                    </template>
-                                </ScoreCard>
+            <template v-else-if="userGroups.length > 0">
+                <div v-for="group in userGroups" :key="group.id">
+                    <RoundedContainer v-if="group.gameweek" collapsable>
+                        <template #header>
+                            <div class=" flex items-center">
+                                <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>
+                                <h3 class="text-xl font-semibold">
+                                    <router-link 
+                                        :to="`/group/${group.id}`" 
+                                        class="hover:text-blue-600"
+                                    >
+                                        {{ group.name }}
+                                    </router-link>
+                                </h3>
                             </div>
-                        </RoundedContainer>
-                    </div>
-                </template>
-                <NoGroupsJoined v-else />
+                        </template>
+                        
+                        <div>
+                            <ScoreCard 
+                                :matches="group.matches"
+                                :predictions="group.predictions"
+                                :locked="group.gameweek.is_locked || !group.gameweek.is_active"
+                                :includeSubmitBtn="!group.gameweek.is_locked && group.gameweek.is_active"
+                                showActualAndPredictedScores
+                                showLockedIcon
+                                :groupScoring="{ 
+                                    exact_score_points: group.exact_score_points,
+                                    correct_result_points: group.correct_result_points,
+                                    incorrect_points: group.incorrect_points
+                                }"      
+                                :deadline="group.gameweek.deadline"
+                                :totalPoints="group.totalPoints"
+                                @update-prediction="(data) => handlePredictionUpdate({ ...data, group })"
+                                @predictions-submitted="submitPredictions(group)"
+                            >
+                                <template #header>
+                                    <router-link 
+                                        :to="`/gameweek/${group.gameweek.id}`" 
+                                        class="text-xl  hover:text-blue-600"
+                                    >
+                                        <h3 class="text-xl font-semibold">
+                                            Gameweek {{ group.gameweek.week_number }}
+                                        </h3>
+                                    </router-link>
+                                </template>
+                            </ScoreCard>
+                        </div>
+                    </RoundedContainer>
+                </div>
             </template>
+            <NoGroupsJoined v-else />
         </div>
     </MainContent>
 </template>

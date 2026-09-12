@@ -1,40 +1,46 @@
 <template>
-    <LoadingScreen v-if="isLoading" />
+    <LoadingScreen v-if="loading" />
     <NoAccess v-else-if="!gameweekIsLocked" message="Gameweek is not locked yet." /> <!-- Add check to see if user is admin too? -->
-    <MainContent v-else>
-        <div class="mb-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                <h2 class="text-2xl font-bold">Gameweek {{ gameweek?.week_number }} Predictions</h2>
-                <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for user..." />
-            </div>
+    <div class="h-full flex flex-col min-h-0" v-else>
+        <GroupMobileHeader v-if="isMobileNav" />
+        <PageHeader>
+            <template #details>
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <h2 class="text-2xl font-semibold">Gameweek {{ gameweek?.week_number }} Predictions</h2>
+                    <SearchBar2 v-model="searchQuery" @update:model-value="handleSearchQuery" placeholder="Search for user..." />
+                </div>
+            </template>
+        </PageHeader>
+        
+        <div class="flex-1 overflow-y-auto pt-8">
+            <!-- Matches List -->
+            <RoundedContainer>
+                <ScoreCard 
+                    :matches="matches"
+                    allowCollapse
+                    header="Match Results"
+                    matchesClickable
+                />
+            </RoundedContainer>
+    
+            <!-- Predictions Section -->
+            <RoundedContainer v-for="user in displayedUsers" :key="user">
+                <ScoreCard 
+                    :matches="matches"
+                    :predictions="groupedPredictions[user.username] || {}"
+                    :locked="true"
+                    :totalPoints="user.total_points"
+                    :header="`${user.username}'s Predictions`"
+                    allowCollapse
+                    matchesClickable
+                    :group-scoring="groupScoring"
+                />
+            </RoundedContainer>
+    
+            <!-- Observer div to trigger lazy loading -->
+            <div ref="loadMoreTrigger" class="h-10"></div>
         </div>
-        <!-- Matches List -->
-        <RoundedContainer>
-            <ScoreCard 
-                :matches="matches"
-                allowCollapse
-                header="Match Results"
-                matchesClickable
-            />
-        </RoundedContainer>
-
-        <!-- Predictions Section -->
-        <RoundedContainer v-for="user in displayedUsers" :key="user">
-            <ScoreCard 
-                :matches="matches"
-                :predictions="groupedPredictions[user.username] || {}"
-                :locked="true"
-                :totalPoints="user.total_points"
-                :header="`${user.username}'s Predictions`"
-                allowCollapse
-                matchesClickable
-                :group-scoring="groupScoring"
-            />
-        </RoundedContainer>
-
-        <!-- Observer div to trigger lazy loading -->
-        <div ref="loadMoreTrigger" class="h-10"></div>
-    </MainContent>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -51,8 +57,12 @@ import { groupsStore } from '../store/groupsStore';
 import MainContent from "../components/layout/MainContent.vue";
 import { SearchBar2 } from '../components/UI/input';
 import { RoundedContainer } from "../components/UI";
+import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
+import PageHeader from '../components/PageHeader.vue';
+import { useLayout } from '../shared.ts';
 
 const route = useRoute();
+const { isMobileNav } = useLayout();
 
 const loading = ref(true);
 const matches = ref([]);

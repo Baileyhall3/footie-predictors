@@ -1,16 +1,14 @@
 <template>
-    <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold">Gameweeks</h3>
-            <router-link :to="`/group/${props.groupId}/create-gameweek`" v-if="props.isAdmin && !props.hideCreateGameweeks">
+    <RoundedContainer header-text="Gameweeks">
+        <template v-if="props.isAdmin && !props.hideCreateGameweeks" #headerContent>
+            <router-link :to="`/group/${props.groupId}/create-gameweek`">
                 <button 
                     class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
                 >
                     + Add Gameweek
                 </button>
             </router-link>
-        </div>
-            
+        </template>
         <div v-if="gameweeks.length">
             <template v-for="(gameweek, index) in gameweeks" :key="gameweek.id">
                 <div class="flex justify-between items-start py-3" :class="{ 'border-b' : index !== (gameweeks.length - 1)}">
@@ -35,11 +33,7 @@
             </template>
         </div>
         <p v-else class="text-gray-600 py-2">No gameweeks yet.</p>
-    </div>
-
-    <!-- <div v-if="gameweeks.length" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <GameweekCard v-for="gameweek in gameweeks" :key="gameweek.id" :gameweek="gameweek" />
-    </div> -->
+    </RoundedContainer>
 </template>
 
 <script setup lang="ts">
@@ -47,6 +41,7 @@ import DateUtils from '../utils/dateUtils';
 import { LockClosedIcon } from "@heroicons/vue/24/solid";
 import { Gameweek } from '../types';
 import ActiveIcon from './UI/ActiveIcon.vue';
+import { RoundedContainer } from './UI/index.ts';
 
 export interface IProps {
     gameweeks: Gameweek[],

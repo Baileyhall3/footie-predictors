@@ -110,6 +110,7 @@
                 :isCurrentUser="gameweekWinner.userIsGameweekWinner"
                 :weekNumber="activeGameweek?.week_number"
               />
+              
               <RoundedContainer class="mx-auto text-center" v-if="group.iAmAdmin">
                 <h2 class="text-xl font-semibold mb-2">Active gameweek has finished</h2>
                 <p class="text-gray-600 mb-6">Set up a new gameweek to keep predicting with your group members!</p>
@@ -479,7 +480,7 @@ const fetchAllData = async () => {
     gameweeks.value = gameweeksData ? gameweeksData.sort((a, b) => b.week_number - a.week_number) : []
 
     
-    activeGameweek.value = gameweeksData.filter(x => x.is_active)[0];
+    activeGameweek.value = gameweeksData.find(x => x.is_active);
     if (activeGameweek.value && Object.keys(activeGameweek.value).length > 0) {
       // Fetch both matches and predictions
       const [{ data: matchData }, { data: predictionsData }] = await Promise.all([

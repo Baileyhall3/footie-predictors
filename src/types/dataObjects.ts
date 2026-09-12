@@ -17,6 +17,9 @@ export interface Season {
     competition?: string | null;
     competition_id?: number | null;
     competition_season_id?: number | null;
+    exact_score_points?: number | null;
+    correct_result_points?: number | null;
+    incorrect_points?: number | null;
 }
 
 export interface Group {

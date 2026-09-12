@@ -9,7 +9,7 @@
             <template v-else>
                 <template v-if="userGroups.length > 0">
                     <div v-for="group in userGroups" :key="group.id">
-                        <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+                        <div class="bg-white shadow rounded-xl p-6 mb-8">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center">
                                     <img :src="group.icon_url ?? '/images/green-football-md.png'" class="w-10 h-10 mr-3" alt="Group Logo"/>

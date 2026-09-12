@@ -1,6 +1,6 @@
 <template>
-    <div class="relative bg-white border-4 border-yellow-400 shadow-lg rounded-xl p-6 mb-8">
-        <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-400 p-2 rounded-full shadow-md">
+    <div class="relative bg-white border-4 border-yellow-400 shadow rounded-xl p-6 mb-8">
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-400 p-2 rounded-full shadow">
             <TrophyIcon class="w-8 h-8 text-white" />
         </div>
         <div class="mt-6 text-center">

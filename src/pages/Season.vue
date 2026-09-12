@@ -116,29 +116,36 @@
                         <br /><br />
                         Thank you all for playing, predicting, and participating. Until next time — rest up, strategize, and get ready for the next season!
                     </RoundedContainer>
-
-                    <template v-if="userGameweekPredictions && userGameweekPredictions.length > 0">
-                        <ScoreCard2
-                            :matches="userGameweekPredictions"
+                    <RoundedContainer>
+                        <ScoreCard
+                            v-if="Object.keys(userGameweekPredictions).length > 0"
+                            :matches="matches"
+                            :predictions="userGameweekPredictions"
+                            :locked="activeGameweek?.is_locked"
+                            :gameweekId="activeGameweek?.id"
                             header="Your Predictions"
-                            :totalPoints="totalPoints"
-                            matchesClickable
-                        >
-                            <template #headerActionItems>
+                            showLockedIcon
+                            allowCollapse
+                            :matchesClickable="activeGameweek?.is_locked"
+                            :totalPoints="activeGameweek?.is_locked ? totalPoints : null"
+                            :group-scoring="groupScoring"
+                            showActualAndPredictedScores
+                            @update-prediction="handlePredictionUpdate"
+                            @predictions-submitted="submitPredictions"
+                            >
+                            <template #header>
                                 <router-link 
-                                    :to="`/gameweek/${activeGameweek?.id}`" 
-                                    class="text-sm text-blue-600 hover:underline"
+                                :to="`/gameweek/${activeGameweek.id}`" 
+                                class="text-xl  hover:text-blue-600"
                                 >
-                                    Gameweek {{ activeGameweek?.week_number }}
-                                </router-link>
+                                <h3 class="text-xl font-semibold">
+                                    GW-{{ activeGameweek?.week_number }} Predictions
+                                </h3>
+                            </router-link>
                             </template>
-                        </ScoreCard2>
-                    </template>
-                    <template v-else>
-                        <RoundedContainer>
-                            <p class="text-gray-500 py-2">No predictions made for the current gameweek yet.</p>
-                        </RoundedContainer>
-                    </template>
+                            </ScoreCard>
+                        <p v-else class="text-gray-500">No predictions made for this gameweek yet.</p>
+                    </RoundedContainer>
                 </Tab>
                 <Tab header="Gameweeks">
                     <GroupGameweeks 
@@ -177,14 +184,14 @@ import Tabs from "../components/UI/Tabs.vue";
 import Tab from "../components/UI/Tab.vue";
 import LoadingScreen from '../components/LoadingScreen.vue';
 import DoesNotExist from "../components/DoesNotExist.vue";
-import { Season, Gameweek, Prediction, LeaderboardEntry, UserStats } from '../types';
+import { Season, Gameweek, Prediction, LeaderboardEntry, UserStats, GroupScoring } from '../types';
 import PageHeader from '../components/PageHeader.vue';
 import GroupGameweeks from '../components/GroupGameweeks.vue';
 import DateUtils from '../utils/dateUtils';
 import RoundedContainer from '../components/UI/RoundedContainer.vue';
 import Dropdown from "../components/UI/Dropdown.vue";
 import { EllipsisVerticalIcon, LinkIcon } from '@heroicons/vue/24/solid';
-import ScoreCard2 from '../components/ScoreCard2.vue';
+import ScoreCard from '../components/ScoreCard.vue';
 import { predictionsService } from '../api/predictionsService';
 import { userStore } from "../store/userStore";
 import CombinedGroupStats from './CombinedGroupStats.vue';
@@ -197,6 +204,10 @@ import SeasonActionItems from '../components/UI/actionItems/Season.vue';
 import GroupMobileHeader from '../components/nav/GroupMobileHeader.vue';
 import { useLayout } from '../shared';
 import { supabase } from '../api/supabase.js';
+import { gameweeksService } from '../api/gameweeksService.js';
+import { mapPredictions } from '../utils/sharedFunctions';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 const route = useRoute();
 const { isMobileNav } = useLayout();
@@ -215,6 +226,8 @@ const leaderboard = ref<LeaderboardEntry>();
 const seasonStats = ref<Array<UserStats>>();
 const activeTabIndex = ref<number>(0);
 const endSeasonConfirm = ref();
+const matches = ref<Array<any>>([]);
+const groupScoring = ref<GroupScoring>();
 
 onMounted(async() => {
     fetchAllData();
@@ -230,7 +243,7 @@ async function fetchAllData() {
             throw new Error('Season ID is missing');
         }
 
-        const { data: seasonData, error: seasonError } = await seasonsService.getSeasonByIdUsingView(seasonId.value)
+        const { data: seasonData, error: seasonError } = await seasonsService.getSeasonByIdUsingView(seasonId.value);
 
         if (seasonError) {
             if (seasonError.code === "PGRST116") {
@@ -243,6 +256,12 @@ async function fetchAllData() {
         }
         season.value = seasonData;
 
+        groupScoring.value = {
+            correct_result_points: season.value?.correct_result_points,
+            exact_score_points: season.value?.exact_score_points,
+            incorrect_points: season.value?.incorrect_points
+        }
+
         isAdmin.value = season.value?.admin_id === userStore.user?.id;
 
         const { data: gameweeksData, error: gameweeksError } = await seasonsService.getSeasonGameweeks(seasonId.value)
@@ -253,17 +272,16 @@ async function fetchAllData() {
             activeGameweek.value = gameweeksData.find(x => x.is_active);
             
             if (activeGameweek.value) {
-                const { 
-                    data: predictionsData, 
-                    error: predictionsError 
-                } = await predictionsService.getUserGameweekPredictionsUsingView(userStore.user?.id, activeGameweek.value.id)
-                
-                if (predictionsError) {
-                    throw new Error(`Predictions error: ${predictionsError}`)
-                }
-        
-                if (predictionsData) {
-                    userGameweekPredictions.value = predictionsData.predictions;
+                if (activeGameweek.value && Object.keys(activeGameweek.value).length > 0) {
+                    // Fetch both matches and predictions
+                    const [{ data: matchData }, { data: predictionsData }] = await Promise.all([
+                        gameweeksService.getMatches(activeGameweek.value.id),
+                        predictionsService.getUserGameweekPredictionsUsingView(userStore.user?.id, activeGameweek.value.id)
+                    ]);
+
+                    const formattedMatches = mapPredictions(predictionsData.predictions, matchData);
+                    userGameweekPredictions.value = formattedMatches.predictions;
+                    matches.value = formattedMatches.matches;
                     totalPoints.value = predictionsData.totalPoints;
                 }
             }
@@ -292,6 +310,45 @@ async function fetchAllData() {
     } finally {
         loading.value = false;
     }
+}
+
+const handlePredictionUpdate = ({ matchId, field, value }) => {
+    if (!userGameweekPredictions.value[matchId]) {
+        userGameweekPredictions.value[matchId] = { predicted_home_score: 0, predicted_away_score: 0 };
+    }
+    userGameweekPredictions.value[matchId][field] = value;
+};
+
+async function submitPredictions() {
+  try {
+    loading.value = true;
+      
+    const predictionsToSubmit = Object.entries(userGameweekPredictions.value).map(
+      ([matchId, prediction]) => ({
+        match_id: matchId,
+        predicted_home_score: prediction.predicted_home_score ?? 0,
+        predicted_away_score: prediction.predicted_away_score ?? 0
+      })
+    );
+  
+    const { success, error} = await predictionsService.submitPredictions(userStore.user?.id, predictionsToSubmit);
+    if (error) {
+      toast("An error occurred while submitting your predictions.", {
+        "type": "error",
+        "position": "top-center"
+      });
+      throw new Error("An error occurred while submitting your predictions.")
+    } else if (success) {
+      toast("Your predictions have been saved!", {
+        "type": "success",
+        "position": "top-center"
+      });
+    }
+  } catch(err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
 }
 
 async function endSeason() {
