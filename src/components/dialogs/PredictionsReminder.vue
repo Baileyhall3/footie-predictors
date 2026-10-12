@@ -74,7 +74,8 @@ async function sendNotification() {
             type: 'predictions_reminder',
             priority: 'warning',
             link: `/gameweek/${props.gameweek.id}`,
-            expires_at: props.gameweek.deadline
+            expires_at: props.gameweek.deadline,
+            gameweek_id: props.gameweek.id
         }
 
         const { error } = await notificationsService.notifySelectedUsers(notif, userIds);

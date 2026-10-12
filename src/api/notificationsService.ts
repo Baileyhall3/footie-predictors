@@ -13,7 +13,8 @@ export type CreatedNotification = {
     type: NotificationType
     priority: NotificationPriority
     expires_at?: Date
-    link?: string
+    link?: string;
+    gameweek_id?: string;
 }
 
 /**
@@ -272,7 +273,8 @@ export const notificationsService = {
             user_ids: userIds,
             priority: notification.priority,
             link: notification.link,
-            expires_at: notification.expires_at
+            expires_at: notification.expires_at,
+            p_gameweek_id: notification.gameweek_id
           });
       
           if (notifyError) {
